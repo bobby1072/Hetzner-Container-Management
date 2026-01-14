@@ -1,6 +1,6 @@
-﻿using Hetzner.Container.Management.Schemas.Docker;
+﻿using Hetzner.Container.Management.Schemas.DockerApi;
 
-namespace Hetzner.Container.Management.Services.Docker.Abstract;
+namespace Hetzner.Container.Management.Services.DockerApi.Abstract;
 
 internal interface IDockerHttpClient
 {

@@ -1,7 +1,7 @@
 using System.Net.Sockets;
 using BT.Common.Helpers.Extensions;
 using Hetzner.Container.Management.Schemas.Configuration;
-using Hetzner.Container.Management.Services.Docker.Abstract;
+using Hetzner.Container.Management.Services.DockerApi.Abstract;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
