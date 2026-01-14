@@ -16,8 +16,4 @@
     <ProjectReference Include="..\Hetzner.Container.Management.Schemas\Hetzner.Container.Management.Schemas.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Docker\Concrete\" />
-  </ItemGroup>
-
 </Project>
