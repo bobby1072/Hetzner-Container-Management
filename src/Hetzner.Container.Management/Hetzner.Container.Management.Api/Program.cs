@@ -1,23 +1,72 @@
-var builder = WebApplication.CreateBuilder(args);
+using System.Text.Json;
+using BT.Common.Api.Helpers.Extensions;
+using BT.Common.Helpers;
+using Microsoft.AspNetCore.Http.Timeouts;
 
-// Add services to the container.
+var localLogger = LoggingHelper.CreateLogger();
 
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+try
 {
-    app.MapOpenApi();
+    localLogger.LogInformation("Application starting...");
+
+    var builder = WebApplication.CreateBuilder(args);
+    builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
+
+    var requestTimeout = builder.Configuration.GetValue<int>("RequestTimeout");
+
+    builder.Services.AddRequestTimeouts(opts =>
+    {
+        opts.DefaultPolicy = new RequestTimeoutPolicy
+        {
+            Timeout = TimeSpan.FromSeconds(requestTimeout > 0 ? requestTimeout : 60),
+        };
+    });
+    
+    builder.Logging.AddJsonLogging();
+
+    builder.Services.AddResponseCompression();
+    
+    builder.Services
+        .AddControllers()
+        .AddJsonOptions(opts => opts.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
+    
+    builder.Services.AddOgpenApi();
+
+    localLogger.LogInformation(
+        "About to build application with {NumberOfServices} services",
+        builder.Services.Count
+    );
+    
+    var app = builder.Build();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.MapOpenApi();
+    }
+    app.UseRouting();
+
+    app.UseResponseCompression();
+
+    app.UseHttpsRedirection();
+
+    app.UseAuthorization();
+
+    app.MapControllers();
+
+    app
+        .UseHealthGetEndpoints();
+    
+    await app.RunAsync();
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
+catch (Exception ex)
+{
+    localLogger.LogCritical(
+        ex,
+        "Unhandled exception in application with message: {ExMessage}",
+        ex.Message
+    );
+}
+finally
+{
+    localLogger.LogInformation("Application is exiting...");
+}

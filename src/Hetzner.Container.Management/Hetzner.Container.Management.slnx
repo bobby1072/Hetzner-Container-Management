@@ -1,3 +1,7 @@
 <Solution>
+  <Folder Name="/Submodules/">
+    <Project Path="..\Submodules\BT\src\BT.Common\BT.Common.Api.Helpers\BT.Common.Api.Helpers.csproj" Type="Classic C#" />
+    <Project Path="..\Submodules\BT\src\BT.Common\BT.Common.Helpers\BT.Common.Helpers.csproj" Type="Classic C#" />
+  </Folder>
   <Project Path="Hetzner.Container.Management.Api/Hetzner.Container.Management.Api.csproj" />
 </Solution>
