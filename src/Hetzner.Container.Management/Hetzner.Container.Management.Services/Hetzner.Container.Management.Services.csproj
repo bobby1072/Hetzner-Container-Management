@@ -7,13 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Docker.DotNet" Version="3.125.15" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Submodules\BT\src\BT.Common\BT.Common.Api.Helpers\BT.Common.Api.Helpers.csproj" />
     <ProjectReference Include="..\Hetzner.Container.Management.Schemas\Hetzner.Container.Management.Schemas.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Docker\Concrete\" />
   </ItemGroup>
 
 </Project>

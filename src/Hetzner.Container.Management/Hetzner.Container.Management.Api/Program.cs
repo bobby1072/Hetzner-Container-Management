@@ -59,6 +59,8 @@ try
 
     app.UseAuthorization();
 
+    app.UseCorrelationIdMiddleware();
+    
     app.MapControllers();
 
     app
