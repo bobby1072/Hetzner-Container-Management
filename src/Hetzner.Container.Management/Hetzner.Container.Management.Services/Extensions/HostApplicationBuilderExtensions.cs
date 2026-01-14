@@ -1,3 +1,4 @@
+using System.Net.Sockets;
 using BT.Common.Helpers.Extensions;
 using Hetzner.Container.Management.Schemas.Configuration;
 using Microsoft.Extensions.Configuration;
@@ -11,13 +12,20 @@ public static class HostApplicationBuilderExtensions
     public static IHostApplicationBuilder AddContainerManagementApplication(this IHostApplicationBuilder hostAppBuilder)
     {
         hostAppBuilder.CheckAndAddSingletonOptions<DockerHubDetails>();
-
-        var apiKey = hostAppBuilder.Configuration.GetValue<string>("ApiKey");
-        if (string.IsNullOrWhiteSpace(apiKey))
+        
+        var handler = new SocketsHttpHandler
         {
-            throw new ArgumentNullException(nameof(apiKey));
-        }
-        hostAppBuilder.Services.AddKeyedSingleton(ApplicationConstants.ServiceKeys.ApiKeyServiceKey, apiKey);
+            ConnectCallback = async (context, cancellationToken) =>
+            {
+                var socket = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+                var endpoint = new UnixDomainSocketEndPoint("/var/run/docker.sock");
+
+                await socket.ConnectAsync(endpoint, cancellationToken);
+                return new NetworkStream(socket, ownsSocket: true);
+            }
+        };
+        hostAppBuilder.Services.AddHttpClient();
+        
         
         return hostAppBuilder;
     }
