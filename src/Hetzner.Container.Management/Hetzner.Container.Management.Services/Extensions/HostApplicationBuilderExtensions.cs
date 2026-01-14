@@ -2,7 +2,10 @@ using System.Net.Sockets;
 using BT.Common.Helpers.Extensions;
 using BT.Common.Http.Extensions;
 using Hetzner.Container.Management.Schemas.Configuration;
-using Hetzner.Container.Management.Services.DockerApi.Abstract;
+using Hetzner.Container.Management.Services.DockerEngineApi.Abstract;
+using Hetzner.Container.Management.Services.DockerEngineApi.Concrete;
+using Hetzner.Container.Management.Services.DockerHubApi.Abstract;
+using Hetzner.Container.Management.Services.DockerHubApi.Concrete;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -13,12 +16,13 @@ public static class HostApplicationBuilderExtensions
 {
     public static IHostApplicationBuilder AddContainerManagementApplication(this IHostApplicationBuilder hostAppBuilder)
     {
-        hostAppBuilder.CheckAndAddSingletonOptions<DockerHubDetails>();
-        var apiSettings = hostAppBuilder.CheckAndAddSingletonOptions<DockerApiSettings>();
-
+        var dockerEngineApiSettings = hostAppBuilder.CheckAndAddSingletonOptions<DockerEngineApiSettings>();
+        var dockerHubApiSettings = hostAppBuilder.CheckAndAddSingletonOptions<DockerHubApiSettings>();
+        
         hostAppBuilder.Services.AddHttpClient();
+        hostAppBuilder.Services.AddHttpClientWithResilience<IDockerHubClient, DockerHubClient>(dockerHubApiSettings);
         hostAppBuilder.Services
-            .AddHttpClientWithResilience<IDockerHttpClient, IDockerHttpClient>(apiSettings)
+            .AddHttpClientWithResilience<IDockerEngineClient, DockerEngineClient>(dockerEngineApiSettings)
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
                 ConnectCallback = async (_, cancellationToken) =>
@@ -29,7 +33,7 @@ public static class HostApplicationBuilderExtensions
                         ProtocolType.Unspecified
                     );
 
-                    var endpoint = new UnixDomainSocketEndPoint(apiSettings.UnixDomainSocketEndPoint);
+                    var endpoint = new UnixDomainSocketEndPoint(dockerEngineApiSettings.UnixDomainSocketEndPoint);
                     await socket.ConnectAsync(endpoint, cancellationToken);
 
                     return new NetworkStream(socket, ownsSocket: true);

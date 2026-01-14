@@ -10,4 +10,8 @@
     <ProjectReference Include="..\..\Submodules\BT\src\BT.Common\BT.Common.Polly\BT.Common.Polly.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DockerHubApi\" />
+  </ItemGroup>
+
 </Project>

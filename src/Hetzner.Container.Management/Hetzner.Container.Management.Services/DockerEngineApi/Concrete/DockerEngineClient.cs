@@ -1,15 +1,15 @@
 ﻿using BT.Common.Http.Extensions;
-using Hetzner.Container.Management.Schemas.DockerApi;
-using Hetzner.Container.Management.Services.DockerApi.Abstract;
+using Hetzner.Container.Management.Schemas.DockerEngineApi;
+using Hetzner.Container.Management.Services.DockerEngineApi.Abstract;
 
-namespace Hetzner.Container.Management.Services.DockerApi.Concrete;
+namespace Hetzner.Container.Management.Services.DockerEngineApi.Concrete;
 
-public sealed class DockerHttpClient : IDockerHttpClient
+internal sealed class DockerEngineClient : IDockerEngineClient
 {
     private readonly HttpClient _httpClient;
     private const string ApiVersion = "v1.52";
 
-    public DockerHttpClient(HttpClient httpClient)
+    public DockerEngineClient(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }

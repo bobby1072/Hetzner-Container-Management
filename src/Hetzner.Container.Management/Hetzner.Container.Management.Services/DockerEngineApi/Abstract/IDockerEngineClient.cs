@@ -1,8 +1,8 @@
-﻿using Hetzner.Container.Management.Schemas.DockerApi;
+﻿using Hetzner.Container.Management.Schemas.DockerEngineApi;
 
-namespace Hetzner.Container.Management.Services.DockerApi.Abstract;
+namespace Hetzner.Container.Management.Services.DockerEngineApi.Abstract;
 
-internal interface IDockerHttpClient
+internal interface IDockerEngineClient
 {
     /// <summary>
     /// Lists all containers
