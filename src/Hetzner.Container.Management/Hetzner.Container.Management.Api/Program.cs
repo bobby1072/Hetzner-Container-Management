@@ -1,6 +1,8 @@
 using System.Text.Json;
 using BT.Common.Api.Helpers.Extensions;
+using BT.Common.Api.Helpers.Models;
 using BT.Common.Helpers;
+using BT.Common.Helpers.Extensions;
 using Microsoft.AspNetCore.Http.Timeouts;
 
 var localLogger = LoggingHelper.CreateLogger();
@@ -12,6 +14,15 @@ try
     var builder = WebApplication.CreateBuilder(args);
     builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
 
+    var serviceInfoSection = builder.Configuration.GetSection(nameof(ServiceInfo));
+
+    if (!serviceInfoSection.Exists())
+    {
+        throw new InvalidDataException("Service info section not found in configuration file");
+    }
+
+    builder.Services.ConfigureSingletonOptions<ServiceInfo>(serviceInfoSection);
+    
     var requestTimeout = builder.Configuration.GetValue<int>("RequestTimeout");
 
     builder.Services.AddRequestTimeouts(opts =>
@@ -21,6 +32,8 @@ try
             Timeout = TimeSpan.FromSeconds(requestTimeout > 0 ? requestTimeout : 60),
         };
     });
+
+    builder.Services.AddHealthChecks();
     
     builder.Logging.AddJsonLogging();
 
@@ -30,7 +43,7 @@ try
         .AddControllers()
         .AddJsonOptions(opts => opts.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
     
-    builder.Services.AddOgpenApi();
+    builder.Services.AddOpenApi();
 
     localLogger.LogInformation(
         "About to build application with {NumberOfServices} services",
