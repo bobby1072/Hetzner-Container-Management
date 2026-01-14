@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using BT.Common.Helpers.Extensions;
+using BT.Common.Http.Extensions;
 using Hetzner.Container.Management.Schemas.Configuration;
 using Hetzner.Container.Management.Services.DockerApi.Abstract;
 using Microsoft.Extensions.Configuration;
@@ -17,7 +18,7 @@ public static class HostApplicationBuilderExtensions
 
         hostAppBuilder.Services.AddHttpClient();
         hostAppBuilder.Services
-            .AddHttpClient<IDockerHttpClient, IDockerHttpClient>()
+            .AddHttpClientWithResilience<IDockerHttpClient, IDockerHttpClient>(apiSettings)
             .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
             {
                 ConnectCallback = async (_, cancellationToken) =>
