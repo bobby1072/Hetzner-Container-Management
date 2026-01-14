@@ -35,8 +35,6 @@ try
     }
     builder.Services.AddKeyedSingleton(ApplicationConstants.ServiceKeys.ApiKeyServiceKey, apiKey);
 
-    
-
     builder.Services.AddHealthChecks();
     
     builder.Logging.AddJsonLogging();
