@@ -5,5 +5,5 @@
   </Folder>
   <Project Path="Hetzner.Container.Management.Api/Hetzner.Container.Management.Api.csproj" />
   <Project Path="Hetzner.Container.Management.Schemas/Hetzner.Container.Management.Schemas.csproj" Id="edd15282-9142-4059-9ab0-8e5c0a6984c5" />
-  <Project Path="Hetzner.Container.Management/Hetzner.Container.Management.Services.csproj" Id="0928c414-9527-4af4-903b-139c179eb77b" />
+  <Project Path="Hetzner.Container.Management.Services/Hetzner.Container.Management.Services.csproj" Id="0928c414-9527-4af4-903b-139c179eb77b" />
 </Solution>

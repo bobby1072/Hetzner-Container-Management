@@ -2,7 +2,6 @@ using System.Text.Json;
 using BT.Common.Api.Helpers.Extensions;
 using BT.Common.Api.Helpers.Models;
 using BT.Common.Helpers;
-using BT.Common.Helpers.Extensions;
 using Hetzner.Container.Management.Services.Extensions;
 using Microsoft.AspNetCore.Http.Timeouts;
 
