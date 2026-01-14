@@ -1,8 +1,8 @@
 ﻿using BT.Common.Http.Extensions;
-using Hetzner.Container.Management.Schemas.Docker;
-using Hetzner.Container.Management.Services.Docker.Abstract;
+using Hetzner.Container.Management.Schemas.DockerApi;
+using Hetzner.Container.Management.Services.DockerApi.Abstract;
 
-namespace Hetzner.Container.Management.Services.Docker.Concrete;
+namespace Hetzner.Container.Management.Services.DockerApi.Concrete;
 
 public sealed class DockerHttpClient : IDockerHttpClient
 {
