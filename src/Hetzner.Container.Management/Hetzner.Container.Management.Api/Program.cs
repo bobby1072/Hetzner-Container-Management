@@ -2,6 +2,7 @@ using System.Text.Json;
 using BT.Common.Api.Helpers.Extensions;
 using BT.Common.Api.Helpers.Models;
 using BT.Common.Helpers;
+using Hetzner.Container.Management.Api.Middlewares;
 using Hetzner.Container.Management.Services.Extensions;
 using Microsoft.AspNetCore.Http.Timeouts;
 
@@ -59,6 +60,11 @@ try
 
     app.UseAuthorization();
 
+    app
+        .UseMiddleware<ExceptionHandlingMiddleware>()
+        .UseCorrelationIdMiddleware()
+        .UseMiddleware<ApiKeyMiddleware>();
+    
     app.MapControllers();
 
     app
