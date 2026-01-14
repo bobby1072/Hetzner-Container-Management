@@ -3,6 +3,7 @@ using BT.Common.Api.Helpers.Extensions;
 using BT.Common.Api.Helpers.Models;
 using BT.Common.Helpers;
 using BT.Common.Helpers.Extensions;
+using Hetzner.Container.Management.Services.Extensions;
 using Microsoft.AspNetCore.Http.Timeouts;
 
 var localLogger = LoggingHelper.CreateLogger();
@@ -13,15 +14,8 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
     builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
-
-    var serviceInfoSection = builder.Configuration.GetSection(nameof(ServiceInfo));
-
-    if (!serviceInfoSection.Exists())
-    {
-        throw new InvalidDataException("Service info section not found in configuration file");
-    }
-
-    builder.Services.ConfigureSingletonOptions<ServiceInfo>(serviceInfoSection);
+    
+    builder.CheckAndAddSingletonOptions<ServiceInfo>();
     
     var requestTimeout = builder.Configuration.GetValue<int>("RequestTimeout");
 
@@ -49,6 +43,8 @@ try
         "About to build application with {NumberOfServices} services",
         builder.Services.Count
     );
+
+    builder.AddContainerManagementApplication();
     
     var app = builder.Build();
 
