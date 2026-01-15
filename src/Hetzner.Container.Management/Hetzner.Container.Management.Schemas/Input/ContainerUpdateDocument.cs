@@ -16,24 +16,26 @@ public sealed record ContainerUpdateDocument: IValidatable<ContainerUpdateDocume
     public Dictionary<string, object?> ConfigMap { get; init; } = new();
 
     
-    public IReadOnlyCollection<Func<ContainerUpdateDocument, (bool, string?)>> ValidatorFunctions => 
+    public IReadOnlyCollection<Func<(bool, string?)>> ValidatorFunctions => 
     [
         IsValidPortNumber,
         IsValidConfigMap
     ];
-    public IReadOnlyCollection<Func<ContainerUpdateDocument, (Task<bool>, string?)>> AsyncValidatorFunctions => [];
-    private static (bool, string?) IsValidPortNumber(ContainerUpdateDocument document) =>
-        (document.PublicFacingPortNumber > 0 && document.PublicFacingPortNumber <= 65535, "Invalid port number provided");
+    public IReadOnlyCollection<Func<(Task<bool>, string?)>> AsyncValidatorFunctions => 
+    [
+        IsValidVersionAsync
+    ];
+    private (bool, string?) IsValidPortNumber() =>
+        (PublicFacingPortNumber > 0 && PublicFacingPortNumber <= 65535, "Invalid port number provided");
 
-    private static (bool, string?) IsValidConfigMap(ContainerUpdateDocument document)
+    private (bool, string?) IsValidConfigMap()
     {
         const string configMapErrorMessage = "Invalid config map provided";
-        if (document.ConfigMap.Keys.Any(string.IsNullOrWhiteSpace))
+        if (ConfigMap.Keys.Any(string.IsNullOrWhiteSpace))
         {
             return (false, configMapErrorMessage);
         }
-        if (document
-            .ConfigMap
+        if (ConfigMap
             .Values
             .Any(x => x is not null && 
                     !IsValidConfigMapValue(x.GetType())))
@@ -43,6 +45,18 @@ public sealed record ContainerUpdateDocument: IValidatable<ContainerUpdateDocume
         return (true, null);
     }
     
+    
+    private (Task<bool>, string?) IsValidVersionAsync()
+    {
+        async Task<bool> ValidateVersion()
+        {
+            // Simulate async validation (e.g., checking if version exists in registry)
+            await Task.Delay(1);
+            return !string.IsNullOrWhiteSpace(Version);
+        }
+        
+        return (ValidateVersion(), "Invalid version format");
+    }
     
     public static bool IsValidConfigMapValue(Type type)
     {
