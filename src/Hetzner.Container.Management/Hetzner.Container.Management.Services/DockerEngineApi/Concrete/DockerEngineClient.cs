@@ -24,7 +24,7 @@ internal sealed class DockerEngineClient : IDockerEngineClient
     {
         try
         {
-            var builder = $"/{ApiVersion}/containers/json".AppendPathSegment(string.Empty);
+            var builder = ApiVersion.AppendPathSegment("containers").AppendPathSegment("json");
 
             if (all)
             {
@@ -56,7 +56,8 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = $"/{ApiVersion}/containers"
+            var builder = ApiVersion
+                .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("start");
 
@@ -81,7 +82,8 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = $"/{ApiVersion}/containers"
+            var builder = ApiVersion
+                .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("stop");
 
@@ -107,7 +109,8 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = $"/{ApiVersion}/containers"
+            var builder = ApiVersion
+                .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("kill");
 
@@ -137,7 +140,8 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = $"/{ApiVersion}/containers"
+            var builder = ApiVersion
+                .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("pause");
 
@@ -162,7 +166,8 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = $"/{ApiVersion}/containers"
+            var builder = ApiVersion
+                .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("unpause");
 
@@ -189,7 +194,8 @@ internal sealed class DockerEngineClient : IDockerEngineClient
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
             ArgumentException.ThrowIfNullOrWhiteSpace(newName);
 
-            var builder = $"/{ApiVersion}/containers"
+            var builder = ApiVersion
+                .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("rename")
                 .AppendQueryParameter("name", newName);
@@ -217,7 +223,8 @@ internal sealed class DockerEngineClient : IDockerEngineClient
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
             ArgumentNullException.ThrowIfNull(updateRequest);
 
-            var builder = $"/{ApiVersion}/containers"
+            var builder = ApiVersion
+                .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("update")
                 .WithApplicationJson(updateRequest);
@@ -243,7 +250,8 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = $"/{ApiVersion}/containers"
+            var builder = ApiVersion
+                .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("restart");
 
@@ -269,8 +277,9 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            var builder = $"/{ApiVersion}/containers/create"
-                .AppendPathSegment(string.Empty)
+            var builder = ApiVersion
+                .AppendPathSegment("containers")
+                .AppendPathSegment("create")
                 .WithApplicationJson(request);
 
             if (!string.IsNullOrWhiteSpace(name))
@@ -304,7 +313,8 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = $"/{ApiVersion}/containers"
+            var builder = "ApiVersion"
+                .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("stats")
                 .AppendQueryParameter("stream", stream.ToString().ToLowerInvariant());
@@ -337,7 +347,8 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = $"/{ApiVersion}/containers"
+            var builder = ApiVersion
+                .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("logs")
                 .AppendQueryParameter("stdout", stdout.ToString().ToLowerInvariant())
