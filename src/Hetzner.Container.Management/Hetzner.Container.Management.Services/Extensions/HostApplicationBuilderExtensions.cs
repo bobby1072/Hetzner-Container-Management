@@ -18,7 +18,8 @@ public static class HostApplicationBuilderExtensions
     {
         var dockerEngineApiSettings = hostAppBuilder.CheckAndAddSingletonOptions<DockerEngineApiSettings>();
         var dockerHubApiSettings = hostAppBuilder.CheckAndAddSingletonOptions<DockerHubApiSettings>();
-        
+
+        hostAppBuilder.Services.AddMemoryCache();
         hostAppBuilder.Services.AddHttpClient();
         hostAppBuilder.Services.AddHttpClientWithResilience<IDockerHubClient, DockerHubClient>(dockerHubApiSettings);
         hostAppBuilder.Services
