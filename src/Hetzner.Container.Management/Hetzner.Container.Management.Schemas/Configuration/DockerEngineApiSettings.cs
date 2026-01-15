@@ -2,7 +2,7 @@
 
 namespace Hetzner.Container.Management.Schemas.Configuration;
 
-public sealed record DockerApiSettings : PollyRetrySettings
+public sealed record DockerEngineApiSettings : PollyRetrySettings
 {
     public required string UnixDomainSocketEndPoint { get; init; }
 }
