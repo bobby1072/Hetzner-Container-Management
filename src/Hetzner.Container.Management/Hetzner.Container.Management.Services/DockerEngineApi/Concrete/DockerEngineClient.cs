@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿using System.Net.Http.Json;
 using BT.Common.Http.Extensions;
 using Hetzner.Container.Management.Schemas.DockerEngineApi;
 using Hetzner.Container.Management.Services.DockerEngineApi.Abstract;
@@ -18,14 +18,18 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         _logger = logger;
     }
 
-    public async Task<DockerEngineActionResult<ContainerSummaryResponse[]>> ListContainersAsync(
+    public async Task<DockerEngineActionResult<ContainerSummaryResponse[]?>> ListContainersAsync(
         bool all = false,
         CancellationToken cancellationToken = default
     )
     {
         try
         {
-            var builder = ApiVersion.AppendPathSegment("containers").AppendPathSegment("json");
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
+                .AppendPathSegment("containers")
+                .AppendPathSegment("json")
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
 
             if (all)
             {
@@ -36,16 +40,18 @@ internal sealed class DockerEngineClient : IDockerEngineClient
                 _httpClient,
                 cancellationToken
             );
-            return new DockerEngineActionResult<ContainerSummaryResponse[]> { Data = data };
+            return new DockerEngineActionResult<ContainerSummaryResponse[]?> { Data = data };
         }
         catch (HttpRequestException ex)
         {
-            var errorMessage = await ExtractApiErrorMessageAsync(ex);
-            return HandleHttpError<ContainerSummaryResponse[]>(errorMessage);
+            return new DockerEngineActionResult<ContainerSummaryResponse[]?>
+            {
+                ExceptionMessage = ex.Message,
+            };
         }
         catch (Exception ex)
         {
-            return HandleError<ContainerSummaryResponse[]>(ex);
+            return HandleError<ContainerSummaryResponse[]?>(ex, nameof(ListContainersAsync));
         }
     }
 
@@ -58,22 +64,23 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = ApiVersion
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
-                .AppendPathSegment("start");
+                .AppendPathSegment("start")
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
 
-            await builder.PostStringAsync(_httpClient, cancellationToken);
+            await builder.PostAsync(_httpClient, cancellationToken);
             return new DockerEngineActionResult();
         }
         catch (HttpRequestException ex)
         {
-            var errorMessage = await ExtractApiErrorMessageAsync(ex);
-            return HandleHttpError(errorMessage);
+            return new DockerEngineActionResult { ExceptionMessage = ex.Message };
         }
         catch (Exception ex)
         {
-            return HandleError(ex);
+            return HandleError(ex, nameof(StartContainerAsync));
         }
     }
 
@@ -86,22 +93,23 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = ApiVersion
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
-                .AppendPathSegment("stop");
+                .AppendPathSegment("stop")
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
 
-            await builder.PostStringAsync(_httpClient, cancellationToken);
+            await builder.PostAsync(_httpClient, cancellationToken);
             return new DockerEngineActionResult();
         }
         catch (HttpRequestException ex)
         {
-            var errorMessage = await ExtractApiErrorMessageAsync(ex);
-            return HandleHttpError(errorMessage);
+            return new DockerEngineActionResult { ExceptionMessage = ex.Message };
         }
         catch (Exception ex)
         {
-            return HandleError(ex);
+            return HandleError(ex, nameof(StopContainerAsync));
         }
     }
 
@@ -115,27 +123,28 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = ApiVersion
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
-                .AppendPathSegment("kill");
+                .AppendPathSegment("kill")
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
 
             if (!string.IsNullOrWhiteSpace(signal))
             {
                 builder = builder.AppendQueryParameter("signal", signal);
             }
 
-            await builder.PostStringAsync(_httpClient, cancellationToken);
+            await builder.PostAsync(_httpClient, cancellationToken);
             return new DockerEngineActionResult();
         }
         catch (HttpRequestException ex)
         {
-            var errorMessage = await ExtractApiErrorMessageAsync(ex);
-            return HandleHttpError(errorMessage);
+            return new DockerEngineActionResult { ExceptionMessage = ex.Message };
         }
         catch (Exception ex)
         {
-            return HandleError(ex);
+            return HandleError(ex, nameof(KillContainerAsync));
         }
     }
 
@@ -148,22 +157,23 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = ApiVersion
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
-                .AppendPathSegment("pause");
+                .AppendPathSegment("pause")
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
 
-            await builder.PostStringAsync(_httpClient, cancellationToken);
+            await builder.PostAsync(_httpClient, cancellationToken);
             return new DockerEngineActionResult();
         }
         catch (HttpRequestException ex)
         {
-            var errorMessage = await ExtractApiErrorMessageAsync(ex);
-            return HandleHttpError(errorMessage);
+            return new DockerEngineActionResult { ExceptionMessage = ex.Message };
         }
         catch (Exception ex)
         {
-            return HandleError(ex);
+            return HandleError(ex, nameof(PauseContainerAsync));
         }
     }
 
@@ -176,22 +186,23 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = ApiVersion
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
-                .AppendPathSegment("unpause");
+                .AppendPathSegment("unpause")
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
 
-            await builder.PostStringAsync(_httpClient, cancellationToken);
+            await builder.PostAsync(_httpClient, cancellationToken);
             return new DockerEngineActionResult();
         }
         catch (HttpRequestException ex)
         {
-            var errorMessage = await ExtractApiErrorMessageAsync(ex);
-            return HandleHttpError(errorMessage);
+            return new DockerEngineActionResult { ExceptionMessage = ex.Message };
         }
         catch (Exception ex)
         {
-            return HandleError(ex);
+            return HandleError(ex, nameof(UnpauseContainerAsync));
         }
     }
 
@@ -206,23 +217,24 @@ internal sealed class DockerEngineClient : IDockerEngineClient
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
             ArgumentException.ThrowIfNullOrWhiteSpace(newName);
 
-            var builder = ApiVersion
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("rename")
-                .AppendQueryParameter("name", newName);
+                .AppendQueryParameter("name", newName)
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
 
-            await builder.PostStringAsync(_httpClient, cancellationToken);
+            await builder.PostAsync(_httpClient, cancellationToken);
             return new DockerEngineActionResult();
         }
         catch (HttpRequestException ex)
         {
-            var errorMessage = await ExtractApiErrorMessageAsync(ex);
-            return HandleHttpError(errorMessage);
+            return new DockerEngineActionResult { ExceptionMessage = ex.Message };
         }
         catch (Exception ex)
         {
-            return HandleError(ex);
+            return HandleError(ex, nameof(RenameContainerAsync));
         }
     }
 
@@ -237,23 +249,24 @@ internal sealed class DockerEngineClient : IDockerEngineClient
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
             ArgumentNullException.ThrowIfNull(updateRequest);
 
-            var builder = ApiVersion
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("update")
-                .WithApplicationJson(updateRequest);
+                .WithApplicationJson(updateRequest)
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
 
             await builder.PostJsonAsync<object>(_httpClient, cancellationToken);
             return new DockerEngineActionResult();
         }
         catch (HttpRequestException ex)
         {
-            var errorMessage = await ExtractApiErrorMessageAsync(ex);
-            return HandleHttpError(errorMessage);
+            return new DockerEngineActionResult { ExceptionMessage = ex.Message };
         }
         catch (Exception ex)
         {
-            return HandleError(ex);
+            return HandleError(ex, nameof(UpdateContainerAsync));
         }
     }
 
@@ -266,26 +279,27 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = ApiVersion
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
-                .AppendPathSegment("restart");
+                .AppendPathSegment("restart")
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
 
-            await builder.PostStringAsync(_httpClient, cancellationToken);
+            await builder.PostAsync(_httpClient, cancellationToken);
             return new DockerEngineActionResult();
         }
         catch (HttpRequestException ex)
         {
-            var errorMessage = await ExtractApiErrorMessageAsync(ex);
-            return HandleHttpError(errorMessage);
+            return new DockerEngineActionResult { ExceptionMessage = ex.Message };
         }
         catch (Exception ex)
         {
-            return HandleError(ex);
+            return HandleError(ex, nameof(RestartContainerAsync));
         }
     }
 
-    public async Task<DockerEngineActionResult<ContainerCreateResponse>> CreateContainerAsync(
+    public async Task<DockerEngineActionResult<ContainerCreateResponse?>> CreateContainerAsync(
         ContainerCreateRequest request,
         string? name = null,
         CancellationToken cancellationToken = default
@@ -295,10 +309,12 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            var builder = ApiVersion
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
                 .AppendPathSegment("create")
-                .WithApplicationJson(request);
+                .WithApplicationJson(request)
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
 
             if (!string.IsNullOrWhiteSpace(name))
             {
@@ -309,20 +325,22 @@ internal sealed class DockerEngineClient : IDockerEngineClient
                 _httpClient,
                 cancellationToken
             );
-            return new DockerEngineActionResult<ContainerCreateResponse> { Data = data };
+            return new DockerEngineActionResult<ContainerCreateResponse?> { Data = data };
         }
         catch (HttpRequestException ex)
         {
-            var errorMessage = await ExtractApiErrorMessageAsync(ex);
-            return HandleHttpError<ContainerCreateResponse>(errorMessage);
+            return new DockerEngineActionResult<ContainerCreateResponse?>
+            {
+                ExceptionMessage = ex.Message,
+            };
         }
         catch (Exception ex)
         {
-            return HandleError<ContainerCreateResponse>(ex);
+            return HandleError<ContainerCreateResponse?>(ex, nameof(CreateContainerAsync));
         }
     }
 
-    public async Task<DockerEngineActionResult<ContainerStatsResponse>> GetContainerStatsAsync(
+    public async Task<DockerEngineActionResult<ContainerStatsResponse?>> GetContainerStatsAsync(
         string containerId,
         bool stream = false,
         CancellationToken cancellationToken = default
@@ -332,30 +350,34 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = ApiVersion
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("stats")
-                .AppendQueryParameter("stream", stream.ToString().ToLowerInvariant());
+                .AppendQueryParameter("stream", stream.ToString().ToLowerInvariant())
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
 
             var data = await builder.GetJsonAsync<ContainerStatsResponse>(
                 _httpClient,
                 cancellationToken
             );
-            return new DockerEngineActionResult<ContainerStatsResponse> { Data = data };
+            return new DockerEngineActionResult<ContainerStatsResponse?> { Data = data };
         }
         catch (HttpRequestException ex)
         {
-            var errorMessage = await ExtractApiErrorMessageAsync(ex);
-            return HandleHttpError<ContainerStatsResponse>(errorMessage);
+            return new DockerEngineActionResult<ContainerStatsResponse?>
+            {
+                ExceptionMessage = ex.Message,
+            };
         }
         catch (Exception ex)
         {
-            return HandleError<ContainerStatsResponse>(ex);
+            return HandleError<ContainerStatsResponse?>(ex, nameof(GetContainerStatsAsync));
         }
     }
 
-    public async Task<DockerEngineActionResult<string>> GetContainerLogsAsync(
+    public async Task<DockerEngineActionResult<string?>> GetContainerLogsAsync(
         string containerId,
         bool stdout = true,
         bool stderr = true,
@@ -367,100 +389,82 @@ internal sealed class DockerEngineClient : IDockerEngineClient
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
 
-            var builder = ApiVersion
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("logs")
                 .AppendQueryParameter("stdout", stdout.ToString().ToLowerInvariant())
                 .AppendQueryParameter("stderr", stderr.ToString().ToLowerInvariant())
-                .AppendQueryParameter("timestamps", timestamps.ToString().ToLowerInvariant());
+                .AppendQueryParameter("timestamps", timestamps.ToString().ToLowerInvariant())
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
 
             var data = await builder.GetStringAsync(_httpClient, cancellationToken);
-            return new DockerEngineActionResult<string> { Data = data };
+            return new DockerEngineActionResult<string?> { Data = data };
         }
         catch (HttpRequestException ex)
         {
-            var errorMessage = await ExtractApiErrorMessageAsync(ex);
-            return HandleHttpError<string>(errorMessage);
+            return new DockerEngineActionResult<string?> { ExceptionMessage = ex.Message };
         }
         catch (Exception ex)
         {
-            return HandleError<string>(ex);
+            return HandleError<string?>(ex, nameof(GetContainerLogsAsync));
         }
     }
 
-    private static async Task<string> ExtractApiErrorMessageAsync(HttpRequestException ex)
+    private async Task<string?> ErrorExtractor(
+        HttpResponseMessage response,
+        CancellationToken cancellationToken
+    )
+    {
+        var foundErrorMessage = await TryGetDataFromResponse<ErrorResponse>(
+            response,
+            cancellationToken
+        );
+
+        return foundErrorMessage?.Message;
+    }
+
+    private static async Task<T?> TryGetDataFromResponse<T>(
+        HttpResponseMessage response,
+        CancellationToken cancellationToken
+    )
+        where T : class
     {
         try
         {
-            if (ex.StatusCode.HasValue)
-            {
-                // Try to read response content if available
-                var message = ex.Message;
-                // HttpRequestException message often contains the response body
-                if (message.Contains("{") && message.Contains("message"))
-                {
-                    var startIndex = message.IndexOf("{");
-                    var jsonPart = message.Substring(startIndex);
-                    var errorResponse = JsonSerializer.Deserialize<JsonElement>(jsonPart);
-                    if (errorResponse.TryGetProperty("message", out var messageProperty))
-                    {
-                        return messageProperty.GetString()
-                            ?? $"HTTP {(int)ex.StatusCode.Value} error";
-                    }
-                }
-                return $"HTTP {(int)ex.StatusCode.Value} error: {ex.Message}";
-            }
+            return await response.Content.ReadFromJsonAsync<T>(cancellationToken);
         }
         catch
         {
-            // Fall back to exception message
+            return null;
         }
-
-        return ex.Message;
     }
 
-    private DockerEngineActionResult HandleHttpError(string apiErrorMessage)
+    private DockerEngineActionResult HandleError(Exception ex, string nameofAction)
     {
         _logger.LogError(
-            "HTTP error occurred during request to {BaseUrl}: {Message}",
-            _httpClient.BaseAddress,
-            apiErrorMessage
+            ex,
+            "Unexpected exception occurred during request to {BaseUrl}",
+            _httpClient.BaseAddress
         );
-        return new DockerEngineActionResult { ExceptionMessage = apiErrorMessage };
+        return new DockerEngineActionResult
+        {
+            ExceptionMessage = $"Failed to process {nameofAction} request",
+        };
     }
 
-    private DockerEngineActionResult<T> HandleHttpError<T>(string apiErrorMessage)
+    private DockerEngineActionResult<T> HandleError<T>(Exception ex, string nameofAction)
     {
         _logger.LogError(
-            "HTTP error occurred during request to {BaseUrl}: {Message}",
-            _httpClient.BaseAddress,
-            apiErrorMessage
+            ex,
+            "Unexpected exception occurred during request to {BaseUrl}",
+            _httpClient.BaseAddress
         );
         return new DockerEngineActionResult<T>
         {
             Data = default,
-            ExceptionMessage = apiErrorMessage,
+            ExceptionMessage = $"Failed to process {nameofAction} request",
         };
-    }
-
-    private DockerEngineActionResult HandleError(Exception ex)
-    {
-        _logger.LogError(
-            ex,
-            "Unexpected exception occurred during request to {BaseUrl}",
-            _httpClient.BaseAddress
-        );
-        return new DockerEngineActionResult { ExceptionMessage = ex.Message };
-    }
-
-    private DockerEngineActionResult<T> HandleError<T>(Exception ex)
-    {
-        _logger.LogError(
-            ex,
-            "Unexpected exception occurred during request to {BaseUrl}",
-            _httpClient.BaseAddress
-        );
-        return new DockerEngineActionResult<T> { Data = default, ExceptionMessage = ex.Message };
     }
 }
