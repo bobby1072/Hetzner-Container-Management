@@ -15,11 +15,11 @@ public sealed class ApiKeyMiddleware
 
     public Task InvokeAsync(HttpContext httpContext)
     {
-        var apiKeyFromConfig =
-            httpContext.RequestServices.GetRequiredKeyedService<string>(ApplicationConstants.ServiceKeys.ApiKeyServiceKey);
+        var apiKeysFromConfig =
+            httpContext.RequestServices.GetRequiredKeyedService<string[]>(ApplicationConstants.ServiceKeys.ApiKeyServiceKey);
 
         if (!httpContext.Request.Headers.TryGetValue(ApplicationConstants.CustomHeaders.ApiKeyHeaderName,
-                out var apiKeyFromRequest) || apiKeyFromRequest != apiKeyFromConfig)
+                out var apiKeyFromRequest) || !apiKeysFromConfig.Contains(apiKeyFromRequest!))
         {
             throw new ApiServerException(HttpStatusCode.Unauthorized, "You do not have a valid API key attached to this request.");
         }

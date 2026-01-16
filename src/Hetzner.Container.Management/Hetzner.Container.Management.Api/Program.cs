@@ -28,12 +28,12 @@ try
         };
     });
     
-    var apiKey = builder.Configuration.GetValue<string>("ApiKey");
-    if (string.IsNullOrWhiteSpace(apiKey))
+    var apiKeys = builder.Configuration.GetSection("ApiKey");
+    if (!apiKeys.Exists())
     {
-        throw new ArgumentNullException(nameof(apiKey));
+        throw new ArgumentNullException(nameof(apiKeys));
     }
-    builder.Services.AddKeyedSingleton(ApplicationConstants.ServiceKeys.ApiKeyServiceKey, apiKey);
+    builder.Services.AddKeyedSingleton(ApplicationConstants.ServiceKeys.ApiKeyServiceKey, apiKeys.Get<string[]>() ?? throw new ArgumentException(nameof(apiKeys)));
 
     builder.Services.AddHealthChecks();
     
