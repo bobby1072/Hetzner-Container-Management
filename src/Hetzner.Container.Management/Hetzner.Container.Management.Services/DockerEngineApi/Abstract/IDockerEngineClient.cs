@@ -4,7 +4,7 @@ namespace Hetzner.Container.Management.Services.DockerEngineApi.Abstract;
 
 internal interface IDockerEngineClient
 {
-    Task<DockerEngineActionResult<ContainerSummaryResponse[]>> ListContainersAsync(
+    Task<DockerEngineActionResult<ContainerSummaryResponse[]?>> ListContainersAsync(
         bool all = false,
         CancellationToken cancellationToken = default
     );
@@ -28,17 +28,17 @@ internal interface IDockerEngineClient
         object updateRequest,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult<ContainerCreateResponse>> CreateContainerAsync(
+    Task<DockerEngineActionResult<ContainerCreateResponse?>> CreateContainerAsync(
         ContainerCreateRequest request,
         string? name = null,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult<ContainerStatsResponse>> GetContainerStatsAsync(
+    Task<DockerEngineActionResult<ContainerStatsResponse?>> GetContainerStatsAsync(
         string containerId,
         bool stream = false,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult<string>> GetContainerLogsAsync(
+    Task<DockerEngineActionResult<string?>> GetContainerLogsAsync(
         string containerId,
         bool stdout = true,
         bool stderr = true,
