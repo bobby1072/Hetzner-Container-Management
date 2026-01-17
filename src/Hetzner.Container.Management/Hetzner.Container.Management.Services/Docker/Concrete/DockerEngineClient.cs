@@ -54,7 +54,44 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return HandleError<ContainerSummaryResponse[]?>(ex, nameof(ListContainersAsync));
         }
     }
+    public async Task<DockerApiActionResult> RemoveContainerAsync(
+        string containerId,
+        bool force = false,
+        bool deleteVolumes = false,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
+                .AppendPathSegment("containers")
+                .AppendPathSegment(containerId)
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
 
+            if (force)
+            {
+                builder = builder.AppendQueryParameter("force", "true");
+            }
+
+            if (deleteVolumes)
+            {
+                builder = builder.AppendQueryParameter("v", "true");
+            }
+            
+            await builder.SendAsync(_httpClient, HttpMethod.Delete, cancellationToken);
+
+            return new DockerApiActionResult();
+        }
+        catch (HttpRequestException ex)
+        {
+            return new DockerApiActionResult { ExceptionMessage = ex.Message };
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex, nameof(StartContainerAsync));
+        }
+    }
     public async Task<DockerApiActionResult> StartContainerAsync(
         string containerId,
         CancellationToken cancellationToken = default
@@ -283,7 +320,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
 
     public async Task<DockerApiActionResult<ContainerCreateResponse?>> CreateContainerAsync(
         ContainerCreateRequest request,
-        string? name = null,
+        string name,
         CancellationToken cancellationToken = default
     )
     {
@@ -293,13 +330,9 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
                 .AppendPathSegment("create")
+                .AppendQueryParameter("name", name)
                 .WithApplicationJson(request)
                 .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
-
-            if (!string.IsNullOrWhiteSpace(name))
-            {
-                builder = builder.AppendQueryParameter("name", name);
-            }
 
             var data = await builder.PostJsonAsync<ContainerCreateResponse>(
                 _httpClient,

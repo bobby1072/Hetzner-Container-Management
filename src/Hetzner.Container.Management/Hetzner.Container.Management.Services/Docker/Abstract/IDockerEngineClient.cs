@@ -9,6 +9,13 @@ internal interface IDockerEngineClient
         bool all = false,
         CancellationToken cancellationToken = default
     );
+
+    Task<DockerApiActionResult> RemoveContainerAsync(
+        string containerId,
+        bool force = false,
+        bool deleteVolumes = false,
+        CancellationToken cancellationToken = default
+    );
     Task<DockerApiActionResult> StartContainerAsync(
         string containerId,
         CancellationToken cancellationToken = default

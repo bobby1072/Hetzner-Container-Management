@@ -12,7 +12,13 @@ public sealed record InfrastructureComponent
     public required int InternalPortNumber { get; init; }
     public required string ImageVersionTag { get; init; }
     public required Dictionary<string, object?> ConfigMap { get; init; }
-    public DateTime LastUpdated  { get; init; } = DateTime.UtcNow;
+    public string? VolumeName { get; init; }
+    public DateTime LastUpdated  
+    { 
+        get => field.ToUniversalTime(); 
+        init;
+        
+    } = DateTime.UtcNow;
     
     public ContainerInspectResponse? LatestContainerSummary { get; init; }
 

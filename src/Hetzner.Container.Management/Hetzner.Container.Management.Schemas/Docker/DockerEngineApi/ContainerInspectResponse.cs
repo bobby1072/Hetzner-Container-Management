@@ -29,4 +29,13 @@ public sealed record ContainerInspectResponse
     public Mount[] Mounts { get; init; } = [];
     public ContainerConfig? Config { get; init; }
     public ContainerInspectNetworkSettings? NetworkSettings { get; init; }
+
+
+    public Dictionary<string, object?> ConvertConfigEnvStringArrayToDict()
+    {
+        return Config?
+            .Env?
+            .ToDictionary(x => x.Split("=")[0], x => (object?)x.Split("=")[1])
+                ?? new Dictionary<string, object?>();
+    }
 }

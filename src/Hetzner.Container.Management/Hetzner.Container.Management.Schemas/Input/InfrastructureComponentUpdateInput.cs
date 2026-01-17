@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Hetzner.Container.Management.Schemas.Input;
 
-public sealed record InfrastructureUpdateDocument : IValidatable<InfrastructureUpdateDocument>
+public sealed record InfrastructureComponentUpdateInput : IValidatable<InfrastructureComponentUpdateInput>
 {
     [JsonPropertyName("dockerHubDetails")]
     [JsonRequired]
@@ -15,19 +15,40 @@ public sealed record InfrastructureUpdateDocument : IValidatable<InfrastructureU
     [JsonPropertyName("portNumber")]
     [JsonRequired]
     public required int PublicFacingPortNumber { get; init; }
+    [JsonPropertyName("internalPortNumber")]
+    [JsonRequired]
+    public required int InternalPortNumber { get; init; }
 
     [JsonPropertyName("imageTag")]
     public string ImageTag { get; init; } = "latest";
 
     [JsonPropertyName("configMap")]
     public Dictionary<string, object?> ConfigMap { get; init; } = new();
+    
+    [JsonPropertyName("volumeName")]
+    public string? VolumeName { get; init; }
+    
     public Func<(bool, string?)>[] ValidatorFunctions =>
-        [IsValidPortNumber, IsValidConfigMap, IsValidContainerName];
+        [
+            IsPublicFacingPortNumberValid, 
+            IsInternalPortNumberValid,
+            IsValidConfigMap,
+            IsValidContainerName
+        ];
     public Func<(Task<bool>, string?)>[] AsyncValidatorFunctions => [];
 
-    private (bool, string?) IsValidPortNumber() =>
+
+    public string[] CreateEnvStringArrayFromConfigMap(string splitter = "=")
+        => ConfigMap
+                .Select(kv => $"{kv.Key}{splitter}{kv.Value}")
+                .ToArray();
+
+
+    private (bool, string?) IsInternalPortNumberValid() => IsValidPortNumber(InternalPortNumber);
+    private (bool, string?) IsPublicFacingPortNumberValid() => IsValidPortNumber(PublicFacingPortNumber);
+    private static (bool, string?) IsValidPortNumber(int portNum) =>
         (
-            PublicFacingPortNumber > 0 && PublicFacingPortNumber <= 65535,
+            portNum > 0 && portNum <= 65535,
             "Invalid port number provided"
         );
 
