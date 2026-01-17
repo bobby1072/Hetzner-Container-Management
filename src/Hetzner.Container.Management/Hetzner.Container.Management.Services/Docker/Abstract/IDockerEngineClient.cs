@@ -4,56 +4,56 @@ namespace Hetzner.Container.Management.Services.Docker.Abstract;
 
 internal interface IDockerEngineClient
 {
-    Task<DockerEngineActionResult<ContainerSummaryResponse[]?>> ListContainersAsync(
+    Task<DockerApiActionResult<ContainerSummaryResponse[]?>> ListContainersAsync(
         bool all = false,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult> StartContainerAsync(
+    Task<DockerApiActionResult> StartContainerAsync(
         string containerId,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult> StopContainerAsync(
+    Task<DockerApiActionResult> StopContainerAsync(
         string containerId,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult> RestartContainerAsync(
+    Task<DockerApiActionResult> RestartContainerAsync(
         string containerId,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult> KillContainerAsync(
+    Task<DockerApiActionResult> KillContainerAsync(
         string containerId,
         string? signal = null,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult> PauseContainerAsync(
+    Task<DockerApiActionResult> PauseContainerAsync(
         string containerId,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult> UnpauseContainerAsync(
+    Task<DockerApiActionResult> UnpauseContainerAsync(
         string containerId,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult> RenameContainerAsync(
+    Task<DockerApiActionResult> RenameContainerAsync(
         string containerId,
         string newName,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult> UpdateContainerAsync(
+    Task<DockerApiActionResult> UpdateContainerAsync(
         string containerId,
         object updateRequest,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult<ContainerCreateResponse?>> CreateContainerAsync(
+    Task<DockerApiActionResult<ContainerCreateResponse?>> CreateContainerAsync(
         ContainerCreateRequest request,
         string? name = null,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult<ContainerStatsResponse?>> GetContainerStatsAsync(
+    Task<DockerApiActionResult<ContainerStatsResponse?>> GetContainerStatsAsync(
         string containerId,
         bool stream = false,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult<string?>> GetContainerLogsAsync(
+    Task<DockerApiActionResult<string?>> GetContainerLogsAsync(
         string containerId,
         bool stdout = true,
         bool stderr = true,

@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Hetzner.Container.Management.Schemas.Input;
 
-public sealed record ContainerUpdateDocument : IValidatable<ContainerUpdateDocument>
+public sealed record InfrastructureUpdateDocument : IValidatable<InfrastructureUpdateDocument>
 {
     [JsonPropertyName("dockerHubDetails")]
     [JsonRequired]
@@ -21,9 +21,9 @@ public sealed record ContainerUpdateDocument : IValidatable<ContainerUpdateDocum
 
     [JsonPropertyName("configMap")]
     public Dictionary<string, object?> ConfigMap { get; init; } = new();
-    public IReadOnlyCollection<Func<(bool, string?)>> ValidatorFunctions =>
+    public Func<(bool, string?)>[] ValidatorFunctions =>
         [IsValidPortNumber, IsValidConfigMap, IsValidContainerName];
-    public IReadOnlyCollection<Func<(Task<bool>, string?)>> AsyncValidatorFunctions => [];
+    public Func<(Task<bool>, string?)>[] AsyncValidatorFunctions => [];
 
     private (bool, string?) IsValidPortNumber() =>
         (
