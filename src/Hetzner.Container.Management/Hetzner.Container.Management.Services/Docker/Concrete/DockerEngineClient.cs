@@ -62,8 +62,6 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
-
             var builder = "http://localhost"
                 .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
@@ -91,8 +89,6 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
-
             var builder = "http://localhost"
                 .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
@@ -121,8 +117,6 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
-
             var builder = "http://localhost"
                 .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
@@ -155,8 +149,6 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
-
             var builder = "http://localhost"
                 .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
@@ -184,8 +176,6 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
-
             var builder = "http://localhost"
                 .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
@@ -214,9 +204,6 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
-            ArgumentException.ThrowIfNullOrWhiteSpace(newName);
-
             var builder = "http://localhost"
                 .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
@@ -246,9 +233,6 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
-            ArgumentNullException.ThrowIfNull(updateRequest);
-
             var builder = "http://localhost"
                 .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
@@ -277,8 +261,6 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
-
             var builder = "http://localhost"
                 .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
@@ -307,8 +289,6 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            ArgumentNullException.ThrowIfNull(request);
-
             var builder = "http://localhost"
                 .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
@@ -348,8 +328,6 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
-
             var builder = "http://localhost"
                 .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
@@ -387,8 +365,6 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(containerId);
-
             var builder = "http://localhost"
                 .AppendPathSegment(ApiVersion)
                 .AppendPathSegment("containers")
@@ -409,6 +385,145 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         catch (Exception ex)
         {
             return HandleError<string?>(ex, nameof(GetContainerLogsAsync));
+        }
+    }
+
+    public async Task<DockerApiActionResult<ImageSummaryResponse[]?>> ListImagesAsync(
+        bool all = false,
+        string? filters = null,
+        bool sharedSize = false,
+        bool digests = false,
+        bool manifests = false,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
+                .AppendPathSegment("images")
+                .AppendPathSegment("json")
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+
+            if (all)
+            {
+                builder = builder.AppendQueryParameter("all", "true");
+            }
+
+            if (!string.IsNullOrWhiteSpace(filters))
+            {
+                builder = builder.AppendQueryParameter("filters", filters);
+            }
+
+            if (sharedSize)
+            {
+                builder = builder.AppendQueryParameter("shared-size", "true");
+            }
+
+            if (digests)
+            {
+                builder = builder.AppendQueryParameter("digests", "true");
+            }
+
+            if (manifests)
+            {
+                builder = builder.AppendQueryParameter("manifests", "true");
+            }
+
+            var data = await builder.GetJsonAsync<ImageSummaryResponse[]>(
+                _httpClient,
+                cancellationToken
+            );
+            return new DockerApiActionResult<ImageSummaryResponse[]?> { Data = data };
+        }
+        catch (HttpRequestException ex)
+        {
+            return new DockerApiActionResult<ImageSummaryResponse[]?>
+            {
+                ExceptionMessage = ex.Message,
+            };
+        }
+        catch (Exception ex)
+        {
+            return HandleError<ImageSummaryResponse[]?>(ex, nameof(ListImagesAsync));
+        }
+    }
+
+    public async Task<DockerApiActionResult<ImageInspectResponse?>> InspectImageAsync(
+        string imageName,
+        bool manifests = false,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
+                .AppendPathSegment("images")
+                .AppendPathSegment(imageName)
+                .AppendPathSegment("json")
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+
+            if (manifests)
+            {
+                builder = builder.AppendQueryParameter("manifests", "true");
+            }
+
+            var data = await builder.GetJsonAsync<ImageInspectResponse>(
+                _httpClient,
+                cancellationToken
+            );
+            return new DockerApiActionResult<ImageInspectResponse?> { Data = data };
+        }
+        catch (HttpRequestException ex)
+        {
+            return new DockerApiActionResult<ImageInspectResponse?>
+            {
+                ExceptionMessage = ex.Message,
+            };
+        }
+        catch (Exception ex)
+        {
+            return HandleError<ImageInspectResponse?>(ex, nameof(InspectImageAsync));
+        }
+    }
+
+    public async Task<DockerApiActionResult<ContainerInspectResponse?>> InspectContainerAsync(
+        string containerId,
+        bool size = false,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            var builder = "http://localhost"
+                .AppendPathSegment(ApiVersion)
+                .AppendPathSegment("containers")
+                .AppendPathSegment(containerId)
+                .AppendPathSegment("json")
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+
+            if (size)
+            {
+                builder = builder.AppendQueryParameter("size", "true");
+            }
+
+            var data = await builder.GetJsonAsync<ContainerInspectResponse>(
+                _httpClient,
+                cancellationToken
+            );
+            return new DockerApiActionResult<ContainerInspectResponse?> { Data = data };
+        }
+        catch (HttpRequestException ex)
+        {
+            return new DockerApiActionResult<ContainerInspectResponse?>
+            {
+                ExceptionMessage = ex.Message,
+            };
+        }
+        catch (Exception ex)
+        {
+            return HandleError<ContainerInspectResponse?>(ex, nameof(InspectContainerAsync));
         }
     }
 

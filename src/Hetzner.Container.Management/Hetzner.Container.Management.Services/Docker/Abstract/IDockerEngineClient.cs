@@ -61,4 +61,22 @@ internal interface IDockerEngineClient
         bool timestamps = false,
         CancellationToken cancellationToken = default
     );
+    Task<DockerApiActionResult<ImageSummaryResponse[]?>> ListImagesAsync(
+        bool all = false,
+        string? filters = null,
+        bool sharedSize = false,
+        bool digests = false,
+        bool manifests = false,
+        CancellationToken cancellationToken = default
+    );
+    Task<DockerApiActionResult<ImageInspectResponse?>> InspectImageAsync(
+        string imageName,
+        bool manifests = false,
+        CancellationToken cancellationToken = default
+    );
+    Task<DockerApiActionResult<ContainerInspectResponse?>> InspectContainerAsync(
+        string containerId,
+        bool size = false,
+        CancellationToken cancellationToken = default
+    );
 }

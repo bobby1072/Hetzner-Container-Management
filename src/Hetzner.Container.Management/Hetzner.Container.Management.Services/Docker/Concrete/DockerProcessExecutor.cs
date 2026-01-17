@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Net;
+using BT.Common.Api.Helpers.Exceptions;
 using BT.Common.Helpers;
 using Hetzner.Container.Management.Schemas.Configuration;
 using Hetzner.Container.Management.Schemas.Input;
@@ -47,7 +49,9 @@ public sealed class DockerProcessExecutor: IDockerProcessExecutor
         var errorOutput = result.Last();
         if (!string.IsNullOrWhiteSpace(errorOutput))
         {
-            throw new InvalidOperationException($"Unable to pull image from Docker Hub: {errorOutput}");
+            throw new ApiException(LogLevel.Error,
+                HttpStatusCode.InternalServerError,
+                $"Unable to pull image from Docker Hub: {errorOutput}");
         }
         
         var standardOutput = ProcessHelper.GetInnerStandardOutput(result.First(), command);
