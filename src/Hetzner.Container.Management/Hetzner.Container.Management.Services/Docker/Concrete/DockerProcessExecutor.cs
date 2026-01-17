@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using BT.Common.Helpers;
+using Hetzner.Container.Management.Schemas.Configuration;
 using Hetzner.Container.Management.Schemas.Input;
 using Hetzner.Container.Management.Services.Docker.Abstract;
 using Microsoft.Extensions.Logging;
@@ -9,14 +10,15 @@ namespace Hetzner.Container.Management.Services.Docker.Concrete;
 public sealed class DockerProcessExecutor: IDockerProcessExecutor
 {
     private readonly Process _currentProcessWindow = new();
-    private readonly string _dockerHubRegistryUri;
-    private readonly PlatformID OsPlatform = Environment.OSVersion.Platform;
+    private readonly string _dockerHubApiSettings;
+    private readonly PlatformID _osPlatform = Environment.OSVersion.Platform;
     private readonly ILogger<DockerProcessExecutor> _logger;
 
-    public DockerProcessExecutor(string dockerHubRegistryUri, ILogger<DockerProcessExecutor> logger)
+    public DockerProcessExecutor(DockerHubApiSettings dockerHubApiSettings, ILogger<DockerProcessExecutor> logger)
     {
-        _dockerHubRegistryUri = dockerHubRegistryUri;
+        _dockerHubApiSettings = dockerHubApiSettings.RegistryUri;
         _logger = logger;
+        _currentProcessWindow.StartInfo = ProcessHelper.GetDefaultProcessStartInfo();
     }
     
     public void Dispose()
@@ -24,17 +26,16 @@ public sealed class DockerProcessExecutor: IDockerProcessExecutor
         _currentProcessWindow.Dispose();
     }
 
-    public async Task<string> LoginToDockerHub(DockerHubDetails details, string? workingDirectory = null, CancellationToken cancellationToken = default)
+    public async Task<string> PullDockerImageFromHub(DockerHubDetails dockerHubDetails,
+        string imageName,
+        string versionTag,
+        string? workingDirectory = null,
+        CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Attempting login to Docker Hub for user: {Username}", details.Username);
-
-        var startInfo = ProcessHelper.GetDefaultProcessStartInfo();
-
-        _currentProcessWindow.StartInfo = startInfo;
+        var command = $"docker pull {imageName}:{versionTag}";
+        await LoginToDockerHub(dockerHubDetails, workingDirectory, cancellationToken);
         _currentProcessWindow.Start();
-
-        var command =
-            $"Write-Output '{details.Password}' | docker login {_dockerHubRegistryUri} -u {details.Username} --password-stdin";
+        
         await _currentProcessWindow.StandardInput.WriteLineAsync(command);
         
         await _currentProcessWindow.StandardInput.FlushAsync(cancellationToken);
@@ -43,11 +44,51 @@ public sealed class DockerProcessExecutor: IDockerProcessExecutor
         var result = await Task.WhenAll(_currentProcessWindow.StandardOutput.ReadToEndAsync(cancellationToken),
             _currentProcessWindow.StandardError.ReadToEndAsync(cancellationToken));
 
-        var standardOutput = ProcessHelper.GetInnerStandardOutput(result.First(), command);
+        var errorOutput = result.Last();
+        if (!string.IsNullOrWhiteSpace(errorOutput))
+        {
+            throw new InvalidOperationException($"Unable to pull image from Docker Hub: {errorOutput}");
+        }
         
-        _logger.LogInformation("Docker Hub login completed with: {StandardOutput} and {ErrorOutput}",
-            standardOutput, 
-            result.Last()
+        var standardOutput = ProcessHelper.GetInnerStandardOutput(result.First(), command);
+        _logger.LogInformation("Docker Hub image pull completed with: {StandardOutput}",
+            standardOutput
+        );
+        
+        return standardOutput;
+    }
+    private async Task<string> LoginToDockerHub(DockerHubDetails details, string? workingDirectory = null, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Attempting login to Docker Hub for user: {Username}", details.Username);
+
+        string command = _osPlatform switch
+        {
+            PlatformID.Unix =>
+                $"echo '{details.Password}' | docker login {_dockerHubApiSettings} -u {details.Username} --password-stdin",
+            PlatformID.Win32NT =>
+                $"Write-Output '{details.Password}' | docker login {_dockerHubApiSettings} -u {details.Username} --password-stdin",
+            _ => throw new PlatformNotSupportedException("Unable to run cli commands on this platform.")
+        };
+        _currentProcessWindow.Start();
+
+        
+        await _currentProcessWindow.StandardInput.WriteLineAsync(command);
+        
+        await _currentProcessWindow.StandardInput.FlushAsync(cancellationToken);
+        _currentProcessWindow.StandardInput.Close();
+
+        var result = await Task.WhenAll(_currentProcessWindow.StandardOutput.ReadToEndAsync(cancellationToken),
+            _currentProcessWindow.StandardError.ReadToEndAsync(cancellationToken));
+
+        var errorOutput = result.Last();
+        if (!string.IsNullOrWhiteSpace(errorOutput))
+        {
+            throw new InvalidOperationException($"Unable to login to Docker Hub: {errorOutput}");
+        }
+        
+        var standardOutput = ProcessHelper.GetInnerStandardOutput(result.First(), command);
+        _logger.LogInformation("Docker Hub login completed with: {StandardOutput}",
+            standardOutput
         );
         
         return standardOutput;

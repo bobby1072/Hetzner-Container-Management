@@ -4,7 +4,10 @@ namespace Hetzner.Container.Management.Services.Docker.Abstract;
 
 internal interface IDockerProcessExecutor: IDisposable
 {
-    Task<string> LoginToDockerHub(DockerHubDetails details, string? workingDirectory = null,
+    Task<string> PullDockerImageFromHub(DockerHubDetails dockerHubDetails,
+        string imageName,
+        string versionTag,
+        string? workingDirectory = null,
         CancellationToken cancellationToken = default);
-    
+
 }

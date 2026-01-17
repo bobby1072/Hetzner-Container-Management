@@ -16,8 +16,8 @@ public sealed record ContainerUpdateDocument : IValidatable<ContainerUpdateDocum
     [JsonRequired]
     public required int PublicFacingPortNumber { get; init; }
 
-    [JsonPropertyName("version")]
-    public string Version { get; init; } = "latest";
+    [JsonPropertyName("imageTag")]
+    public string ImageTag { get; init; } = "latest";
 
     [JsonPropertyName("configMap")]
     public Dictionary<string, object?> ConfigMap { get; init; } = new();

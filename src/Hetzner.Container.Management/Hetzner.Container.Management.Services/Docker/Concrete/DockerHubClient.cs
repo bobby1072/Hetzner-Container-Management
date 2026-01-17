@@ -1,6 +1,7 @@
 using BT.Common.Http.Extensions;
 using Hetzner.Container.Management.Schemas.Configuration;
 using Hetzner.Container.Management.Schemas.DockerHubApi;
+using Hetzner.Container.Management.Schemas.Input;
 using Hetzner.Container.Management.Services.Docker.Abstract;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -29,7 +30,7 @@ internal sealed class DockerHubClient : IDockerHubClient
     }
 
     public async Task<PagedResponse<RepositoryListEntry>?> ListNamespaceRepositoriesAsync(
-        string @namespace,
+        DockerHubDetailsWithRepositoryName dockerHubDetails,
         int page = 1,
         int pageSize = 10,
         string? name = null,
@@ -39,18 +40,18 @@ internal sealed class DockerHubClient : IDockerHubClient
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(@namespace);
+            ArgumentException.ThrowIfNullOrWhiteSpace(dockerHubDetails.Namespace);
 
             var token = await CreateAccessTokenAsync(
-                _settings.Identifier,
-                _settings.Secret,
+                dockerHubDetails.Username,
+                dockerHubDetails.Password,
                 cancellationToken
             );
 
             var builder = _settings
                 .BaseUrl.AppendPathSegment("v2")
                 .AppendPathSegment("namespaces")
-                .AppendPathSegment(@namespace)
+                .AppendPathSegment(dockerHubDetails.Namespace)
                 .AppendPathSegment("repositories")
                 .AppendQueryParameter("page", page.ToString())
                 .AppendQueryParameter("page_size", pageSize.ToString())
@@ -83,8 +84,7 @@ internal sealed class DockerHubClient : IDockerHubClient
     }
 
     public async Task<PagedResponse<RepositoryTag>?> ListRepositoryTagsAsync(
-        string @namespace,
-        string repository,
+        DockerHubDetailsWithRepositoryName dockerHubDetails,
         int page = 1,
         int pageSize = 10,
         CancellationToken cancellationToken = default
@@ -92,21 +92,21 @@ internal sealed class DockerHubClient : IDockerHubClient
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(@namespace);
-            ArgumentException.ThrowIfNullOrWhiteSpace(repository);
+            ArgumentException.ThrowIfNullOrWhiteSpace(dockerHubDetails.Namespace);
+            ArgumentException.ThrowIfNullOrWhiteSpace(dockerHubDetails.RepositoryName);
 
             var token = await CreateAccessTokenAsync(
-                _settings.Identifier,
-                _settings.Secret,
+                dockerHubDetails.Username,
+                dockerHubDetails.Password,
                 cancellationToken
             );
 
             var builder = _settings
                 .BaseUrl.AppendPathSegment("v2")
                 .AppendPathSegment("namespaces")
-                .AppendPathSegment(@namespace)
+                .AppendPathSegment(dockerHubDetails.Namespace)
                 .AppendPathSegment("repositories")
-                .AppendPathSegment(repository)
+                .AppendPathSegment(dockerHubDetails.RepositoryName)
                 .AppendPathSegment("tags")
                 .AppendQueryParameter("page", page.ToString())
                 .AppendQueryParameter("page_size", pageSize.ToString())
@@ -129,30 +129,29 @@ internal sealed class DockerHubClient : IDockerHubClient
     }
 
     public async Task<RepositoryTag?> GetRepositoryTagAsync(
-        string @namespace,
-        string repository,
+        DockerHubDetailsWithRepositoryName dockerHubDetails,
         string tag,
         CancellationToken cancellationToken = default
     )
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(@namespace);
-            ArgumentException.ThrowIfNullOrWhiteSpace(repository);
+            ArgumentException.ThrowIfNullOrWhiteSpace(dockerHubDetails.Namespace);
+            ArgumentException.ThrowIfNullOrWhiteSpace(dockerHubDetails.RepositoryName);
             ArgumentException.ThrowIfNullOrWhiteSpace(tag);
 
             var token = await CreateAccessTokenAsync(
-                _settings.Identifier,
-                _settings.Secret,
+                dockerHubDetails.Username,
+                dockerHubDetails.Password,
                 cancellationToken
             );
 
             var builder = _settings
                 .BaseUrl.AppendPathSegment("v2")
                 .AppendPathSegment("namespaces")
-                .AppendPathSegment(@namespace)
+                .AppendPathSegment(dockerHubDetails.Namespace)
                 .AppendPathSegment("repositories")
-                .AppendPathSegment(repository)
+                .AppendPathSegment(dockerHubDetails.RepositoryName)
                 .AppendPathSegment("tags")
                 .AppendPathSegment(tag)
                 .WithHeader(HeaderNames.Authorization, $"Bearer {token}");

@@ -1,11 +1,12 @@
 using Hetzner.Container.Management.Schemas.DockerHubApi;
+using Hetzner.Container.Management.Schemas.Input;
 
 namespace Hetzner.Container.Management.Services.Docker.Abstract;
 
 internal interface IDockerHubClient
 {
     Task<PagedResponse<RepositoryListEntry>?> ListNamespaceRepositoriesAsync(
-        string @namespace,
+        DockerHubDetailsWithRepositoryName dockerHubDetails,
         int page = 1,
         int pageSize = 10,
         string? name = null,
@@ -13,17 +14,15 @@ internal interface IDockerHubClient
         CancellationToken cancellationToken = default
     );
 
-    Task<PagedResponse<RepositoryTag>?> ListRepositoryTagsAsync(
-        string @namespace,
-        string repository,
+    Task<PagedResponse<RepositoryTag>?> ListRepositoryTagsAsync(        
+        DockerHubDetailsWithRepositoryName dockerHubDetails,
         int page = 1,
         int pageSize = 10,
         CancellationToken cancellationToken = default
     );
 
     Task<RepositoryTag?> GetRepositoryTagAsync(
-        string @namespace,
-        string repository,
+        DockerHubDetailsWithRepositoryName dockerHubDetails,
         string tag,
         CancellationToken cancellationToken = default
     );
