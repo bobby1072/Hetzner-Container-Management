@@ -66,15 +66,18 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 newInfraStructureDocument = currentInfrastructureDocument with
                 {
                     LastUpdated = DateTime.UtcNow,
-                    Components = updateInfraComponents,
+                    Components = currentInfrastructureDocument.Components
+                        .Where(x => !updateInfraComponents.Select(y => y.ContainerName).Contains(x.ContainerName))
+                        .Concat(updateInfraComponents)
+                        .DistinctBy(x => x.ContainerName)
+                        .ToArray(),
                     UpdateNumber = currentInfrastructureDocument.UpdateNumber + 1,
                 };
+                
+                await _containerUpdateServicesServiceProvider
+                    .CurrentInfrastructureUpdateJobQueue
+                    .EnqueueAsync(newInfraStructureDocument, cancellationToken);
             }
-            
-            await _containerUpdateServicesServiceProvider
-                .CurrentInfrastructureExplorer
-                .ReplaceCurrentInfrastructureAsync(newInfraStructureDocument, cancellationToken);
-            
             
             return newInfraStructureDocument;
         }
@@ -485,11 +488,9 @@ internal sealed class ContainerManagementService : IContainerManagementService
         [field: AllowNull, MaybeNull]
         public IDockerProcessExecutor DockerProcessExecutor =>
             field ??= _serviceProvider.GetRequiredService<IDockerProcessExecutor>();
-
-        [field: AllowNull, MaybeNull]
-        public ICurrentInfrastructureExplorer CurrentInfrastructureExplorer =>
-            field ??= _serviceProvider.GetRequiredService<ICurrentInfrastructureExplorer>();
-
+        public ICurrentInfrastructureExplorer CurrentInfrastructureExplorer => _serviceProvider.GetRequiredService<ICurrentInfrastructureExplorer>();
+        public ICurrentInfrastructureUpdateJobQueue CurrentInfrastructureUpdateJobQueue => _serviceProvider.GetRequiredService<ICurrentInfrastructureUpdateJobQueue>();
+        
         public ContainerUpdateServicesServiceProvider(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;

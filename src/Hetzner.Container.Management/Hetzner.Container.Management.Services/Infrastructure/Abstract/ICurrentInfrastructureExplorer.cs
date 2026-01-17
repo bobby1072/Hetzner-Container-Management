@@ -2,7 +2,7 @@
 
 namespace Hetzner.Container.Management.Services.Infrastructure.Abstract;
 
-public interface ICurrentInfrastructureExplorer: IDisposable
+public interface ICurrentInfrastructureExplorer
 {
     Task<InfrastructureDocument?> TryGetCurrentInfrastructureDocumentAsync(CancellationToken cancellationToken = default);
 

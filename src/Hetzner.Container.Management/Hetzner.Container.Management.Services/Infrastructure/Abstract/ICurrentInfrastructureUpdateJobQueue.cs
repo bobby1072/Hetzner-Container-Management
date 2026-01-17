@@ -2,7 +2,7 @@
 
 namespace Hetzner.Container.Management.Services.Infrastructure.Abstract;
 
-internal interface ICurrentInfrastructureUpdateJobQueue
+internal interface ICurrentInfrastructureUpdateJobQueue: IDisposable
 {
     Task EnqueueAsync(InfrastructureDocument infrastructureDocument, CancellationToken cancellationToken = default);
     Task<InfrastructureDocument> DequeueAsync(CancellationToken cancellationToken = default);

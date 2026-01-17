@@ -20,8 +20,18 @@ internal sealed class CurrentInfrastructureBackgroundOperationExecutor: Backgrou
         _logger = logger;
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        
+        _logger
+            .LogInformation("{BackgroundServiceName} service is starting...",
+                nameof(CurrentInfrastructureBackgroundOperationExecutor));
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            var jobToDo = await _currentInfrastructureUpdateJobQueue
+                .DequeueAsync(stoppingToken);
+            
+            await _currentInfrastructureExplorer.ReplaceCurrentInfrastructureAsync(jobToDo, stoppingToken);
+        }
     }
 }
