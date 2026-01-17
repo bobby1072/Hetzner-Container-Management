@@ -54,6 +54,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return HandleError<ContainerSummaryResponse[]?>(ex, nameof(ListContainersAsync));
         }
     }
+
     public async Task<DockerApiActionResult> RemoveContainerAsync(
         string containerId,
         bool force = false,
@@ -78,7 +79,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             {
                 builder = builder.AppendQueryParameter("v", "true");
             }
-            
+
             await builder.SendAsync(_httpClient, HttpMethod.Delete, cancellationToken);
 
             return new DockerApiActionResult();
@@ -92,6 +93,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return HandleError(ex, nameof(StartContainerAsync));
         }
     }
+
     public async Task<DockerApiActionResult> StartContainerAsync(
         string containerId,
         CancellationToken cancellationToken = default

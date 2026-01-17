@@ -1,4 +1,5 @@
 using AutoFixture;
+using Hetzner.Container.Management.Schemas.Docker;
 using Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
 using Hetzner.Container.Management.Schemas.Docker.DockerHubApi;
 using Hetzner.Container.Management.Schemas.Infrastructure;
@@ -20,16 +21,16 @@ public class ContainerManagementServiceTestFixture
         string? imageTag = null,
         int? internalPort = null,
         int? publicPort = null,
-        Dictionary<string, string>? configMap = null,
+        Dictionary<string, object?>? configMap = null,
         string? volumeName = null)
     {
         return new InfrastructureComponentUpdateInput
         {
-            ContainerName = containerName ?? _fixture.Create<string>(),
+            ContainerName = containerName ?? "test-container",
             ImageTag = imageTag ?? "latest",
             InternalPortNumber = internalPort ?? 8080,
             PublicFacingPortNumber = publicPort ?? 80,
-            ConfigMap = configMap ?? new Dictionary<string, string>
+            ConfigMap = configMap ?? new Dictionary<string, object?>
             {
                 { "ENV_VAR_1", "value1" },
                 { "ENV_VAR_2", "value2" }
@@ -69,7 +70,7 @@ public class ContainerManagementServiceTestFixture
             ImageVersionTag = imageVersionTag ?? "latest",
             InternalPortNumber = internalPort ?? 8080,
             PublicFacingPortNumber = publicPort ?? 80,
-            ConfigMap = new Dictionary<string, string>
+            ConfigMap = new Dictionary<string, object?>
             {
                 { "ENV_VAR_1", "value1" }
             },
@@ -84,7 +85,22 @@ public class ContainerManagementServiceTestFixture
             Name = name ?? "test-repo",
             Namespace = ns ?? "test-namespace",
             Description = _fixture.Create<string>(),
-            IsPrivate = false
+            IsPrivate = false,
+            RepositoryType = "image",
+            Status = 1,
+            IsAutomated = false,
+            StarCount = 0,
+            PullCount = 0,
+            LastUpdated = DateTimeOffset.UtcNow.AddDays(-10),
+            DateRegistered = DateTimeOffset.UtcNow.AddDays(-100),
+            CollaboratorCount = 1,
+            HubUser = "test-user",
+            HasStarred = false,
+            ImmutableTagsSettings = new ImmutableTagsSettings
+            {
+                Enabled = false,
+                Rules = []
+            }
         };
     }
 
@@ -93,8 +109,10 @@ public class ContainerManagementServiceTestFixture
         return new RepositoryTag
         {
             Name = tagName ?? "latest",
-            LastUpdated = DateTime.UtcNow.AddDays(-1).ToString("o"),
-            Digest = _fixture.Create<string>()
+            LastUpdated = DateTime.UtcNow.AddDays(-1),
+            Id = _fixture.Create<int>(),
+            Repository = _fixture.Create<int>(),
+            FullSize = 1024
         };
     }
 
@@ -120,6 +138,14 @@ public class ContainerManagementServiceTestFixture
         {
             Id = _fixture.Create<string>(),
             Name = containerName ?? _fixture.Create<string>(),
+            Created = DateTime.UtcNow.AddDays(-1).ToString("o"),
+            Path = "/app",
+            Image = _fixture.Create<string>(),
+            State = new ContainerState
+            {
+                Running = true,
+                Status = "running"
+            },
             Config = new ContainerConfig
             {
                 Image = fullImage,
@@ -147,11 +173,6 @@ public class ContainerManagementServiceTestFixture
                     Name = "always",
                     MaximumRetryCount = 3
                 }
-            },
-            State = new ContainerState
-            {
-                Running = true,
-                Status = "running"
             }
         };
     }
@@ -172,6 +193,24 @@ public class ContainerManagementServiceTestFixture
             Id = _fixture.Create<string>(),
             RepoTags = new[] { $"{imageName}:{imageTag}" },
             Created = DateTime.UtcNow.AddDays(-10).ToString("o")
+        };
+    }
+
+    public static DockerApiActionResult<T> CreateSuccessResult<T>(T data)
+    {
+        return new DockerApiActionResult<T>
+        {
+            Data = data,
+            ExceptionMessage = null
+        };
+    }
+
+    public static DockerApiActionResult<T> CreateFailureResult<T>(string exceptionMessage, T? data = default)
+    {
+        return new DockerApiActionResult<T>
+        {
+            Data = data,
+            ExceptionMessage = exceptionMessage
         };
     }
 }

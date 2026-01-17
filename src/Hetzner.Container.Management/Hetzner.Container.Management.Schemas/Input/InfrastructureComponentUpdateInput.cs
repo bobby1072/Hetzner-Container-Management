@@ -67,7 +67,7 @@ public sealed record InfrastructureComponentUpdateInput : IValidatable<Infrastru
     }
 
     private (bool, string?) IsValidContainerName() =>
-        (ContainerName.Length < 1 || ContainerName.Length > 255, "Invalid container name provided");
+        (ContainerName.Length >= 1 && ContainerName.Length <= 255, "Invalid container name provided");
 
     private static bool IsValidConfigMapValue(Type type)
     {

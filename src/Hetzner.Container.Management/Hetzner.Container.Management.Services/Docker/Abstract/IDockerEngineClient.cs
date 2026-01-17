@@ -53,7 +53,7 @@ internal interface IDockerEngineClient
     );
     Task<DockerApiActionResult<ContainerCreateResponse?>> CreateContainerAsync(
         ContainerCreateRequest request,
-        string? name = null,
+        string name,
         CancellationToken cancellationToken = default
     );
     Task<DockerApiActionResult<ContainerStatsResponse?>> GetContainerStatsAsync(
