@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using Hetzner.Container.Management.Services.DockerEngineApi.Abstract;
-using Hetzner.Container.Management.Services.DockerHubApi.Abstract;
+using Hetzner.Container.Management.Services.Docker.Abstract;
+using Hetzner.Container.Management.Services.Docker.Abstract;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -9,20 +9,23 @@ namespace Hetzner.Container.Management.Services.ContainerOrchestration.Concrete;
 internal sealed class ContainerUpdateService
 {
     private readonly IServiceProvider _serviceProvider;
-    [field: AllowNull, MaybeNull]
-    private IDockerHubClient _dockerHubClient => field ??= _serviceProvider.GetRequiredService<IDockerHubClient>();
 
     [field: AllowNull, MaybeNull]
-    private IDockerEngineClient _dockerEngineClient => field ??= _serviceProvider.GetRequiredService<IDockerEngineClient>();
+    private IDockerHubClient _dockerHubClient =>
+        field ??= _serviceProvider.GetRequiredService<IDockerHubClient>();
+
+    [field: AllowNull, MaybeNull]
+    private IDockerEngineClient _dockerEngineClient =>
+        field ??= _serviceProvider.GetRequiredService<IDockerEngineClient>();
 
     private readonly ILogger<ContainerUpdateService> _logger;
 
-    public ContainerUpdateService(IServiceProvider serviceProvider,
-        ILogger<ContainerUpdateService> logger)
+    public ContainerUpdateService(
+        IServiceProvider serviceProvider,
+        ILogger<ContainerUpdateService> logger
+    )
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
     }
-    
-    
 }
