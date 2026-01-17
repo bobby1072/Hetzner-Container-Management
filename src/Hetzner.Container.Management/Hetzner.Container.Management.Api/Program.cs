@@ -3,6 +3,7 @@ using BT.Common.Api.Helpers.Extensions;
 using BT.Common.Api.Helpers.Models;
 using BT.Common.Helpers;
 using Hetzner.Container.Management.Api.Middlewares;
+using Hetzner.Container.Management.Api.Services;
 using Hetzner.Container.Management.Services;
 using Hetzner.Container.Management.Services.Extensions;
 using Microsoft.AspNetCore.Http.Timeouts;
@@ -52,7 +53,10 @@ try
         builder.Services.Count
     );
 
-    builder.AddContainerManagementApplication();
+    builder.AddContainerManagementApplication<CurrentInfrastructureExplorer>(sp => new CurrentInfrastructureExplorer(
+        Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), $"Data{Path.DirectorySeparatorChar}CurrentInfrastructure")),
+        sp.GetRequiredService<ILoggerFactory>().CreateLogger<CurrentInfrastructureExplorer>())
+    );
     
     var app = builder.Build();
 

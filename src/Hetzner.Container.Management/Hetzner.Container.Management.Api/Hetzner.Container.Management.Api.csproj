@@ -17,4 +17,10 @@
     <ProjectReference Include="..\Hetzner.Container.Management.Services\Hetzner.Container.Management.Services.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Data\package.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
