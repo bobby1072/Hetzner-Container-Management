@@ -4,7 +4,7 @@ namespace Hetzner.Container.Management.Services.Infrastructure.Abstract;
 
 public interface ICurrentInfrastructureExplorer
 {
-    Task<InfrastructureDocument> GetCurrentInfrastructureDocumentAsync(CancellationToken cancellationToken = default);
+    Task<InfrastructureDocument?> TryGetCurrentInfrastructureDocumentAsync(CancellationToken cancellationToken = default);
 
     Task ReplaceCurrentInfrastructureAsync(InfrastructureDocument infrastructureDocument,
         CancellationToken cancellationToken = default);

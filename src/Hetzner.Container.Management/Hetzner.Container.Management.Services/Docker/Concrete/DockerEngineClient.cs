@@ -1,10 +1,10 @@
 ﻿using System.Net.Http.Json;
 using BT.Common.Http.Extensions;
 using Hetzner.Container.Management.Schemas.DockerEngineApi;
-using Hetzner.Container.Management.Services.DockerHub.Abstract;
+using Hetzner.Container.Management.Services.Docker.Abstract;
 using Microsoft.Extensions.Logging;
 
-namespace Hetzner.Container.Management.Services.DockerEngine.Concrete;
+namespace Hetzner.Container.Management.Services.Docker.Concrete;
 
 internal sealed class DockerEngineClient : IDockerEngineClient
 {

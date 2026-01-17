@@ -22,14 +22,23 @@ internal sealed class CurrentInfrastructureExplorer: ICurrentInfrastructureExplo
         await File.WriteAllTextAsync(_infraJsonLocation, JsonSerializer.Serialize(newInfrastructureDocument), cancellationToken);
     }
 
-    public async Task<InfrastructureDocument> GetCurrentInfrastructureDocumentAsync(CancellationToken cancellationToken = default)
+    public async Task<InfrastructureDocument?> TryGetCurrentInfrastructureDocumentAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Attempting to get current infrastructure document at path: {InfraPath}", _infraJsonLocation);
-        var readFile = await File.ReadAllTextAsync(_infraJsonLocation, cancellationToken);
+        try
+        {
+            _logger.LogInformation("Attempting to get current infrastructure document at path: {InfraPath}",
+                _infraJsonLocation);
+            var readFile = await File.ReadAllTextAsync(_infraJsonLocation, cancellationToken);
 
-        var parsedFile = JsonSerializer.Deserialize<InfrastructureDocument>(readFile)
-            ?? throw new JsonException("Unable to parse infrastructure document json");
-        
-        return parsedFile;
+            var parsedFile = JsonSerializer.Deserialize<InfrastructureDocument>(readFile)
+                             ?? throw new JsonException("Unable to parse infrastructure document json");
+
+            return parsedFile;
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError(ex, "Unable to get current infrastructure document at path: {InfraPath}", _infraJsonLocation);
+            return null;
+        }
     }
 }

@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using Hetzner.Container.Management.Services.DockerHub.Abstract;
-using Hetzner.Container.Management.Services.DockerHub.Abstract;
+using Hetzner.Container.Management.Services.Docker.Abstract;
+using Hetzner.Container.Management.Services.Docker.Abstract;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

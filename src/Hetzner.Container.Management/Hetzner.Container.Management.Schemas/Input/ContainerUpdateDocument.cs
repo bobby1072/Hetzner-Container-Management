@@ -6,7 +6,7 @@ public sealed record ContainerUpdateDocument : IValidatable<ContainerUpdateDocum
 {
     [JsonPropertyName("dockerHubDetails")]
     [JsonRequired]
-    public required DockerHubDetails DockerHubDetails { get; init; }
+    public required DockerHubDetailsWithRepositoryName DockerHubDetails { get; init; }
 
     [JsonPropertyName("containerName")]
     [JsonRequired]

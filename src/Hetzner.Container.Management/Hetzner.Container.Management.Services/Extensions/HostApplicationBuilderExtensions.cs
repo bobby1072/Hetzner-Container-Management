@@ -2,10 +2,8 @@ using System.Net.Sockets;
 using BT.Common.Helpers.Extensions;
 using BT.Common.Http.Extensions;
 using Hetzner.Container.Management.Schemas.Configuration;
-using Hetzner.Container.Management.Services.DockerEngine.Concrete;
-using Hetzner.Container.Management.Services.DockerHub.Abstract;
-using Hetzner.Container.Management.Services.DockerHub.Abstract;
-using Hetzner.Container.Management.Services.DockerHub.Concrete;
+using Hetzner.Container.Management.Services.Docker.Abstract;
+using Hetzner.Container.Management.Services.Docker.Concrete;
 using Hetzner.Container.Management.Services.Infrastructure.Abstract;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,19 +19,21 @@ public static class HostApplicationBuilderExtensions
     )
         where TInfraExplorer : class, ICurrentInfrastructureExplorer
     {
-        hostAppBuilder.AddHttClientStuff();
+        hostAppBuilder.AddHttpClientStuff();
 
         if (explorerCreator is not null)
         {
-            hostAppBuilder.Services.AddSingleton<ICurrentInfrastructureExplorer, TInfraExplorer>(
+            hostAppBuilder.Services.AddScoped<ICurrentInfrastructureExplorer, TInfraExplorer>(
                 explorerCreator
             );
         }
         else
         {
-            hostAppBuilder.Services.AddSingleton<ICurrentInfrastructureExplorer, TInfraExplorer>();
+            hostAppBuilder.Services.AddScoped<ICurrentInfrastructureExplorer, TInfraExplorer>();
         }
 
+        hostAppBuilder.Services.AddScoped<IDockerProcessExecutor, DockerProcessExecutor>();
+        
         return hostAppBuilder;
     }
 
@@ -57,7 +57,7 @@ public static class HostApplicationBuilderExtensions
         return configSection.Get<T>() ?? throw new ArgumentException(sectname);
     }
 
-    private static IHostApplicationBuilder AddHttClientStuff(
+    private static IHostApplicationBuilder AddHttpClientStuff(
         this IHostApplicationBuilder hostAppBuilder
     )
     {

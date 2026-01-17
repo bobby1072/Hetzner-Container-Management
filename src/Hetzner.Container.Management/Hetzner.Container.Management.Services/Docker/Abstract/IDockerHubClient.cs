@@ -1,6 +1,6 @@
 using Hetzner.Container.Management.Schemas.DockerHubApi;
 
-namespace Hetzner.Container.Management.Services.DockerHub.Abstract;
+namespace Hetzner.Container.Management.Services.Docker.Abstract;
 
 internal interface IDockerHubClient
 {

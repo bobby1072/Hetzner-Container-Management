@@ -1,12 +1,12 @@
 using BT.Common.Http.Extensions;
 using Hetzner.Container.Management.Schemas.Configuration;
 using Hetzner.Container.Management.Schemas.DockerHubApi;
-using Hetzner.Container.Management.Services.DockerHub.Abstract;
+using Hetzner.Container.Management.Services.Docker.Abstract;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
-namespace Hetzner.Container.Management.Services.DockerHub.Concrete;
+namespace Hetzner.Container.Management.Services.Docker.Concrete;
 
 internal sealed class DockerHubClient : IDockerHubClient
 {
