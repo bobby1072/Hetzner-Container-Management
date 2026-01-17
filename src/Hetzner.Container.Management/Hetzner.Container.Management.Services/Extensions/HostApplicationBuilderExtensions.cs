@@ -6,6 +6,7 @@ using Hetzner.Container.Management.Services.DockerEngineApi.Abstract;
 using Hetzner.Container.Management.Services.DockerEngineApi.Concrete;
 using Hetzner.Container.Management.Services.DockerHubApi.Abstract;
 using Hetzner.Container.Management.Services.DockerHubApi.Concrete;
+using Hetzner.Container.Management.Services.Infrastructure.Abstract;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,9 +15,12 @@ namespace Hetzner.Container.Management.Services.Extensions;
 
 public static class HostApplicationBuilderExtensions
 {
-    public static IHostApplicationBuilder AddContainerManagementApplication(this IHostApplicationBuilder hostAppBuilder)
+    public static IHostApplicationBuilder AddContainerManagementApplication<TInfraExplorer>(this IHostApplicationBuilder hostAppBuilder)
+        where TInfraExplorer : class, ICurrentInfrastructureExplorer
     {
         hostAppBuilder.AddHttClientStuff();
+
+        hostAppBuilder.Services.AddSingleton<ICurrentInfrastructureExplorer, TInfraExplorer>();
         
         return hostAppBuilder;
     }

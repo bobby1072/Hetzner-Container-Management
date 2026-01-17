@@ -1,4 +1,6 @@
-﻿namespace Hetzner.Container.Management.Schemas.Infrastructure;
+﻿using Hetzner.Container.Management.Schemas.DockerEngineApi;
+
+namespace Hetzner.Container.Management.Schemas.Infrastructure;
 
 public sealed record InfrastructureComponent
 {
@@ -6,4 +8,5 @@ public sealed record InfrastructureComponent
     public required int PublicFacingPortNumber { get; init; }
     public required string Version { get; init; }
     public required Dictionary<string, object?> ConfigMap { get; init; }
+    public ContainerSummaryResponse? LatestContainerSummary { get; init; }
 }
