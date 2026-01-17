@@ -2,10 +2,10 @@ using System.Net.Sockets;
 using BT.Common.Helpers.Extensions;
 using BT.Common.Http.Extensions;
 using Hetzner.Container.Management.Schemas.Configuration;
-using Hetzner.Container.Management.Services.DockerEngineApi.Abstract;
-using Hetzner.Container.Management.Services.DockerEngineApi.Concrete;
-using Hetzner.Container.Management.Services.DockerHubApi.Abstract;
-using Hetzner.Container.Management.Services.DockerHubApi.Concrete;
+using Hetzner.Container.Management.Services.DockerEngine.Concrete;
+using Hetzner.Container.Management.Services.DockerHub.Abstract;
+using Hetzner.Container.Management.Services.DockerHub.Abstract;
+using Hetzner.Container.Management.Services.DockerHub.Concrete;
 using Hetzner.Container.Management.Services.Infrastructure.Abstract;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,27 +15,36 @@ namespace Hetzner.Container.Management.Services.Extensions;
 
 public static class HostApplicationBuilderExtensions
 {
-    public static IHostApplicationBuilder AddContainerManagementApplication<TInfraExplorer>(this IHostApplicationBuilder hostAppBuilder, Func<IServiceProvider, TInfraExplorer>? explorerCreator = null)
+    public static IHostApplicationBuilder AddContainerManagementApplication<TInfraExplorer>(
+        this IHostApplicationBuilder hostAppBuilder,
+        Func<IServiceProvider, TInfraExplorer>? explorerCreator = null
+    )
         where TInfraExplorer : class, ICurrentInfrastructureExplorer
     {
         hostAppBuilder.AddHttClientStuff();
 
         if (explorerCreator is not null)
         {
-            hostAppBuilder.Services.AddSingleton<ICurrentInfrastructureExplorer, TInfraExplorer>(explorerCreator);
+            hostAppBuilder.Services.AddSingleton<ICurrentInfrastructureExplorer, TInfraExplorer>(
+                explorerCreator
+            );
         }
         else
         {
             hostAppBuilder.Services.AddSingleton<ICurrentInfrastructureExplorer, TInfraExplorer>();
         }
-        
+
         return hostAppBuilder;
     }
-    public static T CheckAndAddSingletonOptions<T>(this IHostApplicationBuilder hostAppBuilder,
-        string? nameofSection = null) where T : class
+
+    public static T CheckAndAddSingletonOptions<T>(
+        this IHostApplicationBuilder hostAppBuilder,
+        string? nameofSection = null
+    )
+        where T : class
     {
         var sectname = nameofSection ?? typeof(T).Name;
-        
+
         var configSection = hostAppBuilder.Configuration.GetSection(sectname);
 
         if (!configSection.Exists())
@@ -43,39 +52,50 @@ public static class HostApplicationBuilderExtensions
             throw new ArgumentException(sectname);
         }
 
-        hostAppBuilder.Services
-            .ConfigureSingletonOptions<T>(configSection);
-        
+        hostAppBuilder.Services.ConfigureSingletonOptions<T>(configSection);
+
         return configSection.Get<T>() ?? throw new ArgumentException(sectname);
     }
 
-
-    private static IHostApplicationBuilder AddHttClientStuff(this IHostApplicationBuilder hostAppBuilder)
+    private static IHostApplicationBuilder AddHttClientStuff(
+        this IHostApplicationBuilder hostAppBuilder
+    )
     {
-        var dockerEngineApiSettings = hostAppBuilder.CheckAndAddSingletonOptions<DockerEngineApiSettings>();
-        var dockerHubApiSettings = hostAppBuilder.CheckAndAddSingletonOptions<DockerHubApiSettings>();
+        var dockerEngineApiSettings =
+            hostAppBuilder.CheckAndAddSingletonOptions<DockerEngineApiSettings>();
+        var dockerHubApiSettings =
+            hostAppBuilder.CheckAndAddSingletonOptions<DockerHubApiSettings>();
 
         hostAppBuilder.Services.AddMemoryCache();
         hostAppBuilder.Services.AddHttpClient();
-        hostAppBuilder.Services.AddHttpClientWithResilience<IDockerHubClient, DockerHubClient>(dockerHubApiSettings);
-        hostAppBuilder.Services
-            .AddHttpClientWithResilience<IDockerEngineClient, DockerEngineClient>(dockerEngineApiSettings)
-            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
-            {
-                ConnectCallback = async (_, cancellationToken) =>
-                {
-                    var socket = new Socket(
-                        AddressFamily.Unix,
-                        SocketType.Stream,
-                        ProtocolType.Unspecified
-                    );
+        hostAppBuilder.Services.AddHttpClientWithResilience<IDockerHubClient, DockerHubClient>(
+            dockerHubApiSettings
+        );
+        hostAppBuilder
+            .Services.AddHttpClientWithResilience<IDockerEngineClient, DockerEngineClient>(
+                dockerEngineApiSettings
+            )
+            .ConfigurePrimaryHttpMessageHandler(
+                () =>
+                    new SocketsHttpHandler
+                    {
+                        ConnectCallback = async (_, cancellationToken) =>
+                        {
+                            var socket = new Socket(
+                                AddressFamily.Unix,
+                                SocketType.Stream,
+                                ProtocolType.Unspecified
+                            );
 
-                    var endpoint = new UnixDomainSocketEndPoint(dockerEngineApiSettings.UnixDomainSocketEndPoint);
-                    await socket.ConnectAsync(endpoint, cancellationToken);
+                            var endpoint = new UnixDomainSocketEndPoint(
+                                dockerEngineApiSettings.UnixDomainSocketEndPoint
+                            );
+                            await socket.ConnectAsync(endpoint, cancellationToken);
 
-                    return new NetworkStream(socket, ownsSocket: true);
-                }
-            });
+                            return new NetworkStream(socket, ownsSocket: true);
+                        },
+                    }
+            );
 
         return hostAppBuilder;
     }

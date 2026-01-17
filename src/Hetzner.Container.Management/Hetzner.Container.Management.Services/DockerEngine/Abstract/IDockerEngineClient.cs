@@ -1,6 +1,6 @@
 ﻿using Hetzner.Container.Management.Schemas.DockerEngineApi;
 
-namespace Hetzner.Container.Management.Services.DockerEngineApi.Abstract;
+namespace Hetzner.Container.Management.Services.DockerHub.Abstract;
 
 internal interface IDockerEngineClient
 {
@@ -8,16 +8,31 @@ internal interface IDockerEngineClient
         bool all = false,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult> StartContainerAsync(string containerId, CancellationToken cancellationToken = default);
-    Task<DockerEngineActionResult> StopContainerAsync(string containerId, CancellationToken cancellationToken = default);
-    Task<DockerEngineActionResult> RestartContainerAsync(string containerId, CancellationToken cancellationToken = default);
+    Task<DockerEngineActionResult> StartContainerAsync(
+        string containerId,
+        CancellationToken cancellationToken = default
+    );
+    Task<DockerEngineActionResult> StopContainerAsync(
+        string containerId,
+        CancellationToken cancellationToken = default
+    );
+    Task<DockerEngineActionResult> RestartContainerAsync(
+        string containerId,
+        CancellationToken cancellationToken = default
+    );
     Task<DockerEngineActionResult> KillContainerAsync(
         string containerId,
         string? signal = null,
         CancellationToken cancellationToken = default
     );
-    Task<DockerEngineActionResult> PauseContainerAsync(string containerId, CancellationToken cancellationToken = default);
-    Task<DockerEngineActionResult> UnpauseContainerAsync(string containerId, CancellationToken cancellationToken = default);
+    Task<DockerEngineActionResult> PauseContainerAsync(
+        string containerId,
+        CancellationToken cancellationToken = default
+    );
+    Task<DockerEngineActionResult> UnpauseContainerAsync(
+        string containerId,
+        CancellationToken cancellationToken = default
+    );
     Task<DockerEngineActionResult> RenameContainerAsync(
         string containerId,
         string newName,

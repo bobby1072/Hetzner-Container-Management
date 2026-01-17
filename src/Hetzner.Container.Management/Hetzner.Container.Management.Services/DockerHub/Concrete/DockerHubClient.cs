@@ -1,12 +1,12 @@
 using BT.Common.Http.Extensions;
 using Hetzner.Container.Management.Schemas.Configuration;
 using Hetzner.Container.Management.Schemas.DockerHubApi;
-using Hetzner.Container.Management.Services.DockerHubApi.Abstract;
+using Hetzner.Container.Management.Services.DockerHub.Abstract;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
-namespace Hetzner.Container.Management.Services.DockerHubApi.Concrete;
+namespace Hetzner.Container.Management.Services.DockerHub.Concrete;
 
 internal sealed class DockerHubClient : IDockerHubClient
 {
@@ -73,7 +73,11 @@ internal sealed class DockerHubClient : IDockerHubClient
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected exception occurred during request to {BaseUrl}", _settings.BaseUrl);
+            _logger.LogError(
+                ex,
+                "Unexpected exception occurred during request to {BaseUrl}",
+                _settings.BaseUrl
+            );
             return null;
         }
     }
@@ -115,7 +119,11 @@ internal sealed class DockerHubClient : IDockerHubClient
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected exception occurred during request to {BaseUrl}", _settings.BaseUrl);
+            _logger.LogError(
+                ex,
+                "Unexpected exception occurred during request to {BaseUrl}",
+                _settings.BaseUrl
+            );
             return null;
         }
     }
@@ -153,7 +161,11 @@ internal sealed class DockerHubClient : IDockerHubClient
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected exception occurred during request to {BaseUrl}", _settings.BaseUrl);
+            _logger.LogError(
+                ex,
+                "Unexpected exception occurred during request to {BaseUrl}",
+                _settings.BaseUrl
+            );
             return null;
         }
     }
