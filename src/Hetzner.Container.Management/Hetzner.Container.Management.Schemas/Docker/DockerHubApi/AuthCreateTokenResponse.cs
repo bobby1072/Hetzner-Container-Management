@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Hetzner.Container.Management.Schemas.DockerHubApi;
+namespace Hetzner.Container.Management.Schemas.Docker.DockerHubApi;
 
 public sealed record AuthCreateTokenResponse
 {

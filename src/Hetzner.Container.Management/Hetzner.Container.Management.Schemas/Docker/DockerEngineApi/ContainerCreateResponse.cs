@@ -1,4 +1,4 @@
-namespace Hetzner.Container.Management.Schemas.DockerEngineApi;
+namespace Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
 
 public sealed record ContainerCreateResponse
 {

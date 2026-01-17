@@ -1,4 +1,5 @@
-﻿using Hetzner.Container.Management.Schemas.DockerEngineApi;
+﻿using Hetzner.Container.Management.Schemas.Docker;
+using Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
 
 namespace Hetzner.Container.Management.Services.Docker.Abstract;
 

@@ -1,4 +1,5 @@
-﻿using Hetzner.Container.Management.Schemas.DockerEngineApi;
+﻿using Hetzner.Container.Management.Schemas.Docker;
+using Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
 using Microsoft.Extensions.Logging;
 
 namespace Hetzner.Container.Management.Services.Docker.Abstract;
@@ -11,7 +12,7 @@ internal abstract class BaseDockerClient
     {
         _logger = logger;
     }
-    
+
     protected DockerApiActionResult HandleError(Exception ex, string nameofAction)
     {
         _logger.LogError(

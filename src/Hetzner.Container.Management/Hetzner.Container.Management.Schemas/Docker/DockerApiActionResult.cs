@@ -1,4 +1,4 @@
-namespace Hetzner.Container.Management.Schemas.DockerEngineApi;
+namespace Hetzner.Container.Management.Schemas.Docker;
 
 public record DockerApiActionResult
 {
@@ -6,8 +6,7 @@ public record DockerApiActionResult
     public bool IsSuccess => string.IsNullOrWhiteSpace(ExceptionMessage);
 }
 
-public sealed record DockerApiActionResult<T>: DockerApiActionResult
+public sealed record DockerApiActionResult<T> : DockerApiActionResult
 {
     public T? Data { get; init; }
 }
-

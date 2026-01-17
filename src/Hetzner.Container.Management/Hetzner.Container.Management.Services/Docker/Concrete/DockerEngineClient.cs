@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Json;
 using BT.Common.Http.Extensions;
-using Hetzner.Container.Management.Schemas.DockerEngineApi;
+using Hetzner.Container.Management.Schemas.Docker;
+using Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
 using Hetzner.Container.Management.Services.Docker.Abstract;
 using Microsoft.Extensions.Logging;
 

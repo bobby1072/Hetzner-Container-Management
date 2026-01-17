@@ -1,7 +1,8 @@
 using BT.Common.Http.Extensions;
 using Hetzner.Container.Management.Schemas.Configuration;
-using Hetzner.Container.Management.Schemas.DockerEngineApi;
-using Hetzner.Container.Management.Schemas.DockerHubApi;
+using Hetzner.Container.Management.Schemas.Docker;
+using Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
+using Hetzner.Container.Management.Schemas.Docker.DockerHubApi;
 using Hetzner.Container.Management.Schemas.Input;
 using Hetzner.Container.Management.Services.Docker.Abstract;
 using Microsoft.Extensions.Caching.Memory;
@@ -22,7 +23,8 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
         DockerHubApiSettings settings,
         IMemoryCache memoryCache,
         ILogger<DockerHubClient> logger
-    ) : base(logger)
+    )
+        : base(logger)
     {
         _httpClient = httpClient;
         _settings = settings;
@@ -43,8 +45,8 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
                 cancellationToken
             );
 
-            var result = await _settings.BaseUrl
-                .AppendPathSegment("v2")
+            var result = await _settings
+                .BaseUrl.AppendPathSegment("v2")
                 .AppendPathSegment("namespaces")
                 .AppendPathSegment(dockerHubDetails.Namespace)
                 .AppendPathSegment("repositories")
@@ -52,10 +54,7 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
                 .WithHeader(HeaderNames.Authorization, $"Bearer {token}")
                 .GetJsonAsync<GetRepositoryResponse>(_httpClient, cancellationToken);
 
-            return new DockerApiActionResult<GetRepositoryResponse?>
-            {
-                Data = result,
-            };
+            return new DockerApiActionResult<GetRepositoryResponse?> { Data = result };
         }
         catch (HttpRequestException ex)
         {
@@ -95,17 +94,11 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
                 .WithHeader(HeaderNames.Authorization, $"Bearer {token}")
                 .GetJsonAsync<RepositoryTag>(_httpClient, cancellationToken);
 
-            return new DockerApiActionResult<RepositoryTag?>
-            {
-                Data = result,
-            };
+            return new DockerApiActionResult<RepositoryTag?> { Data = result };
         }
         catch (HttpRequestException ex)
         {
-            return new DockerApiActionResult<RepositoryTag?>
-            {
-                ExceptionMessage = ex.Message,
-            };
+            return new DockerApiActionResult<RepositoryTag?> { ExceptionMessage = ex.Message };
         }
         catch (Exception ex)
         {
@@ -133,10 +126,7 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
             .AppendPathSegment("auth")
             .AppendPathSegment("token")
             .WithApplicationJson(request)
-            .PostJsonAsync<AuthCreateTokenResponse>(
-                _httpClient,
-                cancellationToken
-            );
+            .PostJsonAsync<AuthCreateTokenResponse>(_httpClient, cancellationToken);
 
         var cacheOptions = new MemoryCacheEntryOptions
         {
