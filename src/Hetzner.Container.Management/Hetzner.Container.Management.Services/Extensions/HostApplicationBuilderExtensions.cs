@@ -2,9 +2,12 @@ using System.Net.Sockets;
 using BT.Common.Helpers.Extensions;
 using BT.Common.Http.Extensions;
 using Hetzner.Container.Management.Schemas.Configuration;
+using Hetzner.Container.Management.Services.ContainerOrchestration.Abstract;
+using Hetzner.Container.Management.Services.ContainerOrchestration.Concrete;
 using Hetzner.Container.Management.Services.Docker.Abstract;
 using Hetzner.Container.Management.Services.Docker.Concrete;
 using Hetzner.Container.Management.Services.Infrastructure.Abstract;
+using Hetzner.Container.Management.Services.Infrastructure.Concrete;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -23,16 +26,20 @@ public static class HostApplicationBuilderExtensions
 
         if (explorerCreator is not null)
         {
-            hostAppBuilder.Services.AddScoped<ICurrentInfrastructureExplorer, TInfraExplorer>(
+            hostAppBuilder.Services.AddSingleton<ICurrentInfrastructureExplorer, TInfraExplorer>(
                 explorerCreator
             );
         }
         else
         {
-            hostAppBuilder.Services.AddScoped<ICurrentInfrastructureExplorer, TInfraExplorer>();
+            hostAppBuilder.Services.AddSingleton<ICurrentInfrastructureExplorer, TInfraExplorer>();
         }
 
-        hostAppBuilder.Services.AddScoped<IDockerProcessExecutor, DockerProcessExecutor>();
+        hostAppBuilder.Services
+            .AddScoped<IDockerProcessExecutor, DockerProcessExecutor>()
+            .AddScoped<IContainerManagementService, ContainerManagementService>()
+            .AddSingleton<ICurrentInfrastructureUpdateJobQueue, CurrentInfrastructureUpdateJobQueue>()
+            .AddHostedService<CurrentInfrastructureBackgroundOperationExecutor>();
         
         return hostAppBuilder;
     }
