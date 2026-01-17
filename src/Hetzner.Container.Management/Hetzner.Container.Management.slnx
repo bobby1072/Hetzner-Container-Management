@@ -5,6 +5,9 @@
     <Project Path="..\Submodules\BT\src\BT.Common\BT.Common.Http\BT.Common.Http.csproj" Type="Classic C#" />
     <Project Path="..\Submodules\BT\src\BT.Common\BT.Common.Polly\BT.Common.Polly.csproj" Type="Classic C#" />
   </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Hetzner.Container.Management.Tests\Hetzner.Container.Management.Tests.csproj" Type="Classic C#" />
+  </Folder>
   <Project Path="Hetzner.Container.Management.Api/Hetzner.Container.Management.Api.csproj" />
   <Project Path="Hetzner.Container.Management.Schemas/Hetzner.Container.Management.Schemas.csproj" />
   <Project Path="Hetzner.Container.Management.Services/Hetzner.Container.Management.Services.csproj" />

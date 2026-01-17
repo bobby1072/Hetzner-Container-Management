@@ -73,10 +73,11 @@ internal sealed class ContainerManagementService : IContainerManagementService
                         .ToArray(),
                     UpdateNumber = currentInfrastructureDocument.UpdateNumber + 1,
                 };
-                
+
                 await _containerUpdateServicesServiceProvider
-                    .CurrentInfrastructureUpdateJobQueue
-                    .EnqueueAsync(newInfraStructureDocument, cancellationToken);
+                    .CurrentInfrastructureExplorer
+                    .ReplaceCurrentInfrastructureAsync(newInfraStructureDocument,
+                        cancellationToken);
             }
             
             return newInfraStructureDocument;
@@ -489,7 +490,6 @@ internal sealed class ContainerManagementService : IContainerManagementService
         public IDockerProcessExecutor DockerProcessExecutor =>
             field ??= _serviceProvider.GetRequiredService<IDockerProcessExecutor>();
         public ICurrentInfrastructureExplorer CurrentInfrastructureExplorer => _serviceProvider.GetRequiredService<ICurrentInfrastructureExplorer>();
-        public ICurrentInfrastructureUpdateJobQueue CurrentInfrastructureUpdateJobQueue => _serviceProvider.GetRequiredService<ICurrentInfrastructureUpdateJobQueue>();
         
         public ContainerUpdateServicesServiceProvider(IServiceProvider serviceProvider)
         {

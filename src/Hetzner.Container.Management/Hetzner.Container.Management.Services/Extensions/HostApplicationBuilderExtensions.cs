@@ -7,7 +7,6 @@ using Hetzner.Container.Management.Services.ContainerOrchestration.Concrete;
 using Hetzner.Container.Management.Services.Docker.Abstract;
 using Hetzner.Container.Management.Services.Docker.Concrete;
 using Hetzner.Container.Management.Services.Infrastructure.Abstract;
-using Hetzner.Container.Management.Services.Infrastructure.Concrete;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -37,9 +36,7 @@ public static class HostApplicationBuilderExtensions
 
         hostAppBuilder.Services
             .AddScoped<IDockerProcessExecutor, DockerProcessExecutor>()
-            .AddScoped<IContainerManagementService, ContainerManagementService>()
-            .AddSingleton<ICurrentInfrastructureUpdateJobQueue, CurrentInfrastructureUpdateJobQueue>()
-            .AddHostedService<CurrentInfrastructureBackgroundOperationExecutor>();
+            .AddScoped<IContainerManagementService, ContainerManagementService>();
         
         return hostAppBuilder;
     }
