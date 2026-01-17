@@ -18,7 +18,7 @@ namespace Hetzner.Container.Management.Services.ContainerOrchestration.Concrete;
 
 internal sealed class ContainerManagementService : IContainerManagementService
 {
-    private static readonly PollyRetrySettings _createOrGetOperationRetrySettings = new()
+    private static readonly PollyRetrySettings _commonOperationRetrySettings = new()
     {
         TotalAttempts = 2
     };
@@ -39,10 +39,63 @@ internal sealed class ContainerManagementService : IContainerManagementService
 
     public async Task<InfrastructureDocument> UpdateCurrentInfrastructure(
         InfrastructureComponentUpdateInput[] infrastructureDocuments,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken = default
     )
     {
-        throw new NotImplementedException();
+        try
+        {
+            var currentInfrastructureDocument = await _containerUpdateServicesServiceProvider
+                .CurrentInfrastructureExplorer
+                .TryGetCurrentInfrastructureDocumentAsync(cancellationToken)
+                    ?? throw new ApiException(LogLevel.Error, HttpStatusCode.InternalServerError,
+                        "Failed to retrieve current infrastructure infrastructure document.");
+            
+            var updateAttemptRetryPipeline =  _commonOperationRetrySettings
+                .ToPipeline();
+
+            var updateInfraComponents = await updateAttemptRetryPipeline.ExecuteAsync(async ct => 
+                await Task.WhenAll(infrastructureDocuments.Select(x => GetCurrentInfrastructureComponentForUpdateAsync(x, ct))),
+                cancellationToken);
+
+            var didUpdate = updateInfraComponents
+                .All(x => currentInfrastructureDocument.Components.Any(y => y.IsSame(x)));
+
+            var newInfraStructureDocument = currentInfrastructureDocument;
+            if (didUpdate)
+            {
+                newInfraStructureDocument = currentInfrastructureDocument with
+                {
+                    LastUpdated = DateTime.UtcNow,
+                    Components = updateInfraComponents,
+                    UpdateNumber = currentInfrastructureDocument.UpdateNumber + 1,
+                };
+            }
+            
+            await _containerUpdateServicesServiceProvider
+                .CurrentInfrastructureExplorer
+                .ReplaceCurrentInfrastructureAsync(newInfraStructureDocument, cancellationToken);
+            
+            
+            return newInfraStructureDocument;
+        }
+        catch (ApiException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "An unhandled exception occurred while updating the infrastructure component"
+            );
+
+            throw new ApiException(
+                LogLevel.Error,
+                HttpStatusCode.InternalServerError,
+                ApplicationConstants.ExceptionConstants.InternalError,
+                ex
+            );
+        }
     }
 
     private async Task<InfrastructureComponent> GetCurrentInfrastructureComponentForUpdateAsync(
@@ -82,7 +135,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 );
             }
 
-            var createOrGetRetryPipeline = _createOrGetOperationRetrySettings
+            var createOrGetRetryPipeline = _commonOperationRetrySettings
                 .ToPipeline();
             
             var containerInspectSummary = await createOrGetRetryPipeline.ExecuteAsync(async ct => await GetOrCreateContainerAsync(
@@ -109,7 +162,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
             throw new ApiException(
                 LogLevel.Error,
                 HttpStatusCode.InternalServerError,
-                "Internal server error",
+                ApplicationConstants.ExceptionConstants.InternalError,
                 ex
             );
         }
