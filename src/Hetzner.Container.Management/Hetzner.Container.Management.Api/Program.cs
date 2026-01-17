@@ -53,7 +53,10 @@ try
         builder.Services.Count
     );
 
-    builder.AddContainerManagementApplication<CurrentInfrastructureExplorer>();
+    builder.AddContainerManagementApplication<CurrentInfrastructureExplorer>(sp => new CurrentInfrastructureExplorer(
+        Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), $"Data{Path.DirectorySeparatorChar}CurrentInfrastructure")),
+        sp.GetRequiredService<ILoggerFactory>().CreateLogger<CurrentInfrastructureExplorer>())
+    );
     
     var app = builder.Build();
 

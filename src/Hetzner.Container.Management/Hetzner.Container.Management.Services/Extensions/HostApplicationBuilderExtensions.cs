@@ -15,12 +15,19 @@ namespace Hetzner.Container.Management.Services.Extensions;
 
 public static class HostApplicationBuilderExtensions
 {
-    public static IHostApplicationBuilder AddContainerManagementApplication<TInfraExplorer>(this IHostApplicationBuilder hostAppBuilder)
+    public static IHostApplicationBuilder AddContainerManagementApplication<TInfraExplorer>(this IHostApplicationBuilder hostAppBuilder, Func<IServiceProvider, TInfraExplorer>? explorerCreator = null)
         where TInfraExplorer : class, ICurrentInfrastructureExplorer
     {
         hostAppBuilder.AddHttClientStuff();
 
-        hostAppBuilder.Services.AddSingleton<ICurrentInfrastructureExplorer, TInfraExplorer>();
+        if (explorerCreator is not null)
+        {
+            hostAppBuilder.Services.AddSingleton<ICurrentInfrastructureExplorer, TInfraExplorer>(explorerCreator);
+        }
+        else
+        {
+            hostAppBuilder.Services.AddSingleton<ICurrentInfrastructureExplorer, TInfraExplorer>();
+        }
         
         return hostAppBuilder;
     }
