@@ -41,22 +41,12 @@ internal sealed class ContainerManagementOperationQueue: IContainerManagementOpe
         var completeQueue = 
             Channel.CreateUnbounded<KeyValuePair<Guid, (InfrastructureDocument? Response, ApiException? Exception)>>();
         
-        var queuedJobId = await QueueUpdateOperation(input, 
+        await QueueUpdateOperation(input, 
             (id, ifd,ex, ct) => completeQueue.Writer.WriteAsync(new KeyValuePair<Guid, (InfrastructureDocument? Response, ApiException? Exception)>(id, (ifd, ex)), ct).AsTask(),
             cancellationToken);
 
-        (InfrastructureDocument?, ApiException?) updatedDocument = default;
-        bool jobCompleted = false;
-        while (!jobCompleted && !cancellationToken.IsCancellationRequested)
-        {
-            var dequeuedItem = await completeQueue.Reader.ReadAsync(cancellationToken);
-
-            if (dequeuedItem.Key == queuedJobId)
-            {
-                jobCompleted = true;
-                updatedDocument = dequeuedItem.Value;
-            }
-        }
+        var dequeuedItem = await completeQueue.Reader.ReadAsync(cancellationToken);
+        var updatedDocument = dequeuedItem.Value;
         
         completeQueue.Writer.TryComplete();
         
