@@ -1,0 +1,44 @@
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS base
+
+RUN apk add --no-cache icu-libs
+RUN apk add --no-cache icu-data-full
+
+RUN adduser --uid 10000 runner --disabled-password
+USER 10000
+
+WORKDIR /app
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS publish
+ARG CONF=Release
+
+WORKDIR /src
+
+COPY src/Hetzner.Container.Management/Hetzner.Container.Management.Api/*.csproj ./Hetzner.Container.Management/Hetzner.Container.Management.Api/
+COPY src/Hetzner.Container.Management/Hetzner.Container.Management.Services/*.csproj ./Hetzner.Container.Management/Hetzner.Container.Management.Services/
+COPY src/Hetzner.Container.Management/Hetzner.Container.Management.Schemas/*.csproj ./Hetzner.Container.Management/Hetzner.Container.Management.Schemas/
+COPY src/Submodules/BT/src/BT.Common/BT.Common.Helpers/*.csproj ./Submodules/BT/src/BT.Common/BT.Common.Helpers/
+COPY src/Submodules/BT/src/BT.Common/BT.Common.Polly/*.csproj ./Submodules/BT/src/BT.Common/BT.Common.Polly/
+COPY src/Submodules/BT/src/BT.Common/BT.Common.Api.Helpers/*.csproj ./Submodules/BT/src/BT.Common/BT.Common.Api.Helpers/
+COPY src/Submodules/BT/src/BT.Common/BT.Common.Http/*.csproj ./Submodules/BT/src/BT.Common/BT.Common.Http/
+
+RUN dotnet restore Hetzner.Container.Management/Hetzner.Container.Management.Api/Hetzner.Container.Management.Api.csproj 
+
+COPY src/Hetzner.Container.Management/Hetzner.Container.Management.Api/ ./Hetzner.Container.Management/Hetzner.Container.Management.Api/
+COPY src/Hetzner.Container.Management/Hetzner.Container.Management.Services/ ./Hetzner.Container.Management/Hetzner.Container.Management.Services/
+COPY src/Hetzner.Container.Management/Hetzner.Container.Management.Schemas/ ./Hetzner.Container.Management/Hetzner.Container.Management.Schemas/
+COPY src/Submodules/BT/src/BT.Common/BT.Common.Helpers/ ./Submodules/BT/src/BT.Common/BT.Common.Helpers/
+COPY src/Submodules/BT/src/BT.Common/BT.Common.Polly/ ./Submodules/BT/src/BT.Common/BT.Common.Polly/
+COPY src/Submodules/BT/src/BT.Common/BT.Common.Api.Helpers/ ./Submodules/BT/src/BT.Common/BT.Common.Api.Helpers/
+COPY src/Submodules/BT/src/BT.Common/BT.Common.Http/ ./Submodules/BT/src/BT.Common/BT.Common.Http/
+
+
+WORKDIR /src/Hetzner.Container.Management/Hetzner.Container.Management.Api 
+ARG CONF=Release
+RUN dotnet publish Hetzner.Container.Management.Api.csproj -c ${CONF} -o /app
+
+FROM base AS final
+ARG CONF=Release
+WORKDIR /app
+COPY --from=publish /app .
+
+ENTRYPOINT ["dotnet", "Hetzner.Container.Management.Api.dll"]
