@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using BT.Common.Api.Helpers.Exceptions;
+using BT.Common.Helpers.Models;
 using BT.Common.Polly.Extensions;
 using BT.Common.Polly.Models.Concrete;
 using Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
@@ -107,68 +108,76 @@ internal sealed class ContainerManagementService : IContainerManagementService
         CancellationToken cancellationToken
     )
     {
-        try
+        using (_logger.BeginScope(new LoggingScopeVariableDictionary
+               {
+                   [nameof(InfrastructureComponentUpdateInput.ContainerName)] =
+                       infrastructureComponentInput.ContainerName,
+                   [nameof(InfrastructureComponentUpdateInput.ImageTag)] = infrastructureComponentInput.ImageTag,
+               }))
         {
-            _logger.LogInformation(
-                "Attempting to update the infrastructure component with details: {@InfrastructureDetails}",
-                infrastructureComponentInput
-            );
-
-            BasicValidateInput(infrastructureComponentInput);
-
-            var dockerHubFetchedDetails = await GetDockerHubRepositoryDetailsAsync(
-                infrastructureComponentInput.DockerHubDetails,
-                infrastructureComponentInput.ImageTag,
-                cancellationToken
-            );
-
-            if (
-                !await DoesImageAlreadyExistsInDockerEngineAsync(
-                    dockerHubFetchedDetails.RepoResp.Name,
-                    dockerHubFetchedDetails.RepoTag.Name,
-                    cancellationToken
-                )
-            )
+            try
             {
-                await _containerUpdateServicesServiceProvider.DockerProcessExecutor.PullDockerImageFromHub(
+                _logger.LogInformation(
+                    "Attempting to update the infrastructure component with details: {@InfrastructureDetails}",
+                    infrastructureComponentInput
+                );
+
+                BasicValidateInput(infrastructureComponentInput);
+
+                var dockerHubFetchedDetails = await GetDockerHubRepositoryDetailsAsync(
                     infrastructureComponentInput.DockerHubDetails,
-                    dockerHubFetchedDetails.RepoResp.Name,
-                    dockerHubFetchedDetails.RepoTag.Name,
-                    null,
+                    infrastructureComponentInput.ImageTag,
                     cancellationToken
                 );
+
+                if (
+                    !await DoesImageAlreadyExistsInDockerEngineAsync(
+                        dockerHubFetchedDetails.RepoResp.Name,
+                        dockerHubFetchedDetails.RepoTag.Name,
+                        cancellationToken
+                    )
+                )
+                {
+                    await _containerUpdateServicesServiceProvider.DockerProcessExecutor.PullDockerImageFromHub(
+                        infrastructureComponentInput.DockerHubDetails,
+                        dockerHubFetchedDetails.RepoResp.Name,
+                        dockerHubFetchedDetails.RepoTag.Name,
+                        null,
+                        cancellationToken
+                    );
+                }
+
+                var createOrGetRetryPipeline = _commonOperationRetrySettings
+                    .ToPipeline();
+                
+                var containerInspectSummary = await createOrGetRetryPipeline.ExecuteAsync(async ct => await GetOrCreateContainerAsync(
+                    infrastructureComponentInput,
+                    dockerHubFetchedDetails,
+                    ct
+                ), cancellationToken);
+                
+                var newInfraComp = CreateInfraCompFromContainerResponse(containerInspectSummary, dockerHubFetchedDetails);
+                
+                return newInfraComp;
             }
+            catch (ApiException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "An unhandled exception occurred while updating the infrastructure component"
+                );
 
-            var createOrGetRetryPipeline = _commonOperationRetrySettings
-                .ToPipeline();
-            
-            var containerInspectSummary = await createOrGetRetryPipeline.ExecuteAsync(async ct => await GetOrCreateContainerAsync(
-                infrastructureComponentInput,
-                dockerHubFetchedDetails,
-                ct
-            ), cancellationToken);
-            
-            var newInfraComp = CreateInfraCompFromContainerResponse(containerInspectSummary, dockerHubFetchedDetails);
-            
-            return newInfraComp;
-        }
-        catch (ApiException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                ex,
-                "An unhandled exception occurred while updating the infrastructure component"
-            );
-
-            throw new ApiException(
-                LogLevel.Error,
-                HttpStatusCode.InternalServerError,
-                ApplicationConstants.ExceptionConstants.InternalError,
-                ex
-            );
+                throw new ApiException(
+                    LogLevel.Error,
+                    HttpStatusCode.InternalServerError,
+                    ApplicationConstants.ExceptionConstants.InternalError,
+                    ex
+                );
+            }
         }
     }
     private async Task<ContainerInspectResponse> GetOrCreateContainerAsync(
