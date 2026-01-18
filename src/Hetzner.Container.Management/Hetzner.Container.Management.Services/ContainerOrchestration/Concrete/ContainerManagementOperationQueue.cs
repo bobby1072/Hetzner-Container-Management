@@ -57,7 +57,9 @@ internal sealed class ContainerManagementOperationQueue: IContainerManagementOpe
                 updatedDocument = dequeuedItem.Value;
             }
         }
-
+        
+        completeQueue.Writer.TryComplete();
+        
         if (updatedDocument.Item1 is null || updatedDocument.Item2 is not null)
         {
             throw updatedDocument.Item2
