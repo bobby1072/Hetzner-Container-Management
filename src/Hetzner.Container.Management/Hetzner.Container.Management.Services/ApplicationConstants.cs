@@ -4,7 +4,7 @@ public static class ApplicationConstants
 {
     public static class ExceptionConstants
     {
-        public const string InternalError = "An internal sever error occured during request";
+        public const string InternalError = "An internal sever error occured during request.";
     }
     
     public static class ServiceKeys

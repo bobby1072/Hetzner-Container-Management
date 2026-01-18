@@ -1,6 +1,8 @@
 using BT.Common.Http.Extensions;
 using Hetzner.Container.Management.Schemas.Configuration;
-using Hetzner.Container.Management.Schemas.DockerHubApi;
+using Hetzner.Container.Management.Schemas.Docker;
+using Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
+using Hetzner.Container.Management.Schemas.Docker.DockerHubApi;
 using Hetzner.Container.Management.Schemas.Input;
 using Hetzner.Container.Management.Services.Docker.Abstract;
 using Microsoft.Extensions.Caching.Memory;
@@ -9,7 +11,7 @@ using Microsoft.Net.Http.Headers;
 
 namespace Hetzner.Container.Management.Services.Docker.Concrete;
 
-internal sealed class DockerHubClient : IDockerHubClient
+internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
 {
     private readonly HttpClient _httpClient;
     private readonly DockerHubApiSettings _settings;
@@ -22,6 +24,7 @@ internal sealed class DockerHubClient : IDockerHubClient
         IMemoryCache memoryCache,
         ILogger<DockerHubClient> logger
     )
+        : base(logger)
     {
         _httpClient = httpClient;
         _settings = settings;
@@ -29,106 +32,44 @@ internal sealed class DockerHubClient : IDockerHubClient
         _logger = logger;
     }
 
-    public async Task<PagedResponse<RepositoryListEntry>?> ListNamespaceRepositoriesAsync(
+    public async Task<DockerApiActionResult<GetRepositoryResponse?>> GetRepositoryAsync(
         DockerHubDetailsWithRepositoryName dockerHubDetails,
-        int page = 1,
-        int pageSize = 10,
-        string? name = null,
-        string? ordering = null,
         CancellationToken cancellationToken = default
     )
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(dockerHubDetails.Namespace);
-
             var token = await CreateAccessTokenAsync(
                 dockerHubDetails.Username,
                 dockerHubDetails.Password,
                 cancellationToken
             );
 
-            var builder = _settings
-                .BaseUrl.AppendPathSegment("v2")
-                .AppendPathSegment("namespaces")
-                .AppendPathSegment(dockerHubDetails.Namespace)
-                .AppendPathSegment("repositories")
-                .AppendQueryParameter("page", page.ToString())
-                .AppendQueryParameter("page_size", pageSize.ToString())
-                .WithHeader(HeaderNames.Authorization, $"Bearer {token}");
-
-            if (!string.IsNullOrWhiteSpace(name))
-            {
-                builder = builder.AppendQueryParameter("name", name);
-            }
-
-            if (!string.IsNullOrWhiteSpace(ordering))
-            {
-                builder = builder.AppendQueryParameter("ordering", ordering);
-            }
-
-            return await builder.GetJsonAsync<PagedResponse<RepositoryListEntry>>(
-                _httpClient,
-                cancellationToken
-            );
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                ex,
-                "Unexpected exception occurred during request to {BaseUrl}",
-                _settings.BaseUrl
-            );
-            return null;
-        }
-    }
-
-    public async Task<PagedResponse<RepositoryTag>?> ListRepositoryTagsAsync(
-        DockerHubDetailsWithRepositoryName dockerHubDetails,
-        int page = 1,
-        int pageSize = 10,
-        CancellationToken cancellationToken = default
-    )
-    {
-        try
-        {
-            ArgumentException.ThrowIfNullOrWhiteSpace(dockerHubDetails.Namespace);
-            ArgumentException.ThrowIfNullOrWhiteSpace(dockerHubDetails.RepositoryName);
-
-            var token = await CreateAccessTokenAsync(
-                dockerHubDetails.Username,
-                dockerHubDetails.Password,
-                cancellationToken
-            );
-
-            var builder = _settings
+            var result = await _settings
                 .BaseUrl.AppendPathSegment("v2")
                 .AppendPathSegment("namespaces")
                 .AppendPathSegment(dockerHubDetails.Namespace)
                 .AppendPathSegment("repositories")
                 .AppendPathSegment(dockerHubDetails.RepositoryName)
-                .AppendPathSegment("tags")
-                .AppendQueryParameter("page", page.ToString())
-                .AppendQueryParameter("page_size", pageSize.ToString())
-                .WithHeader(HeaderNames.Authorization, $"Bearer {token}");
+                .WithHeader(HeaderNames.Authorization, $"Bearer {token}")
+                .GetJsonAsync<GetRepositoryResponse>(_httpClient, cancellationToken);
 
-            return await builder.GetJsonAsync<PagedResponse<RepositoryTag>>(
-                _httpClient,
-                cancellationToken
-            );
+            return new DockerApiActionResult<GetRepositoryResponse?> { Data = result };
+        }
+        catch (HttpRequestException ex)
+        {
+            return new DockerApiActionResult<GetRepositoryResponse?>
+            {
+                ExceptionMessage = ex.Message,
+            };
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Unexpected exception occurred during request to {BaseUrl}",
-                _settings.BaseUrl
-            );
-            return null;
+            return HandleError<GetRepositoryResponse?>(ex, nameof(GetRepositoryAsync));
         }
     }
 
-    public async Task<RepositoryTag?> GetRepositoryTagAsync(
+    public async Task<DockerApiActionResult<RepositoryTag?>> GetRepositoryTagAsync(
         DockerHubDetailsWithRepositoryName dockerHubDetails,
         string tag,
         CancellationToken cancellationToken = default
@@ -136,17 +77,13 @@ internal sealed class DockerHubClient : IDockerHubClient
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(dockerHubDetails.Namespace);
-            ArgumentException.ThrowIfNullOrWhiteSpace(dockerHubDetails.RepositoryName);
-            ArgumentException.ThrowIfNullOrWhiteSpace(tag);
-
             var token = await CreateAccessTokenAsync(
                 dockerHubDetails.Username,
                 dockerHubDetails.Password,
                 cancellationToken
             );
 
-            var builder = _settings
+            var result = await _settings
                 .BaseUrl.AppendPathSegment("v2")
                 .AppendPathSegment("namespaces")
                 .AppendPathSegment(dockerHubDetails.Namespace)
@@ -154,18 +91,18 @@ internal sealed class DockerHubClient : IDockerHubClient
                 .AppendPathSegment(dockerHubDetails.RepositoryName)
                 .AppendPathSegment("tags")
                 .AppendPathSegment(tag)
-                .WithHeader(HeaderNames.Authorization, $"Bearer {token}");
+                .WithHeader(HeaderNames.Authorization, $"Bearer {token}")
+                .GetJsonAsync<RepositoryTag>(_httpClient, cancellationToken);
 
-            return await builder.GetJsonAsync<RepositoryTag>(_httpClient, cancellationToken);
+            return new DockerApiActionResult<RepositoryTag?> { Data = result };
+        }
+        catch (HttpRequestException ex)
+        {
+            return new DockerApiActionResult<RepositoryTag?> { ExceptionMessage = ex.Message };
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Unexpected exception occurred during request to {BaseUrl}",
-                _settings.BaseUrl
-            );
-            return null;
+            return HandleError<RepositoryTag?>(ex, nameof(GetRepositoryTagAsync));
         }
     }
 
@@ -175,9 +112,6 @@ internal sealed class DockerHubClient : IDockerHubClient
         CancellationToken cancellationToken
     )
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(identifier);
-        ArgumentException.ThrowIfNullOrWhiteSpace(secret);
-
         var cacheKey = $"dockerhub_access_token_{identifier}";
 
         if (_memoryCache.TryGetValue<string>(cacheKey, out var cachedToken))
@@ -187,16 +121,12 @@ internal sealed class DockerHubClient : IDockerHubClient
 
         var request = new AuthCreateTokenRequest { Identifier = identifier, Secret = secret };
 
-        var builder = _settings
+        var response = await _settings
             .BaseUrl.AppendPathSegment("v2")
             .AppendPathSegment("auth")
             .AppendPathSegment("token")
-            .WithApplicationJson(request);
-
-        var response = await builder.PostJsonAsync<AuthCreateTokenResponse>(
-            _httpClient,
-            cancellationToken
-        );
+            .WithApplicationJson(request)
+            .PostJsonAsync<AuthCreateTokenResponse>(_httpClient, cancellationToken);
 
         var cacheOptions = new MemoryCacheEntryOptions
         {
