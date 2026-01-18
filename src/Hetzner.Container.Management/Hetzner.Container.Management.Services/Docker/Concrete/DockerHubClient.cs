@@ -48,7 +48,7 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
             var result = await _settings
                 .BaseUrl.AppendPathSegment("v2")
                 .AppendPathSegment("namespaces")
-                .AppendPathSegment(dockerHubDetails.Namespace)
+                .AppendPathSegment(dockerHubDetails.Username)
                 .AppendPathSegment("repositories")
                 .AppendPathSegment(dockerHubDetails.RepositoryName)
                 .WithHeader(HeaderNames.Authorization, $"Bearer {token}")
@@ -86,7 +86,7 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
             var result = await _settings
                 .BaseUrl.AppendPathSegment("v2")
                 .AppendPathSegment("namespaces")
-                .AppendPathSegment(dockerHubDetails.Namespace)
+                .AppendPathSegment(dockerHubDetails.Username)
                 .AppendPathSegment("repositories")
                 .AppendPathSegment(dockerHubDetails.RepositoryName)
                 .AppendPathSegment("tags")

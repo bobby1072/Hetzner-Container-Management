@@ -352,7 +352,6 @@ public sealed class ContainerManagementControllerTests
             VolumeName = null,
             DockerHubDetails = new DockerHubDetailsWithRepositoryName
             {
-                Namespace = "test-namespace",
                 RepositoryName = "test-repo",
                 Username = "test-user",
                 Password = "test-password",

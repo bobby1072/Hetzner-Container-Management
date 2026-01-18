@@ -44,14 +44,16 @@ internal sealed class ContainerManagementService : IContainerManagementService
         try
         {
             var currentInfrastructureDocument =
-                await _containerUpdateServicesServiceProvider.CurrentInfrastructureExplorer.TryGetCurrentInfrastructureDocumentAsync(
-                    cancellationToken
-                )
-                ?? throw new ApiException(
-                    LogLevel.Error,
-                    HttpStatusCode.InternalServerError,
-                    "Failed to retrieve current infrastructure infrastructure document."
-                );
+                await _containerUpdateServicesServiceProvider
+                    .CurrentInfrastructureExplorer
+                    .TryGetCurrentInfrastructureDocumentAsync(
+                        cancellationToken
+                    )
+                        ?? throw new ApiException(
+                            LogLevel.Error,
+                            HttpStatusCode.InternalServerError,
+                            "Failed to retrieve current infrastructure infrastructure document."
+                        );
 
             var updateAttemptRetryPipeline = _commonOperationRetrySettings.ToPipeline();
 

@@ -38,7 +38,6 @@ public class ContainerManagementServiceTestFixture
             VolumeName = volumeName,
             DockerHubDetails = new DockerHubDetailsWithRepositoryName
             {
-                Namespace = "test-namespace",
                 RepositoryName = "test-repo",
                 Username = "test-user",
                 Password = "test-password"
