@@ -46,7 +46,8 @@ try
         .AddControllers()
         .AddJsonOptions(opts => opts.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
     
-    builder.Services.AddOpenApi();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
 
     localLogger.LogInformation(
         "About to build application with {NumberOfServices} services",
@@ -62,7 +63,8 @@ try
 
     if (app.Environment.IsDevelopment())
     {
-        app.MapOpenApi();
+        app.UseSwagger();
+        app.UseSwaggerUI();
     }
     app.UseRouting();
 

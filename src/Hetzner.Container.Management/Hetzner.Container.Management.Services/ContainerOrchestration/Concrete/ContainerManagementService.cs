@@ -19,11 +19,9 @@ namespace Hetzner.Container.Management.Services.ContainerOrchestration.Concrete;
 
 internal sealed class ContainerManagementService : IContainerManagementService
 {
-    private static readonly PollyRetrySettings _commonOperationRetrySettings = new()
-    {
-        TotalAttempts = 2
-    };
-    
+    private static readonly PollyRetrySettings _commonOperationRetrySettings =
+        new() { TotalAttempts = 2 };
+
     private readonly ContainerUpdateServicesServiceProvider _containerUpdateServicesServiceProvider;
     private readonly ILogger<ContainerManagementService> _logger;
 
@@ -45,21 +43,31 @@ internal sealed class ContainerManagementService : IContainerManagementService
     {
         try
         {
-            var currentInfrastructureDocument = await _containerUpdateServicesServiceProvider
-                .CurrentInfrastructureExplorer
-                .TryGetCurrentInfrastructureDocumentAsync(cancellationToken)
-                    ?? throw new ApiException(LogLevel.Error, HttpStatusCode.InternalServerError,
-                        "Failed to retrieve current infrastructure infrastructure document.");
-            
-            var updateAttemptRetryPipeline =  _commonOperationRetrySettings
-                .ToPipeline();
+            var currentInfrastructureDocument =
+                await _containerUpdateServicesServiceProvider.CurrentInfrastructureExplorer.TryGetCurrentInfrastructureDocumentAsync(
+                    cancellationToken
+                )
+                ?? throw new ApiException(
+                    LogLevel.Error,
+                    HttpStatusCode.InternalServerError,
+                    "Failed to retrieve current infrastructure infrastructure document."
+                );
 
-            var updateInfraComponents = await updateAttemptRetryPipeline.ExecuteAsync(async ct => 
-                await Task.WhenAll(infrastructureDocuments.Select(x => GetCurrentInfrastructureComponentForUpdateAsync(x, ct))),
-                cancellationToken);
+            var updateAttemptRetryPipeline = _commonOperationRetrySettings.ToPipeline();
 
-            var didUpdate = updateInfraComponents
-                .All(x => currentInfrastructureDocument.Components.Any(y => y.IsSame(x)));
+            var updateInfraComponents = await updateAttemptRetryPipeline.ExecuteAsync(
+                async ct =>
+                    await Task.WhenAll(
+                        infrastructureDocuments.Select(x =>
+                            GetCurrentInfrastructureComponentForUpdateAsync(x, ct)
+                        )
+                    ),
+                cancellationToken
+            );
+
+            var didUpdate = updateInfraComponents.All(x =>
+                currentInfrastructureDocument.Components.Any(y => y.IsSame(x))
+            );
 
             var newInfraStructureDocument = currentInfrastructureDocument;
             if (didUpdate)
@@ -67,20 +75,24 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 newInfraStructureDocument = currentInfrastructureDocument with
                 {
                     LastUpdated = DateTime.UtcNow,
-                    Components = currentInfrastructureDocument.Components
-                        .Where(x => !updateInfraComponents.Select(y => y.ContainerName).Contains(x.ContainerName))
+                    Components = currentInfrastructureDocument
+                        .Components.Where(x =>
+                            !updateInfraComponents
+                                .Select(y => y.ContainerName)
+                                .Contains(x.ContainerName)
+                        )
                         .Concat(updateInfraComponents)
                         .DistinctBy(x => x.ContainerName)
                         .ToArray(),
                     UpdateNumber = currentInfrastructureDocument.UpdateNumber + 1,
                 };
 
-                await _containerUpdateServicesServiceProvider
-                    .CurrentInfrastructureExplorer
-                    .ReplaceCurrentInfrastructureAsync(newInfraStructureDocument,
-                        cancellationToken);
+                await _containerUpdateServicesServiceProvider.CurrentInfrastructureExplorer.ReplaceCurrentInfrastructureAsync(
+                    newInfraStructureDocument,
+                    cancellationToken
+                );
             }
-            
+
             return newInfraStructureDocument;
         }
         catch (ApiException)
@@ -108,12 +120,17 @@ internal sealed class ContainerManagementService : IContainerManagementService
         CancellationToken cancellationToken
     )
     {
-        using (_logger.BeginScope(new LoggingScopeVariableDictionary
-               {
-                   [nameof(InfrastructureComponentUpdateInput.ContainerName)] =
-                       infrastructureComponentInput.ContainerName,
-                   [nameof(InfrastructureComponentUpdateInput.ImageTag)] = infrastructureComponentInput.ImageTag,
-               }))
+        using (
+            _logger.BeginScope(
+                new LoggingScopeVariableDictionary
+                {
+                    [nameof(InfrastructureComponentUpdateInput.ContainerName)] =
+                        infrastructureComponentInput.ContainerName,
+                    [nameof(InfrastructureComponentUpdateInput.ImageTag)] =
+                        infrastructureComponentInput.ImageTag,
+                }
+            )
+        )
         {
             try
             {
@@ -147,17 +164,23 @@ internal sealed class ContainerManagementService : IContainerManagementService
                     );
                 }
 
-                var createOrGetRetryPipeline = _commonOperationRetrySettings
-                    .ToPipeline();
-                
-                var containerInspectSummary = await createOrGetRetryPipeline.ExecuteAsync(async ct => await GetOrCreateContainerAsync(
-                    infrastructureComponentInput,
-                    dockerHubFetchedDetails,
-                    ct
-                ), cancellationToken);
-                
-                var newInfraComp = CreateInfraCompFromContainerResponse(containerInspectSummary, dockerHubFetchedDetails);
-                
+                var createOrGetRetryPipeline = _commonOperationRetrySettings.ToPipeline();
+
+                var containerInspectSummary = await createOrGetRetryPipeline.ExecuteAsync(
+                    async ct =>
+                        await GetOrCreateContainerAsync(
+                            infrastructureComponentInput,
+                            dockerHubFetchedDetails,
+                            ct
+                        ),
+                    cancellationToken
+                );
+
+                var newInfraComp = CreateInfraCompFromContainerResponse(
+                    containerInspectSummary,
+                    dockerHubFetchedDetails
+                );
+
                 return newInfraComp;
             }
             catch (ApiException)
@@ -180,22 +203,33 @@ internal sealed class ContainerManagementService : IContainerManagementService
             }
         }
     }
+
     private async Task<ContainerInspectResponse> GetOrCreateContainerAsync(
         InfrastructureComponentUpdateInput infrastructureComponentInput,
         (GetRepositoryResponse RepoResp, RepositoryTag RepoTag) dockerHubFetchedDetails,
         CancellationToken cancellationToken
     )
     {
-        var combinedImageNameAndTag = $"{dockerHubFetchedDetails.RepoResp.Name}:{dockerHubFetchedDetails.RepoTag.Name}";
+        var combinedImageNameAndTag =
+            $"{dockerHubFetchedDetails.RepoResp.Name}:{dockerHubFetchedDetails.RepoTag.Name}";
         var existingContainer = await GetExistingContainerFromDockerEngineAsync(
             infrastructureComponentInput.ContainerName,
             cancellationToken
         );
 
-        if (existingContainer is null || DoesExistingContainerNeedUpdating(existingContainer, dockerHubFetchedDetails,
-                infrastructureComponentInput))
+        if (
+            existingContainer is null
+            || DoesExistingContainerNeedUpdating(
+                existingContainer,
+                dockerHubFetchedDetails,
+                infrastructureComponentInput
+            )
+        )
         {
-            if (existingContainer is not null && existingContainer.Config?.Image?.Contains(combinedImageNameAndTag) != true)
+            if (
+                existingContainer is not null
+                && existingContainer.Config?.Image?.Contains(combinedImageNameAndTag) != true
+            )
             {
                 throw new ApiException(
                     LogLevel.Information,
@@ -206,15 +240,20 @@ internal sealed class ContainerManagementService : IContainerManagementService
 
             if (existingContainer != null)
             {
-                await RemoveExistingContainerAsync(existingContainer.Name,
-                    IsVolumesDifferent(infrastructureComponentInput, existingContainer), cancellationToken);
+                await RemoveExistingContainerAsync(
+                    existingContainer.Name,
+                    IsVolumesDifferent(infrastructureComponentInput, existingContainer),
+                    cancellationToken
+                );
             }
-            
-            var createdContainerName = await CreateContainerAsync(existingContainer,
+
+            var createdContainerName = await CreateContainerAsync(
+                existingContainer,
                 dockerHubFetchedDetails,
                 infrastructureComponentInput,
-                cancellationToken);
-            
+                cancellationToken
+            );
+
             existingContainer = await GetExistingContainerFromDockerEngineAsync(
                 createdContainerName,
                 cancellationToken
@@ -222,42 +261,62 @@ internal sealed class ContainerManagementService : IContainerManagementService
 
             if (existingContainer is null)
             {
-                throw new ApiException(LogLevel.Error, 
+                throw new ApiException(
+                    LogLevel.Error,
                     HttpStatusCode.InternalServerError,
-                    $"Failed to create container with name: {infrastructureComponentInput.ContainerName}");
+                    $"Failed to create container with name: {infrastructureComponentInput.ContainerName}"
+                );
             }
         }
 
         return existingContainer;
     }
 
-    private async Task<string> CreateContainerAsync(ContainerInspectResponse? containerInspectResponse,
+    private async Task<string> CreateContainerAsync(
+        ContainerInspectResponse? containerInspectResponse,
         (GetRepositoryResponse RepoResp, RepositoryTag RepoTag) dockerHubFetchedDetails,
         InfrastructureComponentUpdateInput infrastructureComponentInput,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        var requestModel = BuildCreateContainerRequest(infrastructureComponentInput,
+        var requestModel = BuildCreateContainerRequest(
+            infrastructureComponentInput,
             dockerHubFetchedDetails,
-            IsVolumesDifferent(infrastructureComponentInput, containerInspectResponse));
-        
-        var result = await _containerUpdateServicesServiceProvider
-            .DockerEngineClient
-            .CreateContainerAsync(requestModel, infrastructureComponentInput.ContainerName, cancellationToken);
+            IsVolumesDifferent(infrastructureComponentInput, containerInspectResponse)
+        );
+
+        var result =
+            await _containerUpdateServicesServiceProvider.DockerEngineClient.CreateContainerAsync(
+                requestModel,
+                infrastructureComponentInput.ContainerName,
+                cancellationToken
+            );
 
         if (!result.IsSuccess || result.Data is null)
         {
-            throw new ApiException(LogLevel.Error,
-                HttpStatusCode.InternalServerError, 
-                $"Failed to create the container with exception message: {result.ExceptionMessage}");
+            throw new ApiException(
+                LogLevel.Error,
+                HttpStatusCode.InternalServerError,
+                $"Failed to create the container with exception message: {result.ExceptionMessage}"
+            );
         }
-        
+
         return result.Data.Id;
     }
-    private async Task RemoveExistingContainerAsync(string containerName, bool removeVolumes,CancellationToken cancellationToken)
+
+    private async Task RemoveExistingContainerAsync(
+        string containerName,
+        bool removeVolumes,
+        CancellationToken cancellationToken
+    )
     {
-        var result = await _containerUpdateServicesServiceProvider
-            .DockerEngineClient
-            .RemoveContainerAsync(containerName, true, removeVolumes, cancellationToken);
+        var result =
+            await _containerUpdateServicesServiceProvider.DockerEngineClient.RemoveContainerAsync(
+                containerName,
+                true,
+                removeVolumes,
+                cancellationToken
+            );
 
         if (!result.IsSuccess)
         {
@@ -268,6 +327,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
             );
         }
     }
+
     private async Task<ContainerInspectResponse?> GetExistingContainerFromDockerEngineAsync(
         string containerName,
         CancellationToken cancellationToken
@@ -292,6 +352,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
 
         return dockerEngineResult.Data;
     }
+
     private async Task<bool> DoesImageAlreadyExistsInDockerEngineAsync(
         string imageName,
         string imageTag,
@@ -382,6 +443,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
             infrastructureComponentInputs.ContainerName
         );
     }
+
     private ContainerCreateRequest BuildCreateContainerRequest(
         InfrastructureComponentUpdateInput infrastructureComponentInput,
         (GetRepositoryResponse RepoResp, RepositoryTag RepoTag) dockerHubFetchedDetails,
@@ -412,20 +474,17 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 {
                     {
                         internalContainerPort,
+
                         [
                             new PortBinding
                             {
                                 HostPort =
                                     infrastructureComponentInput.PublicFacingPortNumber.ToString(),
-                            }
+                            },
                         ]
                     },
                 },
-                RestartPolicy = new RestartPolicy
-                {
-                    Name = "always",
-                    MaximumRetryCount = 3,
-                },
+                RestartPolicy = new RestartPolicy { Name = "always", MaximumRetryCount = 3 },
             },
         };
 
@@ -439,16 +498,19 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 },
             };
         }
-        
-        _logger.LogInformation("Container create request to be sent: {@ContainerCreateRequest}",
-            request);
+
+        _logger.LogInformation(
+            "Container create request to be sent: {@ContainerCreateRequest}",
+            request
+        );
 
         return request;
     }
-    
-    private static InfrastructureComponent  CreateInfraCompFromContainerResponse(
+
+    private static InfrastructureComponent CreateInfraCompFromContainerResponse(
         ContainerInspectResponse containerInspectResponse,
-        (GetRepositoryResponse RepoResp, RepositoryTag RepoTag) dockerHubFetchedDetails)
+        (GetRepositoryResponse RepoResp, RepositoryTag RepoTag) dockerHubFetchedDetails
+    )
     {
         return new InfrastructureComponent
         {
@@ -457,32 +519,64 @@ internal sealed class ContainerManagementService : IContainerManagementService
             DockerhubName = dockerHubFetchedDetails.RepoResp.Name,
             DockerhubNamespace = dockerHubFetchedDetails.RepoResp.Namespace,
             ImageVersionTag = dockerHubFetchedDetails.RepoTag.Name,
-            InternalPortNumber = int.Parse(containerInspectResponse.Config?.ExposedPorts?.FirstOrDefault().Key.Split('/').FirstOrDefault() ?? throw new ApiException(LogLevel.Error, HttpStatusCode.InternalServerError, ApplicationConstants.ExceptionConstants.InternalError)),
-            PublicFacingPortNumber = int.Parse(containerInspectResponse.HostConfig?.PortBindings?.FirstOrDefault().Key ?? throw new ApiException(LogLevel.Error, HttpStatusCode.InternalServerError, ApplicationConstants.ExceptionConstants.InternalError)),
+            InternalPortNumber = int.Parse(
+                containerInspectResponse
+                    .Config?.ExposedPorts?.FirstOrDefault()
+                    .Key.Split('/')
+                    .FirstOrDefault()
+                    ?? throw new ApiException(
+                        LogLevel.Error,
+                        HttpStatusCode.InternalServerError,
+                        ApplicationConstants.ExceptionConstants.InternalError
+                    )
+            ),
+            PublicFacingPortNumber = int.Parse(
+                containerInspectResponse.HostConfig?.PortBindings?.FirstOrDefault().Key
+                    ?? throw new ApiException(
+                        LogLevel.Error,
+                        HttpStatusCode.InternalServerError,
+                        ApplicationConstants.ExceptionConstants.InternalError
+                    )
+            ),
             VolumeName = containerInspectResponse.Config.Volumes?.FirstOrDefault().Key,
             LatestContainerSummary = containerInspectResponse,
             LastUpdated = DateTime.UtcNow,
         };
     }
-    private static bool DoesExistingContainerNeedUpdating(ContainerInspectResponse containerInspectResponse,
+
+    private static bool DoesExistingContainerNeedUpdating(
+        ContainerInspectResponse containerInspectResponse,
         (GetRepositoryResponse RepoResp, RepositoryTag RepoTag) dockerHubFetchedDetails,
-        InfrastructureComponentUpdateInput infrastructureComponentInput)
+        InfrastructureComponentUpdateInput infrastructureComponentInput
+    )
     {
         var stringArrayEnv = infrastructureComponentInput.CreateEnvStringArrayFromConfigMap();
-        
-        return containerInspectResponse.Config?.Image !=
-               $"{dockerHubFetchedDetails.RepoResp.Name}:{dockerHubFetchedDetails.RepoTag.Name}" ||
-               IsVolumesDifferent(infrastructureComponentInput, containerInspectResponse) ||
-               containerInspectResponse.Config?.Env?.All(x => stringArrayEnv.Contains(x)) != true ||
-               containerInspectResponse.Config?.ExposedPorts?.ContainsKey(infrastructureComponentInput.InternalPortNumber.ToString()) != true ||
-               containerInspectResponse.HostConfig?.PortBindings?.ContainsKey(infrastructureComponentInput.PublicFacingPortNumber.ToString()) != true;
+
+        return containerInspectResponse.Config?.Image
+                != $"{dockerHubFetchedDetails.RepoResp.Name}:{dockerHubFetchedDetails.RepoTag.Name}"
+            || IsVolumesDifferent(infrastructureComponentInput, containerInspectResponse)
+            || containerInspectResponse.Config?.Env?.All(x => stringArrayEnv.Contains(x)) != true
+            || containerInspectResponse.Config?.ExposedPorts?.ContainsKey(
+                infrastructureComponentInput.InternalPortNumber.ToString()
+            ) != true
+            || containerInspectResponse.HostConfig?.PortBindings?.ContainsKey(
+                infrastructureComponentInput.PublicFacingPortNumber.ToString()
+            ) != true;
     }
 
-    private static bool IsVolumesDifferent(InfrastructureComponentUpdateInput infrastructureComponentInput,
-        ContainerInspectResponse? containerInspectResponse)
-        =>  !string.IsNullOrWhiteSpace(infrastructureComponentInput.VolumeName) ? (containerInspectResponse is null ||
-           containerInspectResponse.Config?.Volumes?.ContainsKey(infrastructureComponentInput.VolumeName) != true): 
-            containerInspectResponse?.Config?.Volumes?.Any() == true; 
+    private static bool IsVolumesDifferent(
+        InfrastructureComponentUpdateInput infrastructureComponentInput,
+        ContainerInspectResponse? containerInspectResponse
+    ) =>
+        !string.IsNullOrWhiteSpace(infrastructureComponentInput.VolumeName)
+            ? (
+                containerInspectResponse is null
+                || containerInspectResponse.Config?.Volumes?.ContainsKey(
+                    infrastructureComponentInput.VolumeName
+                ) != true
+            )
+            : containerInspectResponse?.Config?.Volumes?.Any() == true;
+
     private sealed record ContainerUpdateServicesServiceProvider
     {
         private readonly IServiceProvider _serviceProvider;
@@ -498,8 +592,11 @@ internal sealed class ContainerManagementService : IContainerManagementService
         [field: AllowNull, MaybeNull]
         public IDockerProcessExecutor DockerProcessExecutor =>
             field ??= _serviceProvider.GetRequiredService<IDockerProcessExecutor>();
-        public ICurrentInfrastructureExplorer CurrentInfrastructureExplorer => _serviceProvider.GetRequiredService<ICurrentInfrastructureExplorer>();
-        
+
+        [field: AllowNull, MaybeNull]
+        public ICurrentInfrastructureExplorer CurrentInfrastructureExplorer =>
+            field ??= _serviceProvider.GetRequiredService<ICurrentInfrastructureExplorer>();
+
         public ContainerUpdateServicesServiceProvider(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
