@@ -1,4 +1,6 @@
 ﻿using System.Text.Json;
+using BT.Common.Polly.Extensions;
+using BT.Common.Polly.Models.Concrete;
 using Hetzner.Container.Management.Schemas.Infrastructure;
 using Hetzner.Container.Management.Services.Infrastructure.Abstract;
 
@@ -6,6 +8,11 @@ namespace Hetzner.Container.Management.Api.Services;
 
 internal sealed class CurrentInfrastructureExplorer: ICurrentInfrastructureExplorer
 {
+    private static readonly PollyRetrySettings _writeToFileRetrySettings = new()
+    {
+        TotalAttempts = 3
+    };
+    
     private readonly string _infraJsonLocation;
     private readonly ILogger<CurrentInfrastructureExplorer> _logger;
 
@@ -18,8 +25,12 @@ internal sealed class CurrentInfrastructureExplorer: ICurrentInfrastructureExplo
     public async Task ReplaceCurrentInfrastructureAsync(InfrastructureDocument infrastructureDocument, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Attempting to replace current infrastructure document at path: {InfraPath}", _infraJsonLocation);
+        
         var newInfrastructureDocument = infrastructureDocument with { LastUpdated = DateTime.UtcNow };
-        await File.WriteAllTextAsync(_infraJsonLocation, JsonSerializer.Serialize(newInfrastructureDocument), cancellationToken);
+        var serialisedDocument = JsonSerializer.Serialize(newInfrastructureDocument);
+
+        var retryPipeline = _writeToFileRetrySettings.ToPipeline();
+        await retryPipeline.ExecuteAsync(async (ct) => await File.WriteAllTextAsync(_infraJsonLocation, serialisedDocument, ct), cancellationToken);
     }
 
     public async Task<InfrastructureDocument?> TryGetCurrentInfrastructureDocumentAsync(CancellationToken cancellationToken = default)
