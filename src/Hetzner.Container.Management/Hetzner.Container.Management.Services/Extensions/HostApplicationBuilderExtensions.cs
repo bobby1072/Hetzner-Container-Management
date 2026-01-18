@@ -25,18 +25,20 @@ public static class HostApplicationBuilderExtensions
 
         if (explorerCreator is not null)
         {
-            hostAppBuilder.Services.AddSingleton<ICurrentInfrastructureExplorer, TInfraExplorer>(
+            hostAppBuilder.Services.AddScoped<ICurrentInfrastructureExplorer, TInfraExplorer>(
                 explorerCreator
             );
         }
         else
         {
-            hostAppBuilder.Services.AddSingleton<ICurrentInfrastructureExplorer, TInfraExplorer>();
+            hostAppBuilder.Services.AddScoped<ICurrentInfrastructureExplorer, TInfraExplorer>();
         }
 
         hostAppBuilder.Services
             .AddScoped<IDockerProcessExecutor, DockerProcessExecutor>()
-            .AddScoped<IContainerManagementService, ContainerManagementService>();
+            .AddScoped<IContainerManagementService, ContainerManagementService>()
+            .AddSingleton<IContainerManagementOperationQueue, ContainerManagementOperationQueue>()
+            .AddHostedService<ContainerManagementBackgroundOperationExecutor>();
         
         return hostAppBuilder;
     }
