@@ -61,6 +61,6 @@ public sealed class ExceptionHandlingMiddleware
             }
         }
         
-        await context.Response.WriteAsJsonAsync(new WebOutcome { ExceptionMessage = message });
+        await context.Response.WriteAsJsonAsync(Results.Problem(message, null, statusCode));
     }
 }

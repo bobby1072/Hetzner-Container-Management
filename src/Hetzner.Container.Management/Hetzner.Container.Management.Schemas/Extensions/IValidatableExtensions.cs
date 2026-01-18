@@ -18,7 +18,7 @@ public static class IValidatableExtensions
             {
                 isValid = false;
             }
-            if (!string.IsNullOrWhiteSpace(resMessage))
+            if (!res && !string.IsNullOrWhiteSpace(resMessage))
             {
                 errorMessageList.Add(resMessage);
             }
@@ -33,7 +33,7 @@ public static class IValidatableExtensions
             {
                 isValid = false;
             }
-            if (!string.IsNullOrWhiteSpace(resMessage))
+            if (!res && !string.IsNullOrWhiteSpace(resMessage))
             {
                 errorMessageList.Add(resMessage);
             }
