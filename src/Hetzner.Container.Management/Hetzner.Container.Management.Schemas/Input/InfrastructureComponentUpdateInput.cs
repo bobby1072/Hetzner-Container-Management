@@ -12,7 +12,7 @@ public sealed record InfrastructureComponentUpdateInput : IValidatable<Infrastru
     [JsonRequired]
     public required string ContainerName { get; init; }
 
-    [JsonPropertyName("portNumber")]
+    [JsonPropertyName("externalPortNumber")]
     [JsonRequired]
     public required int PublicFacingPortNumber { get; init; }
     [JsonPropertyName("internalPortNumber")]

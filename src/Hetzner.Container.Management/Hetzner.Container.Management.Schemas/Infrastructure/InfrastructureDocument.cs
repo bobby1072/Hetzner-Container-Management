@@ -3,10 +3,10 @@
 public sealed record InfrastructureDocument
 {
     public InfrastructureComponent[] Components { get; init; } = [];
-    public required DateTime LastUpdated
+    public DateTime LastUpdated
     {
         get => field.ToUniversalTime();
         init;
-    }
+    } = DateTime.UtcNow;
     public required int UpdateNumber { get; init; }
 }
