@@ -29,7 +29,7 @@ public sealed class ExceptionHandlingMiddleware
                 nameof(ApiException),
                 exception.StatusCode);
 
-            await SendExceptionResponseAsync(context, ApplicationConstants.ExceptionConstants.InternalError, (int)exception.StatusCode, logger);
+            await SendExceptionResponseAsync(context, exception.Message, (int)exception.StatusCode, logger);
         }
         catch (Exception ex)
         {
