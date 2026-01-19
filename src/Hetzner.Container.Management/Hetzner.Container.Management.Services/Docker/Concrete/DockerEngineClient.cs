@@ -1,5 +1,7 @@
 ﻿using System.Net.Http.Json;
 using BT.Common.Http.Extensions;
+using BT.Common.Http.Models;
+using Hetzner.Container.Management.Schemas.Configuration;
 using Hetzner.Container.Management.Schemas.Docker;
 using Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
 using Hetzner.Container.Management.Services.Docker.Abstract;
@@ -10,12 +12,16 @@ namespace Hetzner.Container.Management.Services.Docker.Concrete;
 internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
 {
     private readonly HttpClient _httpClient;
+    private readonly DockerEngineApiSettings _dockerEngineApiSettings;
     private const string ApiVersion = "v1.52";
 
-    public DockerEngineClient(HttpClient httpClient, ILogger<DockerEngineClient> logger)
-        : base(logger)
+    public DockerEngineClient(HttpClient httpClient, 
+        DockerEngineApiSettings dockerEngineApiSettings,
+        ILogger<DockerEngineClient> logger)
+            : base(logger)
     {
         _httpClient = httpClient;
+        _dockerEngineApiSettings = dockerEngineApiSettings;
     }
 
     public async Task<DockerApiActionResult<ContainerSummaryResponse[]?>> ListContainersAsync(
@@ -25,8 +31,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment("json")
                 .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
@@ -64,8 +69,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
@@ -101,8 +105,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("start")
@@ -128,8 +131,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("stop")
@@ -156,8 +158,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("kill")
@@ -188,8 +189,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("pause")
@@ -215,8 +215,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("unpause")
@@ -243,8 +242,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("rename")
@@ -272,8 +270,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("update")
@@ -300,8 +297,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("restart")
@@ -328,8 +324,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment("create")
                 .AppendQueryParameter("name", name)
@@ -363,8 +358,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("stats")
@@ -400,8 +394,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("logs")
@@ -434,8 +427,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("images")
                 .AppendPathSegment("json")
                 .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
@@ -492,8 +484,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("images")
                 .AppendPathSegment(imageName)
                 .AppendPathSegment("json")
@@ -531,8 +522,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         try
         {
-            var builder = "http://localhost"
-                .AppendPathSegment(ApiVersion)
+            var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("json")
@@ -574,7 +564,12 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
 
         return foundErrorMessage?.Message;
     }
-
+    private HttpRequestBuilder GetBaseUrl()
+        => _dockerEngineApiSettings.UseTestHttpEndPoint
+            ? _dockerEngineApiSettings.TestUnixHttpEndPoint
+                .AppendPathSegment(ApiVersion)
+            : "http://localhost"
+                .AppendPathSegment(ApiVersion);
     private static async Task<T?> TryGetDataFromResponse<T>(
         HttpResponseMessage response,
         CancellationToken cancellationToken

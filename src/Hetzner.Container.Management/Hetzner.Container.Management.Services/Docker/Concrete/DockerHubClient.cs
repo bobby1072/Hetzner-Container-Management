@@ -1,7 +1,6 @@
 using BT.Common.Http.Extensions;
 using Hetzner.Container.Management.Schemas.Configuration;
 using Hetzner.Container.Management.Schemas.Docker;
-using Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
 using Hetzner.Container.Management.Schemas.Docker.DockerHubApi;
 using Hetzner.Container.Management.Schemas.Input;
 using Hetzner.Container.Management.Services.Docker.Abstract;
@@ -45,13 +44,14 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
                 cancellationToken
             );
 
-            var result = await _settings
+            var builder = _settings
                 .BaseUrl.AppendPathSegment("v2")
                 .AppendPathSegment("namespaces")
                 .AppendPathSegment(dockerHubDetails.Username)
                 .AppendPathSegment("repositories")
                 .AppendPathSegment(dockerHubDetails.RepositoryName)
-                .WithHeader(HeaderNames.Authorization, $"Bearer {token}")
+                .WithHeader(HeaderNames.Authorization, $"Bearer {token}");
+            var result = await builder
                 .GetJsonAsync<GetRepositoryResponse>(_httpClient, cancellationToken);
 
             return new DockerApiActionResult<GetRepositoryResponse?> { Data = result };

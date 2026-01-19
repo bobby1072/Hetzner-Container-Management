@@ -11,7 +11,7 @@ public sealed record InfrastructureComponent
     public required int PublicFacingPortNumber { get; init; }
     public required int InternalPortNumber { get; init; }
     public required string ImageVersionTag { get; init; }
-    public required Dictionary<string, object?> ConfigMap { get; init; }
+    public required Dictionary<string, string?> ConfigMap { get; init; }
     public string? VolumeName { get; init; }
     public DateTime LastUpdated  
     { 

@@ -32,14 +32,23 @@ public sealed record RepositoryTag
     public long FullSize { get; init; }
 
     [JsonPropertyName("v2")]
-    public string? V2 { get; init; }
+    public bool? V2 { get; init; }
 
-    [JsonPropertyName("status")]
-    public string? Status { get; init; }
+    [JsonPropertyName("tag_status")]
+    public string? TagStatus { get; init; }
 
     [JsonPropertyName("tag_last_pulled")]
     public DateTime? TagLastPulled { get; init; }
 
     [JsonPropertyName("tag_last_pushed")]
     public DateTime? TagLastPushed { get; init; }
+
+    [JsonPropertyName("media_type")]
+    public string? MediaType { get; init; }
+
+    [JsonPropertyName("content_type")]
+    public string? ContentType { get; init; }
+
+    [JsonPropertyName("digest")]
+    public string? Digest { get; init; }
 }
