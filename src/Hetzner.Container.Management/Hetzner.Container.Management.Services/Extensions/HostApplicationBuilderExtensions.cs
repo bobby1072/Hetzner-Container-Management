@@ -34,12 +34,12 @@ public static class HostApplicationBuilderExtensions
             hostAppBuilder.Services.AddScoped<ICurrentInfrastructureExplorer, TInfraExplorer>();
         }
 
-        hostAppBuilder.Services
-            .AddScoped<IDockerProcessExecutor, DockerProcessExecutor>()
+        hostAppBuilder
+            .Services.AddScoped<IDockerProcessExecutor, DockerProcessExecutor>()
             .AddScoped<IContainerManagementService, ContainerManagementService>()
             .AddSingleton<IContainerManagementOperationQueue, ContainerManagementOperationQueue>()
             .AddHostedService<ContainerManagementBackgroundOperationExecutor>();
-        
+
         return hostAppBuilder;
     }
 
@@ -77,31 +77,41 @@ public static class HostApplicationBuilderExtensions
         hostAppBuilder.Services.AddHttpClientWithResilience<IDockerHubClient, DockerHubClient>(
             dockerHubApiSettings
         );
-        hostAppBuilder
-            .Services.AddHttpClientWithResilience<IDockerEngineClient, DockerEngineClient>(
-                dockerEngineApiSettings
-            )
-            .ConfigurePrimaryHttpMessageHandler(
-                () =>
-                    new SocketsHttpHandler
-                    {
-                        ConnectCallback = async (_, cancellationToken) =>
+        if (dockerEngineApiSettings.UseTestHttpEndPoint)
+        {
+            hostAppBuilder.Services.AddHttpClientWithResilience<
+                IDockerEngineClient,
+                DockerEngineClient
+            >(dockerEngineApiSettings);
+        }
+        else
+        {
+            hostAppBuilder
+                .Services.AddHttpClientWithResilience<IDockerEngineClient, DockerEngineClient>(
+                    dockerEngineApiSettings
+                )
+                .ConfigurePrimaryHttpMessageHandler(
+                    () =>
+                        new SocketsHttpHandler
                         {
-                            var socket = new Socket(
-                                AddressFamily.Unix,
-                                SocketType.Stream,
-                                ProtocolType.Unspecified
-                            );
+                            ConnectCallback = async (_, cancellationToken) =>
+                            {
+                                var socket = new Socket(
+                                    AddressFamily.Unix,
+                                    SocketType.Stream,
+                                    ProtocolType.Unspecified
+                                );
 
-                            var endpoint = new UnixDomainSocketEndPoint(
-                                dockerEngineApiSettings.UnixDomainSocketEndPoint
-                            );
-                            await socket.ConnectAsync(endpoint, cancellationToken);
+                                var endpoint = new UnixDomainSocketEndPoint(
+                                    dockerEngineApiSettings.UnixDomainSocketEndPoint
+                                );
+                                await socket.ConnectAsync(endpoint, cancellationToken);
 
-                            return new NetworkStream(socket, ownsSocket: true);
-                        },
-                    }
-            );
+                                return new NetworkStream(socket, ownsSocket: true);
+                            },
+                        }
+                );
+        }
 
         return hostAppBuilder;
     }

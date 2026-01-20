@@ -370,12 +370,20 @@ internal sealed class ContainerManagementService : IContainerManagementService
 
         if (!dockerEngineResult.IsSuccess || dockerEngineResult.Data is null)
         {
-            _logger.LogInformation(
-                "Image does not exist in docker engine. Api responded with: {ErrorMessage} and {@Data}",
-                dockerEngineResult.ExceptionMessage,
-                dockerEngineResult.Data
-            );
-            return false;
+            if (dockerEngineResult.StatusCode == HttpStatusCode.NotFound)
+            {
+                _logger.LogInformation(
+                    "Image does not exist in docker engine. Api responded with: {ErrorMessage} and {@Data}",
+                    dockerEngineResult.ExceptionMessage,
+                    dockerEngineResult.Data
+                );
+                return false;
+            }
+            else
+            {
+                throw new ApiException(LogLevel.Error, HttpStatusCode.InternalServerError,
+                    "Failed to make docker engine inspect container request properly");
+            }
         }
 
         return dockerEngineResult.Data.RepoTags.Contains($"{imageName}:{imageTag}");
