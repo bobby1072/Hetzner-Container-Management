@@ -143,6 +143,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
 
                 BasicValidateInput(infrastructureComponentInput);
 
+
                 var dockerHubFetchedDetails = await GetDockerHubRepositoryDetailsAsync(
                     infrastructureComponentInput.DockerHubDetails,
                     infrastructureComponentInput.ImageTag,
@@ -153,6 +154,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                     !await DoesImageAlreadyExistsInDockerEngineAsync(
                         dockerHubFetchedDetails.RepoResp.Name,
                         dockerHubFetchedDetails.RepoTag.Name,
+                        dockerHubFetchedDetails.RepoResp.Namespace,
                         cancellationToken
                     )
                 )
@@ -161,6 +163,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                         infrastructureComponentInput.DockerHubDetails,
                         dockerHubFetchedDetails.RepoResp.Name,
                         dockerHubFetchedDetails.RepoTag.Name,
+                        dockerHubFetchedDetails.RepoResp.Namespace,
                         null,
                         cancellationToken
                     );
@@ -240,7 +243,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 );
             }
 
-            if (existingContainer != null)
+            if (existingContainer is not null)
             {
                 await RemoveExistingContainerAsync(
                     existingContainer.Name,
@@ -358,35 +361,26 @@ internal sealed class ContainerManagementService : IContainerManagementService
     private async Task<bool> DoesImageAlreadyExistsInDockerEngineAsync(
         string imageName,
         string imageTag,
+        string @namespace,
         CancellationToken cancellationToken
     )
     {
-        var dockerEngineResult =
-            await _containerUpdateServicesServiceProvider.DockerEngineClient.InspectImageAsync(
-                imageName,
-                false,
-                cancellationToken
-            );
+        var listImages =
+            await _containerUpdateServicesServiceProvider.DockerEngineClient.ListImagesAsync(true, null, false, false,
+                false, cancellationToken);
 
-        if (!dockerEngineResult.IsSuccess || dockerEngineResult.Data is null)
+        var dockerEngineResult = listImages.Data?.FirstOrDefault(x => x.RepoTags.Any(y => y == $"{imageName}:{imageTag}"))
+            ?? listImages.Data?.FirstOrDefault(x => x.RepoTags.Any(y => y == $"{@namespace}/{imageName}:{imageTag}"));
+        
+        if (dockerEngineResult is null)
         {
-            if (dockerEngineResult.StatusCode == HttpStatusCode.NotFound)
-            {
-                _logger.LogInformation(
-                    "Image does not exist in docker engine. Api responded with: {ErrorMessage} and {@Data}",
-                    dockerEngineResult.ExceptionMessage,
-                    dockerEngineResult.Data
-                );
-                return false;
-            }
-            else
-            {
-                throw new ApiException(LogLevel.Error, HttpStatusCode.InternalServerError,
-                    "Failed to make docker engine inspect container request properly");
-            }
+            _logger.LogInformation(
+                "Image does not exist in docker engine. Api responded with: {@Data}",
+                dockerEngineResult
+            );
+            return false;
         }
-
-        return dockerEngineResult.Data.RepoTags.Contains($"{imageName}:{imageTag}");
+        return true;
     }
 
     private async Task<(
