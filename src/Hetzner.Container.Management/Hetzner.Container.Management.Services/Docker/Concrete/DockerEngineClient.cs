@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using BT.Common.Http.Extensions;
 using BT.Common.Http.Models;
 using Hetzner.Container.Management.Schemas.Configuration;

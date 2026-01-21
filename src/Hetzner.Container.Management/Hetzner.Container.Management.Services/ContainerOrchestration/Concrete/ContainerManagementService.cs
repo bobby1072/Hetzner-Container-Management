@@ -216,7 +216,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
     )
     {
         var combinedImageNameAndTag =
-            $"{dockerHubFetchedDetails.RepoResp.Name}:{dockerHubFetchedDetails.RepoTag.Name}";
+            $"{dockerHubFetchedDetails.RepoResp.Namespace}/{dockerHubFetchedDetails.RepoResp.Name}:{dockerHubFetchedDetails.RepoTag.Name}";
         var existingContainer = await GetExistingContainerFromDockerEngineAsync(
             infrastructureComponentInput.ContainerName,
             cancellationToken
@@ -459,8 +459,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
     )
     {
         var imageFull =
-            $"{dockerHubFetchedDetails.RepoResp.Name}:{dockerHubFetchedDetails.RepoTag.Name}";
-        var internalContainerPort = $"{infrastructureComponentInput.InternalPortNumber}/tcp";
+            $"{dockerHubFetchedDetails.RepoResp.Namespace}/{dockerHubFetchedDetails.RepoResp.Name}:{dockerHubFetchedDetails.RepoTag.Name}";
 
         var request = new ContainerCreateRequest
         {
@@ -468,7 +467,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
             Env = infrastructureComponentInput.CreateEnvStringArrayFromConfigMap(),
             ExposedPorts = new Dictionary<string, object>
             {
-                { internalContainerPort, new Dictionary<object, object>() },
+                { infrastructureComponentInput.InternalPortNumber.ToString(), new Dictionary<object, object>() },
             },
             Labels = new Dictionary<string, string>
             {
@@ -481,8 +480,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 PortBindings = new Dictionary<string, PortBinding[]>
                 {
                     {
-                        internalContainerPort,
-
+                        infrastructureComponentInput.InternalPortNumber.ToString(),
                         [
                             new PortBinding
                             {
@@ -492,7 +490,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                         ]
                     },
                 },
-                RestartPolicy = new RestartPolicy { Name = "always", MaximumRetryCount = 3 },
+                RestartPolicy = new RestartPolicy { Name = "always" },
             },
         };
 
@@ -520,32 +518,30 @@ internal sealed class ContainerManagementService : IContainerManagementService
         (GetRepositoryResponse RepoResp, RepositoryTag RepoTag) dockerHubFetchedDetails
     )
     {
+        var foundInternalPortNumber = containerInspectResponse
+            .Config?.ExposedPorts?.FirstOrDefault()
+            .Key ?? throw new ApiException(
+            LogLevel.Error,
+            HttpStatusCode.InternalServerError,
+            ApplicationConstants.ExceptionConstants.InternalError
+        );
+        
         return new InfrastructureComponent
         {
+            Id = containerInspectResponse.Id, 
             ConfigMap = containerInspectResponse.ConvertConfigEnvStringArrayToDict(),
             ContainerName = containerInspectResponse.Name,
             DockerhubName = dockerHubFetchedDetails.RepoResp.Name,
             DockerhubNamespace = dockerHubFetchedDetails.RepoResp.Namespace,
             ImageVersionTag = dockerHubFetchedDetails.RepoTag.Name,
-            InternalPortNumber = int.Parse(
-                containerInspectResponse
-                    .Config?.ExposedPorts?.FirstOrDefault()
-                    .Key.Split('/')
-                    .FirstOrDefault()
-                    ?? throw new ApiException(
-                        LogLevel.Error,
-                        HttpStatusCode.InternalServerError,
-                        ApplicationConstants.ExceptionConstants.InternalError
-                    )
-            ),
-            PublicFacingPortNumber = int.Parse(
-                containerInspectResponse.HostConfig?.PortBindings?.FirstOrDefault().Key
-                    ?? throw new ApiException(
-                        LogLevel.Error,
-                        HttpStatusCode.InternalServerError,
-                        ApplicationConstants.ExceptionConstants.InternalError
-                    )
-            ),
+            InternalPortNumber = foundInternalPortNumber,
+            PublicFacingPortNumber = containerInspectResponse.HostConfig?.PortBindings?.FirstOrDefault(x => 
+                                         x.Key == foundInternalPortNumber).Value.FirstOrDefault()?.HostPort
+                                     ?? throw new ApiException(
+                                         LogLevel.Error,
+                                         HttpStatusCode.InternalServerError,
+                                         ApplicationConstants.ExceptionConstants.InternalError
+                                     ),
             VolumeName = containerInspectResponse.Config.Volumes?.FirstOrDefault().Key,
             LatestContainerSummary = containerInspectResponse,
             LastUpdated = DateTime.UtcNow,
@@ -561,14 +557,14 @@ internal sealed class ContainerManagementService : IContainerManagementService
         var stringArrayEnv = infrastructureComponentInput.CreateEnvStringArrayFromConfigMap();
 
         return containerInspectResponse.Config?.Image
-                != $"{dockerHubFetchedDetails.RepoResp.Name}:{dockerHubFetchedDetails.RepoTag.Name}"
+                != $"{dockerHubFetchedDetails.RepoResp.Namespace}/{dockerHubFetchedDetails.RepoResp.Name}:{dockerHubFetchedDetails.RepoTag.Name}"
             || IsVolumesDifferent(infrastructureComponentInput, containerInspectResponse)
-            || containerInspectResponse.Config?.Env?.All(x => stringArrayEnv.Contains(x)) != true
-            || containerInspectResponse.Config?.ExposedPorts?.ContainsKey(
-                infrastructureComponentInput.InternalPortNumber.ToString()
+            || stringArrayEnv.All(x => containerInspectResponse.Config?.Env?.Contains(x) == true) != true
+            || containerInspectResponse.Config?.ExposedPorts?.Any(x =>
+                x.Key.Contains(infrastructureComponentInput.InternalPortNumber.ToString())
             ) != true
-            || containerInspectResponse.HostConfig?.PortBindings?.ContainsKey(
-                infrastructureComponentInput.PublicFacingPortNumber.ToString()
+            || containerInspectResponse.HostConfig?.PortBindings?.Values.SelectMany(x => x).Any(x => 
+                x.HostPort == infrastructureComponentInput.PublicFacingPortNumber.ToString()
             ) != true;
     }
 

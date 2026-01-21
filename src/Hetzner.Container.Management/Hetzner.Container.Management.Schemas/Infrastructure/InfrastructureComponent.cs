@@ -4,12 +4,12 @@ namespace Hetzner.Container.Management.Schemas.Infrastructure;
 
 public sealed record InfrastructureComponent
 {
-    public Guid Id { get; init; } = Guid.NewGuid();
+    public string Id { get; init; } = Guid.NewGuid().ToString();
     public required string ContainerName { get; init; }
     public required string DockerhubNamespace { get; init; }
     public required string DockerhubName { get; init; }
-    public required int PublicFacingPortNumber { get; init; }
-    public required int InternalPortNumber { get; init; }
+    public required string PublicFacingPortNumber { get; init; }
+    public required string InternalPortNumber { get; init; }
     public required string ImageVersionTag { get; init; }
     public required Dictionary<string, string?> ConfigMap { get; init; }
     public string? VolumeName { get; init; }
