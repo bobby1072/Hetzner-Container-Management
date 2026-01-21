@@ -67,8 +67,8 @@ public class ContainerManagementServiceTestFixture
             DockerhubName = "test-repo",
             DockerhubNamespace = "test-namespace",
             ImageVersionTag = imageVersionTag ?? "latest",
-            InternalPortNumber = internalPort ?? 8080,
-            PublicFacingPortNumber = publicPort ?? 80,
+            InternalPortNumber = $"{internalPort ?? 8080}",
+            PublicFacingPortNumber = $"{publicPort ?? 80}",
             ConfigMap = new Dictionary<string, string?>
             {
                 { "ENV_VAR_1", "value1" }
@@ -185,13 +185,12 @@ public class ContainerManagementServiceTestFixture
         };
     }
 
-    public ImageInspectResponse CreateImageInspectResponse(string imageName, string imageTag)
+    public ImageSummaryResponse CreateImageInspectResponse(string imageName, string imageTag)
     {
-        return new ImageInspectResponse
+        return new ImageSummaryResponse
         {
             Id = _fixture.Create<string>(),
             RepoTags = new[] { $"{imageName}:{imageTag}" },
-            Created = DateTime.UtcNow.AddDays(-10).ToString("o")
         };
     }
 
