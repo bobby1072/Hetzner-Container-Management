@@ -8,7 +8,7 @@ public sealed record ContainerSummaryResponse
     public required string ImageID { get; init; }
     public ImageManifestDescriptor? ImageManifestDescriptor { get; init; }
     public required string Command { get; init; }
-    public required string Created { get; init; }
+    public long Created { get; init; }
     public Port[] Ports { get; init; } = [];
     public string? SizeRw { get; init; }
     public string? SizeRootFs { get; init; }

@@ -243,7 +243,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 );
             }
 
-            if (existingContainer is not null)
+            if (existingContainer is not  null)
             {
                 await RemoveExistingContainerAsync(
                     existingContainer.Name,
@@ -347,12 +347,16 @@ internal sealed class ContainerManagementService : IContainerManagementService
 
         if (!dockerEngineResult.IsSuccess || dockerEngineResult.Data is null)
         {
-            _logger.LogInformation(
-                "No existing container found in docker engine. Api responded with: {ErrorMessage} and {@Data}",
-                dockerEngineResult.ExceptionMessage,
-                dockerEngineResult.Data
-            );
-            return null;
+            if (dockerEngineResult.StatusCode == HttpStatusCode.NotFound)
+            {
+                _logger.LogInformation(
+                    "No existing container found in docker engine. Api responded with: {ErrorMessage} and {@Data}",
+                    dockerEngineResult.ExceptionMessage,
+                    dockerEngineResult.Data
+                );
+                return null;
+            }
+            throw new ApiException(LogLevel.Error, HttpStatusCode.InternalServerError, "Failed to make inspect container request properly.");
         }
 
         return dockerEngineResult.Data;

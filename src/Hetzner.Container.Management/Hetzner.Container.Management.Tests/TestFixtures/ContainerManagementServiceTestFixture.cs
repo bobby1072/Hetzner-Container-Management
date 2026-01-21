@@ -21,7 +21,7 @@ public class ContainerManagementServiceTestFixture
         string? imageTag = null,
         int? internalPort = null,
         int? publicPort = null,
-        Dictionary<string, object?>? configMap = null,
+        Dictionary<string, string?>? configMap = null,
         string? volumeName = null)
     {
         return new InfrastructureComponentUpdateInput
@@ -30,7 +30,7 @@ public class ContainerManagementServiceTestFixture
             ImageTag = imageTag ?? "latest",
             InternalPortNumber = internalPort ?? 8080,
             PublicFacingPortNumber = publicPort ?? 80,
-            ConfigMap = configMap ?? new Dictionary<string, object?>
+            ConfigMap = configMap ?? new Dictionary<string, string?>
             {
                 { "ENV_VAR_1", "value1" },
                 { "ENV_VAR_2", "value2" }
@@ -69,7 +69,7 @@ public class ContainerManagementServiceTestFixture
             ImageVersionTag = imageVersionTag ?? "latest",
             InternalPortNumber = internalPort ?? 8080,
             PublicFacingPortNumber = publicPort ?? 80,
-            ConfigMap = new Dictionary<string, object?>
+            ConfigMap = new Dictionary<string, string?>
             {
                 { "ENV_VAR_1", "value1" }
             },
