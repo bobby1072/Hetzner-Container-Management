@@ -7,7 +7,7 @@ public sealed record EndpointSettings
     public string? MacAddress { get; init; }
     public string[]? Aliases { get; init; }
     public Dictionary<string, string>? DriverOpts { get; init; }
-    public int[]? GwPriority { get; init; }
+    public int? GwPriority { get; init; }
     public string? NetworkID { get; init; }
     public string? EndpointID { get; init; }
     public string? Gateway { get; init; }

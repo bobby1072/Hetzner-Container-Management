@@ -31,11 +31,13 @@ public sealed record ContainerInspectResponse
     public ContainerInspectNetworkSettings? NetworkSettings { get; init; }
 
 
-    public Dictionary<string, object?> ConvertConfigEnvStringArrayToDict()
+    public Dictionary<string, string?> ConvertConfigEnvStringArrayToDict(string splitter = "=")
     {
         return Config?
             .Env?
-            .ToDictionary(x => x.Split("=")[0], x => (object?)x.Split("=")[1])
-                ?? new Dictionary<string, object?>();
+            .ToDictionary(
+                x => x.Split(splitter)[0], 
+                x => (string?)x.Split(splitter)[1]
+            ) ?? new Dictionary<string, string?>();
     }
 }

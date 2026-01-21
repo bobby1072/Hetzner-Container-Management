@@ -12,7 +12,7 @@ namespace Hetzner.Container.Management.Api.Controllers;
 
 [ApiController]
 [AllowAnonymous]
-[Route("[controller]")]
+[Route("Api/[controller]")]
 public sealed class ContainerManagementController : ControllerBase
 {
     private readonly IContainerManagementOperationQueue _containerManagementOperationQueue;

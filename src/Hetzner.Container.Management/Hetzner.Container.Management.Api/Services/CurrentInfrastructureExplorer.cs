@@ -41,10 +41,10 @@ internal sealed class CurrentInfrastructureExplorer: ICurrentInfrastructureExplo
                 _infraJsonLocation);
             var readFile = await File.ReadAllTextAsync(_infraJsonLocation, cancellationToken);
 
-            var parsedFile = JsonSerializer.Deserialize<InfrastructureDocument>(readFile)
+            var parsedFile = JsonSerializer.Deserialize<RawInfrastructureDocument>(readFile)
                              ?? throw new JsonException("Unable to parse infrastructure document json");
 
-            return parsedFile;
+            return parsedFile.ToActualDocument();
         }
         catch(Exception ex)
         {

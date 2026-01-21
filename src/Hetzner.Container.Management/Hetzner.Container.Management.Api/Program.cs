@@ -55,7 +55,7 @@ try
     );
 
     builder.AddContainerManagementApplication<CurrentInfrastructureExplorer>(sp => new CurrentInfrastructureExplorer(
-        Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), $"Data{Path.DirectorySeparatorChar}CurrentInfrastructure")),
+        Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), $"Data{Path.DirectorySeparatorChar}CurrentInfrastructure.json")),
         sp.GetRequiredService<ILoggerFactory>().CreateLogger<CurrentInfrastructureExplorer>())
     );
     

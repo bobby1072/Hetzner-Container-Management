@@ -344,7 +344,7 @@ public sealed class ContainerManagementControllerTests
             ImageTag = "latest",
             InternalPortNumber = 8080,
             PublicFacingPortNumber = 80,
-            ConfigMap = new Dictionary<string, object?>
+            ConfigMap = new Dictionary<string, string?>
             {
                 { "ENV_VAR_1", "value1" },
                 { "ENV_VAR_2", "value2" },
@@ -352,7 +352,6 @@ public sealed class ContainerManagementControllerTests
             VolumeName = null,
             DockerHubDetails = new DockerHubDetailsWithRepositoryName
             {
-                Namespace = "test-namespace",
                 RepositoryName = "test-repo",
                 Username = "test-user",
                 Password = "test-password",
@@ -372,9 +371,9 @@ public sealed class ContainerManagementControllerTests
                     ImageVersionTag = "latest",
                     DockerhubName = "test-repo",
                     DockerhubNamespace = "test-namespace",
-                    InternalPortNumber = 8080,
-                    PublicFacingPortNumber = 80,
-                    ConfigMap = new Dictionary<string, object?>(),
+                    InternalPortNumber = "8080",
+                    PublicFacingPortNumber = "80",
+                    ConfigMap = new Dictionary<string, string?>(),
                 },
             ],
             LastUpdated = DateTime.UtcNow,

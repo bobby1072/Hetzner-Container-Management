@@ -12,7 +12,7 @@ public sealed record InfrastructureComponentUpdateInput : IValidatable<Infrastru
     [JsonRequired]
     public required string ContainerName { get; init; }
 
-    [JsonPropertyName("portNumber")]
+    [JsonPropertyName("externalPortNumber")]
     [JsonRequired]
     public required int PublicFacingPortNumber { get; init; }
     [JsonPropertyName("internalPortNumber")]
@@ -23,7 +23,7 @@ public sealed record InfrastructureComponentUpdateInput : IValidatable<Infrastru
     public string ImageTag { get; init; } = "latest";
 
     [JsonPropertyName("configMap")]
-    public Dictionary<string, object?> ConfigMap { get; init; } = new();
+    public Dictionary<string, string?> ConfigMap { get; init; } = new();
     
     [JsonPropertyName("volumeName")]
     public string? VolumeName { get; init; }
@@ -59,26 +59,9 @@ public sealed record InfrastructureComponentUpdateInput : IValidatable<Infrastru
         {
             return (false, configMapErrorMessage);
         }
-        if (ConfigMap.Values.Any(x => x is not null && !IsValidConfigMapValue(x.GetType())))
-        {
-            return (false, configMapErrorMessage);
-        }
         return (true, null);
     }
 
     private (bool, string?) IsValidContainerName() =>
         (ContainerName.Length >= 1 && ContainerName.Length <= 255, "Invalid container name provided");
-
-    private static bool IsValidConfigMapValue(Type type)
-    {
-        if (type.IsPrimitive)
-            return true;
-
-        return type == typeof(string)
-            || type == typeof(decimal)
-            || type == typeof(DateTime)
-            || type == typeof(DateTimeOffset)
-            || type == typeof(TimeSpan)
-            || type == typeof(Guid);
-    }
 }

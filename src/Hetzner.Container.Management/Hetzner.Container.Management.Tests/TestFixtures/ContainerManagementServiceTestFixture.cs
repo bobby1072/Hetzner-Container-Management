@@ -21,7 +21,7 @@ public class ContainerManagementServiceTestFixture
         string? imageTag = null,
         int? internalPort = null,
         int? publicPort = null,
-        Dictionary<string, object?>? configMap = null,
+        Dictionary<string, string?>? configMap = null,
         string? volumeName = null)
     {
         return new InfrastructureComponentUpdateInput
@@ -30,7 +30,7 @@ public class ContainerManagementServiceTestFixture
             ImageTag = imageTag ?? "latest",
             InternalPortNumber = internalPort ?? 8080,
             PublicFacingPortNumber = publicPort ?? 80,
-            ConfigMap = configMap ?? new Dictionary<string, object?>
+            ConfigMap = configMap ?? new Dictionary<string, string?>
             {
                 { "ENV_VAR_1", "value1" },
                 { "ENV_VAR_2", "value2" }
@@ -38,7 +38,6 @@ public class ContainerManagementServiceTestFixture
             VolumeName = volumeName,
             DockerHubDetails = new DockerHubDetailsWithRepositoryName
             {
-                Namespace = "test-namespace",
                 RepositoryName = "test-repo",
                 Username = "test-user",
                 Password = "test-password"
@@ -68,9 +67,9 @@ public class ContainerManagementServiceTestFixture
             DockerhubName = "test-repo",
             DockerhubNamespace = "test-namespace",
             ImageVersionTag = imageVersionTag ?? "latest",
-            InternalPortNumber = internalPort ?? 8080,
-            PublicFacingPortNumber = publicPort ?? 80,
-            ConfigMap = new Dictionary<string, object?>
+            InternalPortNumber = $"{internalPort ?? 8080}",
+            PublicFacingPortNumber = $"{publicPort ?? 80}",
+            ConfigMap = new Dictionary<string, string?>
             {
                 { "ENV_VAR_1", "value1" }
             },
@@ -186,13 +185,12 @@ public class ContainerManagementServiceTestFixture
         };
     }
 
-    public ImageInspectResponse CreateImageInspectResponse(string imageName, string imageTag)
+    public ImageSummaryResponse CreateImageInspectResponse(string imageName, string imageTag)
     {
-        return new ImageInspectResponse
+        return new ImageSummaryResponse
         {
             Id = _fixture.Create<string>(),
             RepoTags = new[] { $"{imageName}:{imageTag}" },
-            Created = DateTime.UtcNow.AddDays(-10).ToString("o")
         };
     }
 

@@ -140,12 +140,13 @@ public sealed class ContainerManagementServiceTests
             .ReturnsAsync(new DockerApiActionResult<RepositoryTag?> { ExceptionMessage = null, Data = tagResponse });
 
         _mockDockerEngineClient
-            .Setup(x => x.InspectImageAsync(It.IsAny<string>(), false, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new DockerApiActionResult<ImageInspectResponse?> { ExceptionMessage = null, Data = imageInspectResponse });
+            .Setup(x => x.ListImagesAsync(true, null, false, false,
+                false, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DockerApiActionResult<ImageSummaryResponse[]?> { ExceptionMessage = null, Data = [imageInspectResponse] });
 
         _mockDockerEngineClient
             .Setup(x => x.InspectContainerAsync(It.IsAny<string>(), false, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new DockerApiActionResult<ContainerInspectResponse?> { ExceptionMessage = "Not found", Data = null });
+            .ReturnsAsync(new DockerApiActionResult<ContainerInspectResponse?> { ExceptionMessage = "Not found", Data = null, StatusCode = HttpStatusCode.NotFound});
 
         _mockDockerEngineClient
             .Setup(x => x.CreateContainerAsync(It.IsAny<ContainerCreateRequest>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))

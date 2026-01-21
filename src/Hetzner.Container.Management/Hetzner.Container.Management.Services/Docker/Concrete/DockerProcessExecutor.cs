@@ -28,13 +28,14 @@ public sealed class DockerProcessExecutor: IDockerProcessExecutor
         _currentProcessWindow.Dispose();
     }
 
-    public async Task<string> PullDockerImageFromHub(DockerHubDetails dockerHubDetails,
+    public async Task PullDockerImageFromHub(DockerHubDetails dockerHubDetails,
         string imageName,
         string versionTag,
+        string @namespace,
         string? workingDirectory = null,
         CancellationToken cancellationToken = default)
     {
-        var command = $"docker pull {imageName}:{versionTag}";
+        var command = $"docker pull {@namespace}/{imageName}:{versionTag}";
         await LoginToDockerHub(dockerHubDetails, workingDirectory, cancellationToken);
         _currentProcessWindow.Start();
         
@@ -53,13 +54,6 @@ public sealed class DockerProcessExecutor: IDockerProcessExecutor
                 HttpStatusCode.InternalServerError,
                 $"Unable to pull image from Docker Hub: {errorOutput}");
         }
-        
-        var standardOutput = ProcessHelper.GetInnerStandardOutput(result.First(), command);
-        _logger.LogInformation("Docker Hub image pull completed with: {StandardOutput}",
-            standardOutput
-        );
-        
-        return standardOutput;
     }
     private async Task<string> LoginToDockerHub(DockerHubDetails details, string? workingDirectory = null, CancellationToken cancellationToken = default)
     {
