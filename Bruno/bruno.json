@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Hetzner-Container-Management",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
