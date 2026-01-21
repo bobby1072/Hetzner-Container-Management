@@ -9,7 +9,8 @@ variables:
     value: /var/run/docker.sock
   - name: UseTestHttpEndPoint
     value: false
-
+  - name: ApiKey__0
+    value: ""
 trigger:
   branches:
     include:
