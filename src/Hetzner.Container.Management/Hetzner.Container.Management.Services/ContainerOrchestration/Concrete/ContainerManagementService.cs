@@ -43,6 +43,11 @@ internal sealed class ContainerManagementService : IContainerManagementService
     {
         try
         {
+            if (infrastructureDocuments.Length == 0)
+            {
+                throw new ApiException(LogLevel.Information, HttpStatusCode.BadRequest, "Input list must have at least one object");
+            }
+            
             var currentInfrastructureDocument =
                 await _containerUpdateServicesServiceProvider
                     .CurrentInfrastructureExplorer
@@ -61,7 +66,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 async ct =>
                     await Task.WhenAll(
                         infrastructureDocuments.Select(x =>
-                            GetCurrentInfrastructureComponentForUpdateAsync(x, ct)
+                            UpdateInfrastructureComponentAsync(x, ct)
                         )
                     ),
                 cancellationToken
@@ -94,6 +99,20 @@ internal sealed class ContainerManagementService : IContainerManagementService
                     cancellationToken
                 );
             }
+            else if(currentInfrastructureDocument.Components.Length == 0)
+            {
+                newInfraStructureDocument = currentInfrastructureDocument with
+                {
+                    LastUpdated = DateTime.UtcNow,
+                    Components = updateInfraComponents,
+                    UpdateNumber = currentInfrastructureDocument.UpdateNumber + 1,
+                };
+                
+                await _containerUpdateServicesServiceProvider.CurrentInfrastructureExplorer.ReplaceCurrentInfrastructureAsync(
+                    newInfraStructureDocument,
+                    cancellationToken
+                );
+            }
 
             return newInfraStructureDocument;
         }
@@ -117,7 +136,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
         }
     }
 
-    private async Task<InfrastructureComponent> GetCurrentInfrastructureComponentForUpdateAsync(
+    private async Task<InfrastructureComponent> UpdateInfrastructureComponentAsync(
         InfrastructureComponentUpdateInput infrastructureComponentInput,
         CancellationToken cancellationToken
     )
@@ -130,6 +149,8 @@ internal sealed class ContainerManagementService : IContainerManagementService
                         infrastructureComponentInput.ContainerName,
                     [nameof(InfrastructureComponentUpdateInput.ImageTag)] =
                         infrastructureComponentInput.ImageTag,
+                    [nameof(InfrastructureComponentUpdateInput.DockerHubDetails.RepositoryName)] =
+                        infrastructureComponentInput.DockerHubDetails.RepositoryName,
                 }
             )
         )
@@ -252,7 +273,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 );
             }
 
-            var createdContainerName = await CreateContainerAsync(
+            var createdContainerName = await CreateAndStartContainerAsync(
                 existingContainer,
                 dockerHubFetchedDetails,
                 infrastructureComponentInput,
@@ -277,7 +298,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
         return existingContainer;
     }
 
-    private async Task<string> CreateContainerAsync(
+    private async Task<string> CreateAndStartContainerAsync(
         ContainerInspectResponse? containerInspectResponse,
         (GetRepositoryResponse RepoResp, RepositoryTag RepoTag) dockerHubFetchedDetails,
         InfrastructureComponentUpdateInput infrastructureComponentInput,
@@ -290,25 +311,41 @@ internal sealed class ContainerManagementService : IContainerManagementService
             IsVolumesDifferent(infrastructureComponentInput, containerInspectResponse)
         );
 
-        var result =
+        var createResult =
             await _containerUpdateServicesServiceProvider.DockerEngineClient.CreateContainerAsync(
                 requestModel,
                 infrastructureComponentInput.ContainerName,
                 cancellationToken
             );
 
-        if (!result.IsSuccess || result.Data is null)
+        if (!createResult.IsSuccess || createResult.Data is null)
         {
             throw new ApiException(
                 LogLevel.Error,
                 HttpStatusCode.InternalServerError,
-                $"Failed to create the container with exception message: {result.ExceptionMessage}"
+                $"Failed to create the container with exception message: {createResult.ExceptionMessage}"
             );
         }
 
-        return result.Data.Id;
+        await StartContainerAsync(createResult.Data.Id, cancellationToken);
+        
+        return createResult.Data.Id;
     }
 
+    private async Task StartContainerAsync(string containerId, CancellationToken cancellationToken)
+    {
+        var startResult = await _containerUpdateServicesServiceProvider.DockerEngineClient
+            .StartContainerAsync(containerId, cancellationToken);
+
+        if (!startResult.IsSuccess)
+        {
+            throw new ApiException(
+                LogLevel.Error,
+                HttpStatusCode.InternalServerError,
+                $"Failed to start the container with exception message: {startResult.ExceptionMessage}"
+            );
+        }
+    }
     private async Task RemoveExistingContainerAsync(
         string containerName,
         bool removeVolumes,
