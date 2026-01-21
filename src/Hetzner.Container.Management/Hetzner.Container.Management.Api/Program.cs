@@ -49,14 +49,18 @@ try
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
+    var infraJsonPath = builder.Configuration.GetValue<string>("InfrastructureJsonPath");
+    
+    builder.AddContainerManagementApplication<CurrentInfrastructureExplorer>(sp => new CurrentInfrastructureExplorer(
+        string.IsNullOrWhiteSpace(infraJsonPath) ? 
+            Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), $"Data{Path.DirectorySeparatorChar}CurrentInfrastructure.json")) :
+            Path.GetFullPath(infraJsonPath),
+        sp.GetRequiredService<ILoggerFactory>().CreateLogger<CurrentInfrastructureExplorer>())
+    );
+
     localLogger.LogInformation(
         "About to build application with {NumberOfServices} services",
         builder.Services.Count
-    );
-
-    builder.AddContainerManagementApplication<CurrentInfrastructureExplorer>(sp => new CurrentInfrastructureExplorer(
-        Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), $"Data{Path.DirectorySeparatorChar}CurrentInfrastructure.json")),
-        sp.GetRequiredService<ILoggerFactory>().CreateLogger<CurrentInfrastructureExplorer>())
     );
     
     var app = builder.Build();

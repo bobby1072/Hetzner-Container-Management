@@ -1,0 +1,36 @@
+meta {
+  name: QueueInfrastructureUpdate
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{DevUrl}}/Api/ContainerManagement/QueueInfrastructureUpdate
+  body: json
+  auth: inherit
+}
+
+body:json {
+  [
+    {
+      "dockerHubDetails": {
+        "username": "bobby1072",
+        "password": "Crudboys123@",
+        "repositoryName": "hetzner-container-management"
+      },
+      "containerName": "test-container",
+      "externalPortNumber": 4000,
+      "internalPortNumber": 80,
+      "configMap": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://+80",
+        "ApiKey__0": "test-api-key"
+      }
+    }
+  ]
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

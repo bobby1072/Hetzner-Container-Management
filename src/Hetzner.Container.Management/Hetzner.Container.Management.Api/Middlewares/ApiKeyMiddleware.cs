@@ -19,7 +19,7 @@ public sealed class ApiKeyMiddleware
             httpContext.RequestServices.GetRequiredKeyedService<string[]>(ApplicationConstants.ServiceKeys.ApiKeyServiceKey);
 
         if (!httpContext.Request.Headers.TryGetValue(ApplicationConstants.CustomHeaders.ApiKeyHeaderName,
-                out var apiKeyFromRequest) || !apiKeysFromConfig.Contains(apiKeyFromRequest.ToString()))
+                out var apiKeyFromRequest) || string.IsNullOrWhiteSpace(apiKeyFromRequest) || !apiKeysFromConfig.Contains(apiKeyFromRequest.ToString()))
         {
             throw new ApiServerException(HttpStatusCode.Unauthorized, "You do not have a valid API key attached to this request.");
         }
