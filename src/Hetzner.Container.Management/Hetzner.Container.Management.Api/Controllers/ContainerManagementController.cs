@@ -92,7 +92,7 @@ public sealed class ContainerManagementController : ControllerBase
                 }).ToArray()
             };
 
-            return Results.Ok(new WebOutcome<InfrastructureDocument> { Data = queueResult });
+            return Results.Ok(queueResult);
         }
         catch (ApiException ex)
         {
