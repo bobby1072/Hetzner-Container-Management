@@ -170,7 +170,7 @@ public sealed class ContainerManagementControllerTests
         var result = await _sut.QueueAndWaitForInfrastructureUpdate(input);
 
         // Assert
-        var okResult = Assert.IsType<Ok<WebOutcome<InfrastructureDocument>>>(result);
+        var okResult = Assert.IsType<Ok<InfrastructureDocument>>(result);
         Assert.NotNull(okResult.Value);
         Assert.Equivalent(expectedDocument, okResult.Value.Data);
         _mockOperationQueue.Verify(
@@ -292,7 +292,7 @@ public sealed class ContainerManagementControllerTests
         var result = await _sut.QueueAndWaitForInfrastructureUpdate(input);
 
         // Assert
-        var okResult = Assert.IsType<Ok<WebOutcome<InfrastructureDocument>>>(result);
+        var okResult = Assert.IsType<Ok<InfrastructureDocument>>(result);
         Assert.NotNull(okResult.Value);
         _mockOperationQueue.Verify(
             x => x.QueueAndWaitForUpdateOperation(input, It.IsAny<CancellationToken>()),
