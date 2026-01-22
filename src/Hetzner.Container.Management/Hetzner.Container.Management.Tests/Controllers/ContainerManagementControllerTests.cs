@@ -172,7 +172,7 @@ public sealed class ContainerManagementControllerTests
         // Assert
         var okResult = Assert.IsType<Ok<InfrastructureDocument>>(result);
         Assert.NotNull(okResult.Value);
-        Assert.Equivalent(expectedDocument, okResult.Value.Data);
+        Assert.Equivalent(expectedDocument, okResult.Value);
         _mockOperationQueue.Verify(
             x => x.QueueAndWaitForUpdateOperation(input, It.IsAny<CancellationToken>()),
             Times.Once
