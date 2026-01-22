@@ -9,11 +9,18 @@ internal interface IDockerHubClient
 {
     Task<DockerApiActionResult<GetRepositoryResponse?>> GetRepositoryAsync(
         DockerHubDetailsWithRepositoryName dockerHubDetails,
+        string accessToken,
         CancellationToken cancellationToken = default
     );
     Task<DockerApiActionResult<RepositoryTag?>> GetRepositoryTagAsync(
         DockerHubDetailsWithRepositoryName dockerHubDetails,
         string tag,
+        string accessToken,
+        CancellationToken cancellationToken = default
+    );
+    Task<DockerApiActionResult<string?>> CreateAccessTokenAsync(
+        string identifier,
+        string secret,
         CancellationToken cancellationToken = default
     );
 }

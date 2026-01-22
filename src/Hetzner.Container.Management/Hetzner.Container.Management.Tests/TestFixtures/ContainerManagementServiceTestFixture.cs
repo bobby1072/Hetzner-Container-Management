@@ -22,7 +22,8 @@ public class ContainerManagementServiceTestFixture
         int? internalPort = null,
         int? publicPort = null,
         Dictionary<string, string?>? configMap = null,
-        string? volumeName = null)
+        string? volumeName = null
+    )
     {
         return new InfrastructureComponentUpdateInput
         {
@@ -30,28 +31,32 @@ public class ContainerManagementServiceTestFixture
             ImageTag = imageTag ?? "latest",
             InternalPortNumber = internalPort ?? 8080,
             PublicFacingPortNumber = publicPort ?? 80,
-            ConfigMap = configMap ?? new Dictionary<string, string?>
-            {
-                { "ENV_VAR_1", "value1" },
-                { "ENV_VAR_2", "value2" }
-            },
+            ConfigMap =
+                configMap
+                ?? new Dictionary<string, string?>
+                {
+                    { "ENV_VAR_1", "value1" },
+                    { "ENV_VAR_2", "value2" },
+                },
             VolumeName = volumeName,
             DockerHubDetails = new DockerHubDetailsWithRepositoryName
             {
                 RepositoryName = "test-repo",
                 Username = "test-user",
-                Password = "test-password"
-            }
+                Password = "test-password",
+            },
         };
     }
 
-    public InfrastructureDocument CreateInfrastructureDocument(params InfrastructureComponent[] components)
+    public InfrastructureDocument CreateInfrastructureDocument(
+        params InfrastructureComponent[] components
+    )
     {
         return new InfrastructureDocument
         {
             Components = components,
             LastUpdated = DateTime.UtcNow.AddDays(-1),
-            UpdateNumber = _fixture.Create<int>()
+            UpdateNumber = _fixture.Create<int>(),
         };
     }
 
@@ -59,7 +64,8 @@ public class ContainerManagementServiceTestFixture
         string? containerName = null,
         string? imageVersionTag = null,
         int? internalPort = null,
-        int? publicPort = null)
+        int? publicPort = null
+    )
     {
         return new InfrastructureComponent
         {
@@ -69,11 +75,8 @@ public class ContainerManagementServiceTestFixture
             ImageVersionTag = imageVersionTag ?? "latest",
             InternalPortNumber = $"{internalPort ?? 8080}",
             PublicFacingPortNumber = $"{publicPort ?? 80}",
-            ConfigMap = new Dictionary<string, string?>
-            {
-                { "ENV_VAR_1", "value1" }
-            },
-            LastUpdated = DateTime.UtcNow.AddDays(-1)
+            ConfigMap = new Dictionary<string, string?> { { "ENV_VAR_1", "value1" } },
+            LastUpdated = DateTime.UtcNow.AddDays(-1),
         };
     }
 
@@ -95,11 +98,7 @@ public class ContainerManagementServiceTestFixture
             CollaboratorCount = 1,
             HubUser = "test-user",
             HasStarred = false,
-            ImmutableTagsSettings = new ImmutableTagsSettings
-            {
-                Enabled = false,
-                Rules = []
-            }
+            ImmutableTagsSettings = new ImmutableTagsSettings { Enabled = false, Rules = [] },
         };
     }
 
@@ -111,7 +110,7 @@ public class ContainerManagementServiceTestFixture
             LastUpdated = DateTime.UtcNow.AddDays(-1),
             Id = _fixture.Create<int>(),
             Repository = _fixture.Create<int>(),
-            FullSize = 1024
+            FullSize = 1024,
         };
     }
 
@@ -122,16 +121,22 @@ public class ContainerManagementServiceTestFixture
         int? internalPort = null,
         int? publicPort = null,
         Dictionary<string, string>? configMap = null,
-        string? volumeName = null)
+        string? volumeName = null
+    )
     {
         var fullImage = $"{imageName ?? "test-repo"}:{imageTag ?? "latest"}";
         var internalPortStr = $"{internalPort ?? 8080}/tcp";
-        var envVars = configMap?.Select(kvp => $"{kvp.Key}={kvp.Value}").ToArray() 
-                      ?? new[] { "ENV_VAR_1=value1", "ENV_VAR_2=value2" };
+        var envVars =
+            configMap?.Select(kvp => $"{kvp.Key}={kvp.Value}").ToArray()
+            ?? new[] { "ENV_VAR_1=value1", "ENV_VAR_2=value2" };
 
-        var volumes = volumeName != null 
-            ? new Dictionary<string, object> { { volumeName, new Dictionary<object, object>() } }
-            : null;
+        var volumes =
+            volumeName != null
+                ? new Dictionary<string, object>
+                {
+                    { volumeName, new Dictionary<object, object>() },
+                }
+                : null;
 
         return new ContainerInspectResponse
         {
@@ -140,20 +145,16 @@ public class ContainerManagementServiceTestFixture
             Created = DateTime.UtcNow.AddDays(-1).ToString("o"),
             Path = "/app",
             Image = _fixture.Create<string>(),
-            State = new ContainerState
-            {
-                Running = true,
-                Status = "running"
-            },
+            State = new ContainerState { Running = true, Status = "running" },
             Config = new ContainerConfig
             {
                 Image = fullImage,
                 Env = envVars,
                 ExposedPorts = new Dictionary<string, object>
                 {
-                    { internalPortStr, new Dictionary<object, object>() }
+                    { internalPortStr, new Dictionary<object, object>() },
                 },
-                Volumes = volumes
+                Volumes = volumes,
             },
             HostConfig = new HostConfig
             {
@@ -161,18 +162,11 @@ public class ContainerManagementServiceTestFixture
                 {
                     {
                         internalPortStr,
-                        new[]
-                        {
-                            new PortBinding { HostPort = (publicPort ?? 80).ToString() }
-                        }
-                    }
+                        new[] { new PortBinding { HostPort = (publicPort ?? 80).ToString() } }
+                    },
                 },
-                RestartPolicy = new RestartPolicy
-                {
-                    Name = "always",
-                    MaximumRetryCount = 3
-                }
-            }
+                RestartPolicy = new RestartPolicy { Name = "always", MaximumRetryCount = 3 },
+            },
         };
     }
 
@@ -181,7 +175,7 @@ public class ContainerManagementServiceTestFixture
         return new ContainerCreateResponse
         {
             Id = id ?? _fixture.Create<string>(),
-            Warnings = Array.Empty<string>()
+            Warnings = Array.Empty<string>(),
         };
     }
 
@@ -194,21 +188,16 @@ public class ContainerManagementServiceTestFixture
         };
     }
 
-    public static DockerApiActionResult<T> CreateSuccessResult<T>(T data)
+    public static DockerApiActionResult<T?> CreateSuccessResult<T>(T data)
     {
-        return new DockerApiActionResult<T>
-        {
-            Data = data,
-            ExceptionMessage = null
-        };
+        return new DockerApiActionResult<T?> { Data = data, ExceptionMessage = null };
     }
 
-    public static DockerApiActionResult<T> CreateFailureResult<T>(string exceptionMessage, T? data = default)
+    public static DockerApiActionResult<T?> CreateFailureResult<T>(
+        string exceptionMessage,
+        T? data = default
+    )
     {
-        return new DockerApiActionResult<T>
-        {
-            Data = data,
-            ExceptionMessage = exceptionMessage
-        };
+        return new DockerApiActionResult<T?> { Data = data, ExceptionMessage = exceptionMessage };
     }
 }

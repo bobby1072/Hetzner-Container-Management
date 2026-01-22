@@ -433,8 +433,21 @@ internal sealed class ContainerManagementService : IContainerManagementService
         CancellationToken cancellationToken
     )
     {
+        var accessToken = await _containerUpdateServicesServiceProvider.DockerHubClient.CreateAccessTokenAsync(dockerHubDetails.Username, dockerHubDetails.Password, cancellationToken);
+
+        if (!accessToken.IsSuccess || accessToken.Data is null)
+        {
+            throw new ApiException(
+                LogLevel.Information,
+                HttpStatusCode.BadRequest,
+                !string.IsNullOrWhiteSpace(accessToken.ExceptionMessage) ? accessToken.ExceptionMessage
+                : "Failed to get docker hub access token" 
+            );
+        }
+        
         var getRepoJob = _containerUpdateServicesServiceProvider.DockerHubClient.GetRepositoryAsync(
             dockerHubDetails,
+            accessToken.Data,
             cancellationToken
         );
 
@@ -442,6 +455,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
             _containerUpdateServicesServiceProvider.DockerHubClient.GetRepositoryTagAsync(
                 dockerHubDetails,
                 imageVersionTag,
+                accessToken.Data,
                 cancellationToken
             );
 
