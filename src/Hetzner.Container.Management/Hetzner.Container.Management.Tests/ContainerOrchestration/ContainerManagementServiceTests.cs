@@ -79,8 +79,20 @@ public sealed class ContainerManagementServiceTests
 
         _mockDockerHubClient
             .Setup(x =>
+                x.CreateAccessTokenAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                ContainerManagementServiceTestFixture.CreateSuccessResult("test-access-token")
+            );
+        _mockDockerHubClient
+            .Setup(x =>
                 x.GetRepositoryAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -96,6 +108,7 @@ public sealed class ContainerManagementServiceTests
             .Setup(x =>
                 x.GetRepositoryTagAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -131,8 +144,20 @@ public sealed class ContainerManagementServiceTests
 
         _mockDockerHubClient
             .Setup(x =>
+                x.CreateAccessTokenAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                ContainerManagementServiceTestFixture.CreateSuccessResult("test-access-token")
+            );
+        _mockDockerHubClient
+            .Setup(x =>
                 x.GetRepositoryAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -148,6 +173,7 @@ public sealed class ContainerManagementServiceTests
             .Setup(x =>
                 x.GetRepositoryTagAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -188,8 +214,20 @@ public sealed class ContainerManagementServiceTests
 
         _mockDockerHubClient
             .Setup(x =>
+                x.CreateAccessTokenAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                ContainerManagementServiceTestFixture.CreateSuccessResult("test-access-token")
+            );
+        _mockDockerHubClient
+            .Setup(x =>
                 x.GetRepositoryAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -205,6 +243,7 @@ public sealed class ContainerManagementServiceTests
             .Setup(x =>
                 x.GetRepositoryTagAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -334,8 +373,20 @@ public sealed class ContainerManagementServiceTests
 
         _mockDockerHubClient
             .Setup(x =>
+                x.CreateAccessTokenAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                ContainerManagementServiceTestFixture.CreateSuccessResult("test-access-token")
+            );
+        _mockDockerHubClient
+            .Setup(x =>
                 x.GetRepositoryAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -345,6 +396,7 @@ public sealed class ContainerManagementServiceTests
             .Setup(x =>
                 x.GetRepositoryTagAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -469,8 +521,20 @@ public sealed class ContainerManagementServiceTests
 
         _mockDockerHubClient
             .Setup(x =>
+                x.CreateAccessTokenAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                ContainerManagementServiceTestFixture.CreateSuccessResult("test-access-token")
+            );
+        _mockDockerHubClient
+            .Setup(x =>
                 x.GetRepositoryAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -480,6 +544,7 @@ public sealed class ContainerManagementServiceTests
             .Setup(x =>
                 x.GetRepositoryTagAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -554,8 +619,20 @@ public sealed class ContainerManagementServiceTests
 
         _mockDockerHubClient
             .Setup(x =>
+                x.CreateAccessTokenAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                ContainerManagementServiceTestFixture.CreateSuccessResult("test-access-token")
+            );
+        _mockDockerHubClient
+            .Setup(x =>
                 x.GetRepositoryAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -565,6 +642,7 @@ public sealed class ContainerManagementServiceTests
             .Setup(x =>
                 x.GetRepositoryTagAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -715,8 +793,20 @@ public sealed class ContainerManagementServiceTests
 
         _mockDockerHubClient
             .Setup(x =>
+                x.CreateAccessTokenAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                ContainerManagementServiceTestFixture.CreateSuccessResult("test-access-token")
+            );
+        _mockDockerHubClient
+            .Setup(x =>
                 x.GetRepositoryAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -726,6 +816,7 @@ public sealed class ContainerManagementServiceTests
             .Setup(x =>
                 x.GetRepositoryTagAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -857,8 +948,20 @@ public sealed class ContainerManagementServiceTests
 
         _mockDockerHubClient
             .Setup(x =>
+                x.CreateAccessTokenAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                ContainerManagementServiceTestFixture.CreateSuccessResult("test-access-token")
+            );
+        _mockDockerHubClient
+            .Setup(x =>
                 x.GetRepositoryAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -868,6 +971,7 @@ public sealed class ContainerManagementServiceTests
             .Setup(x =>
                 x.GetRepositoryTagAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -954,8 +1058,20 @@ public sealed class ContainerManagementServiceTests
 
         _mockDockerHubClient
             .Setup(x =>
+                x.CreateAccessTokenAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                ContainerManagementServiceTestFixture.CreateSuccessResult("test-access-token")
+            );
+        _mockDockerHubClient
+            .Setup(x =>
                 x.GetRepositoryAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -965,6 +1081,7 @@ public sealed class ContainerManagementServiceTests
             .Setup(x =>
                 x.GetRepositoryTagAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -1045,8 +1162,20 @@ public sealed class ContainerManagementServiceTests
 
         _mockDockerHubClient
             .Setup(x =>
+                x.CreateAccessTokenAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                ContainerManagementServiceTestFixture.CreateSuccessResult("test-access-token")
+            );
+        _mockDockerHubClient
+            .Setup(x =>
                 x.GetRepositoryAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -1056,6 +1185,7 @@ public sealed class ContainerManagementServiceTests
             .Setup(x =>
                 x.GetRepositoryTagAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -1134,8 +1264,20 @@ public sealed class ContainerManagementServiceTests
 
         _mockDockerHubClient
             .Setup(x =>
+                x.CreateAccessTokenAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                ContainerManagementServiceTestFixture.CreateSuccessResult("test-access-token")
+            );
+        _mockDockerHubClient
+            .Setup(x =>
                 x.GetRepositoryAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -1145,6 +1287,7 @@ public sealed class ContainerManagementServiceTests
             .Setup(x =>
                 x.GetRepositoryTagAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -1283,8 +1426,20 @@ public sealed class ContainerManagementServiceTests
 
         _mockDockerHubClient
             .Setup(x =>
+                x.CreateAccessTokenAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                ContainerManagementServiceTestFixture.CreateSuccessResult("test-access-token")
+            );
+        _mockDockerHubClient
+            .Setup(x =>
                 x.GetRepositoryAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -1294,6 +1449,7 @@ public sealed class ContainerManagementServiceTests
             .SetupSequence(x =>
                 x.GetRepositoryTagAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -1405,8 +1561,20 @@ public sealed class ContainerManagementServiceTests
 
         _mockDockerHubClient
             .Setup(x =>
+                x.CreateAccessTokenAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
+            .ReturnsAsync(
+                ContainerManagementServiceTestFixture.CreateSuccessResult("test-access-token")
+            );
+        _mockDockerHubClient
+            .Setup(x =>
                 x.GetRepositoryAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -1416,6 +1584,7 @@ public sealed class ContainerManagementServiceTests
             .Setup(x =>
                 x.GetRepositoryTagAsync(
                     It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )

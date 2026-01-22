@@ -33,16 +33,12 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
 
     public async Task<DockerApiActionResult<GetRepositoryResponse?>> GetRepositoryAsync(
         DockerHubDetailsWithRepositoryName dockerHubDetails,
+        string accessToken,
         CancellationToken cancellationToken = default
     )
     {
         try
         {
-            var token = await CreateAccessTokenAsync(
-                dockerHubDetails.Username,
-                dockerHubDetails.Password,
-                cancellationToken
-            );
 
             var builder = _settings
                 .BaseUrl.AppendPathSegment("v2")
@@ -50,7 +46,7 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
                 .AppendPathSegment(dockerHubDetails.Username)
                 .AppendPathSegment("repositories")
                 .AppendPathSegment(dockerHubDetails.RepositoryName)
-                .WithHeader(HeaderNames.Authorization, $"Bearer {token}");
+                .WithHeader(HeaderNames.Authorization, $"Bearer {accessToken}");
             var result = await builder
                 .GetJsonAsync<GetRepositoryResponse>(_httpClient, cancellationToken);
 
@@ -72,17 +68,13 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
     public async Task<DockerApiActionResult<RepositoryTag?>> GetRepositoryTagAsync(
         DockerHubDetailsWithRepositoryName dockerHubDetails,
         string tag,
+        string accessToken,
         CancellationToken cancellationToken = default
     )
     {
         try
         {
-            var token = await CreateAccessTokenAsync(
-                dockerHubDetails.Username,
-                dockerHubDetails.Password,
-                cancellationToken
-            );
-
+            
             var result = await _settings
                 .BaseUrl.AppendPathSegment("v2")
                 .AppendPathSegment("namespaces")
@@ -91,7 +83,7 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
                 .AppendPathSegment(dockerHubDetails.RepositoryName)
                 .AppendPathSegment("tags")
                 .AppendPathSegment(tag)
-                .WithHeader(HeaderNames.Authorization, $"Bearer {token}")
+                .WithHeader(HeaderNames.Authorization, $"Bearer {accessToken}")
                 .GetJsonAsync<RepositoryTag>(_httpClient, cancellationToken);
 
             return new DockerApiActionResult<RepositoryTag?> { Data = result };
@@ -106,35 +98,46 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
         }
     }
 
-    private async Task<string> CreateAccessTokenAsync(
+    public async Task<DockerApiActionResult<string?>> CreateAccessTokenAsync(
         string identifier,
         string secret,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken = default
     )
     {
-        var cacheKey = $"dockerhub_access_token_{identifier}";
-
-        if (_memoryCache.TryGetValue<string>(cacheKey, out var cachedToken))
+        try
         {
-            return cachedToken!;
+            var cacheKey = $"dockerhub_access_token_{identifier}";
+
+            if (_memoryCache.TryGetValue<string>(cacheKey, out var cachedToken))
+            {
+                return new DockerApiActionResult<string?> { Data = cachedToken };
+            }
+
+            var request = new AuthCreateTokenRequest { Identifier = identifier, Secret = secret };
+
+            var response = await _settings
+                .BaseUrl.AppendPathSegment("v2")
+                .AppendPathSegment("auth")
+                .AppendPathSegment("token")
+                .WithApplicationJson(request)
+                .PostJsonAsync<AuthCreateTokenResponse>(_httpClient, cancellationToken);
+
+            var cacheOptions = new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(45),
+            };
+
+            _memoryCache.Set(cacheKey, response.AccessToken, cacheOptions);
+
+            return new DockerApiActionResult<string?> { Data = response.AccessToken };
         }
-
-        var request = new AuthCreateTokenRequest { Identifier = identifier, Secret = secret };
-
-        var response = await _settings
-            .BaseUrl.AppendPathSegment("v2")
-            .AppendPathSegment("auth")
-            .AppendPathSegment("token")
-            .WithApplicationJson(request)
-            .PostJsonAsync<AuthCreateTokenResponse>(_httpClient, cancellationToken);
-
-        var cacheOptions = new MemoryCacheEntryOptions
+        catch (HttpRequestException ex)
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(45),
-        };
-
-        _memoryCache.Set(cacheKey, response.AccessToken, cacheOptions);
-
-        return response.AccessToken;
+            return new DockerApiActionResult<string?> { ExceptionMessage = ex.Message };
+        }
+        catch (Exception ex)
+        {
+            return HandleError<string?>(ex, nameof(GetRepositoryTagAsync));
+        }
     }
 }
