@@ -80,7 +80,7 @@ services:
 
 **POST** `/Api/ContainerManagement/QueueInfrastructureUpdate`
 
-Queue an infrastructure update operation.
+Queue an infrastructure update operation asynchronously. Returns immediately with an operation ID.
 
 **Headers:**
 
@@ -91,15 +91,23 @@ Content-Type: application/json
 
 **Request Body:**
 
-```json
+```ts
 [
   {
-    "componentName": "my-service",
+    "containerName": string,
+    "externalPortNumber": int,
+    "internalPortNumber": int,
+    "imageTag": string | null = "latest",
     "dockerHubDetails": {
-      "username": "dockerhub-user",
-      "token": "dockerhub-token",
-      "repositoryName": "my-repo"
-    }
+      "username": string,
+      "password": string,
+      "repositoryName": string
+    },
+    "configMap": {
+      [EnvVarLabel:string]: string | null,
+      [EnvVarLabel:string]: string | null
+    } | null = {},
+    "volumeName": string | null
   }
 ]
 ```
@@ -112,11 +120,43 @@ Content-Type: application/json
 }
 ```
 
-### Get Current Infrastructure
+### Queue and Wait for Infrastructure Update
 
-**GET** `/Api/ContainerManagement/GetCurrentInfrastructure`
+**POST** `/Api/ContainerManagement/QueueAndWaitForInfrastructureUpdate`
 
-Retrieve current infrastructure state.
+Queue an infrastructure update operation and wait for it to complete. Returns the updated infrastructure document.
+
+**Headers:**
+
+```
+X-API-Key: your-api-key-here
+Content-Type: application/json
+```
+
+**Request Body:**
+
+```ts
+[
+  {
+    "containerName": string,
+    "externalPortNumber": int,
+    "internalPortNumber": int,
+    "imageTag": string | null = "latest",
+    "dockerHubDetails": {
+      "username": string,
+      "password": string,
+      "repositoryName": string
+    },
+    "configMap": {
+      [EnvVarLabel:string]: string | null,
+      [EnvVarLabel:string]: string | null
+    } | null = {},
+    "volumeName": string | null
+  }
+]
+```
+
+**Response:** Returns the updated infrastructure document with component details.
 
 ### Health Check
 
