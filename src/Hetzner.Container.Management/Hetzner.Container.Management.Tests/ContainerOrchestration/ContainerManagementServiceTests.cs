@@ -666,7 +666,6 @@ public sealed class ContainerManagementServiceTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 )
             )
@@ -734,7 +733,6 @@ public sealed class ContainerManagementServiceTests
                     repoResponse.Name,
                     tagResponse.Name,
                     repoResponse.Namespace,
-                    It.IsAny<string?>(),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once

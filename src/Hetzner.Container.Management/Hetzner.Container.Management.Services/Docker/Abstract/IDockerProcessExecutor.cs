@@ -8,7 +8,6 @@ internal interface IDockerProcessExecutor
         string imageName,
         string versionTag,
         string @namespace,
-        string? workingDirectory = null,
         CancellationToken cancellationToken = default);
 
 }

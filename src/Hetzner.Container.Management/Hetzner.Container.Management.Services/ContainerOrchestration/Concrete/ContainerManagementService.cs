@@ -185,7 +185,6 @@ internal sealed class ContainerManagementService : IContainerManagementService
                         dockerHubFetchedDetails.RepoResp.Name,
                         dockerHubFetchedDetails.RepoTag.Name,
                         dockerHubFetchedDetails.RepoResp.Namespace,
-                        null,
                         cancellationToken
                     );
                 }

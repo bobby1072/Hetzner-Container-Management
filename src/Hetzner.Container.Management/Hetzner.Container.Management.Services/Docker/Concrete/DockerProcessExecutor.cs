@@ -1,8 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Net;
 using BT.Common.Api.Helpers.Exceptions;
-using BT.Common.Helpers;
-using Hetzner.Container.Management.Schemas.Configuration;
 using Hetzner.Container.Management.Schemas.Input;
 using Hetzner.Container.Management.Services.Docker.Abstract;
 using Microsoft.Extensions.Logging;
@@ -11,15 +9,11 @@ namespace Hetzner.Container.Management.Services.Docker.Concrete;
 
 internal sealed class DockerProcessExecutor : IDockerProcessExecutor
 {
-    private readonly string _dockerHubApiSettings;
     private readonly ILogger<DockerProcessExecutor> _logger;
-
     public DockerProcessExecutor(
-        DockerHubApiSettings dockerHubApiSettings,
         ILogger<DockerProcessExecutor> logger
     )
     {
-        _dockerHubApiSettings = dockerHubApiSettings.RegistryUri;
         _logger = logger;
     }
 
@@ -28,12 +22,11 @@ internal sealed class DockerProcessExecutor : IDockerProcessExecutor
         string imageName,
         string versionTag,
         string @namespace,
-        string? workingDirectory = null,
         CancellationToken cancellationToken = default
     )
     {
         var command = $"pull {@namespace}/{imageName}:{versionTag}";
-        await LoginToDockerHub(dockerHubDetails, workingDirectory, cancellationToken);
+        await LoginToDockerHub(dockerHubDetails, cancellationToken);
         using var process = new Process();
         process.StartInfo = new ProcessStartInfo
         {
@@ -65,7 +58,6 @@ internal sealed class DockerProcessExecutor : IDockerProcessExecutor
 
     private async Task<string> LoginToDockerHub(
         DockerHubDetails details,
-        string? workingDirectory = null,
         CancellationToken cancellationToken = default
     )
     {
