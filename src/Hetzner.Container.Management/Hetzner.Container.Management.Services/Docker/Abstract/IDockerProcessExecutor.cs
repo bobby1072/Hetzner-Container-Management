@@ -2,7 +2,7 @@
 
 namespace Hetzner.Container.Management.Services.Docker.Abstract;
 
-internal interface IDockerProcessExecutor: IDisposable
+internal interface IDockerProcessExecutor
 {
     Task PullDockerImageFromHub(DockerHubDetails dockerHubDetails,
         string imageName,
