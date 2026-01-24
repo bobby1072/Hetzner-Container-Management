@@ -1,0 +1,112 @@
+parameters:
+  - name: serverUrl
+    type: string
+    displayName: 'API Server URL'
+    default: ''
+  
+  - name: apiKey
+    type: string
+    displayName: 'API Key'
+    default: ''
+  
+  - name: requestBodyPath
+    type: string
+    displayName: 'Path to JSON request body file'
+    default: ''
+
+steps:
+  - task: PowerShell@2
+    displayName: 'Deploy Infrastructure Update'
+    timeoutInMinutes: 1
+    inputs:
+      targetType: 'inline'
+      script: |
+        $ErrorActionPreference = "Stop"
+        
+        # Validate parameters
+        $serverUrl = "${{ parameters.serverUrl }}".TrimEnd('/')
+        $apiKey = "${{ parameters.apiKey }}"
+        $requestBodyPath = "${{ parameters.requestBodyPath }}"
+        
+        if ([string]::IsNullOrWhiteSpace($serverUrl)) {
+            Write-Error "Server URL parameter is required"
+            exit 1
+        }
+        
+        if ([string]::IsNullOrWhiteSpace($apiKey)) {
+            Write-Error "API Key parameter is required"
+            exit 1
+        }
+        
+        if ([string]::IsNullOrWhiteSpace($requestBodyPath)) {
+            Write-Error "Request Body Path parameter is required"
+            exit 1
+        }
+        
+        if (-not (Test-Path $requestBodyPath)) {
+            Write-Error "Request body file not found at path: $requestBodyPath"
+            exit 1
+        }
+        
+        # Read the request body from JSON file
+        Write-Host "Reading request body from: $requestBodyPath"
+        $requestBody = Get-Content -Path $requestBodyPath -Raw
+        
+        # Validate JSON
+        try {
+            $null = $requestBody | ConvertFrom-Json
+            Write-Host "JSON validation successful"
+        }
+        catch {
+            Write-Error "Invalid JSON in request body file: $_"
+            exit 1
+        }
+        
+        # Use QueueAndWaitForInfrastructureUpdate endpoint
+        $endpoint = "$serverUrl/Api/ContainerManagement/QueueAndWaitForInfrastructureUpdate"
+        Write-Host "Using endpoint: $endpoint"
+        
+        # Prepare headers
+        $headers = @{
+            "X-API-Key" = $apiKey
+            "Content-Type" = "application/json"
+        }
+        
+        # Make API request
+        Write-Host "Sending infrastructure update request..."
+        try {
+            $response = Invoke-RestMethod -Uri $endpoint -Method Post -Headers $headers -Body $requestBody -ContentType "application/json"
+            
+            Write-Host "##[section]Deployment completed successfully"
+            Write-Host "Response:"
+            $response | ConvertTo-Json -Depth 10 | Write-Host
+            
+            # Set pipeline variables for downstream tasks
+            if ($response.components) {
+                $componentCount = $response.components.Count
+                Write-Host "##vso[task.setvariable variable=DeployedComponentCount;isOutput=true]$componentCount"
+                Write-Host "Total components deployed: $componentCount"
+            }
+        }
+        catch {
+            Write-Error "##[error]Failed to deploy infrastructure update"
+            Write-Error "Error: $($_.Exception.Message)"
+            
+            if ($_.Exception.Response) {
+                $statusCode = $_.Exception.Response.StatusCode.value__
+                Write-Error "HTTP Status Code: $statusCode"
+                
+                try {
+                    $errorStream = $_.Exception.Response.GetResponseStream()
+                    $reader = New-Object System.IO.StreamReader($errorStream)
+                    $errorBody = $reader.ReadToEnd()
+                    Write-Error "Response Body: $errorBody"
+                }
+                catch {
+                    Write-Warning "Could not read error response body"
+                }
+            }
+            
+            exit 1
+        }
+      pwsh: true

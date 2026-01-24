@@ -1,0 +1,35 @@
+[
+  {
+    "containerName": "my-web-app",
+    "externalPortNumber": 8080,
+    "internalPortNumber": 80,
+    "imageTag": "latest",
+    "dockerHubDetails": {
+      "username": "your-dockerhub-username",
+      "password": "your-dockerhub-password",
+      "repositoryName": "your-dockerhub-username/my-web-app"
+    },
+    "configMap": {
+      "NODE_ENV": "production",
+      "DATABASE_URL": "postgresql://localhost:5432/mydb",
+      "API_KEY": "your-api-key-here"
+    },
+    "volumeName": "my-web-app-data"
+  },
+  {
+    "containerName": "my-api-service",
+    "externalPortNumber": 3000,
+    "internalPortNumber": 3000,
+    "imageTag": "v1.2.3",
+    "dockerHubDetails": {
+      "username": "your-dockerhub-username",
+      "password": "your-dockerhub-password",
+      "repositoryName": "your-dockerhub-username/my-api"
+    },
+    "configMap": {
+      "PORT": "3000",
+      "LOG_LEVEL": "info"
+    },
+    "volumeName": null
+  }
+]

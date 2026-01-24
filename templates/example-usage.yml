@@ -1,0 +1,53 @@
+# Example Azure Pipeline using the Deploy Infrastructure task
+
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  # Store API key in Azure Pipeline Variables (marked as secret)
+  # serverUrl: 'https://your-server.com'
+  # apiKey: '$(HETZNER_API_KEY)' # Set this as a secret variable in pipeline
+
+stages:
+  - stage: Deploy
+    displayName: 'Deploy Infrastructure'
+    jobs:
+      - job: DeployContainers
+        displayName: 'Deploy Container Infrastructure'
+        steps:
+          # Example 1: Queue and wait for deployment completion
+          - template: azure-pipeline-templates/deploy-infrastructure.yml
+            parameters:
+              serverUrl: '$(serverUrl)'
+              apiKey: '$(apiKey)'
+              requestBodyPath: '$(Build.SourcesDirectory)/infrastructure-config.json'
+              waitForCompletion: true
+              timeoutInMinutes: 15
+
+          # Example 2: Queue deployment without waiting
+          - template: azure-pipeline-templates/deploy-infrastructure.yml
+            parameters:
+              serverUrl: 'https://your-hetzner-server.com:8080'
+              apiKey: '$(HETZNER_API_KEY)'
+              requestBodyPath: './deploy/production-infrastructure.json'
+              waitForCompletion: false
+              timeoutInMinutes: 5
+
+          # Example 3: Use output variables from deployment
+          - template: azure-pipeline-templates/deploy-infrastructure.yml
+            parameters:
+              serverUrl: '$(serverUrl)'
+              apiKey: '$(apiKey)'
+              requestBodyPath: 'config/containers.json'
+              waitForCompletion: true
+          
+          - task: PowerShell@2
+            displayName: 'Show Deployment Results'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "Deployed Components: $(DeployedComponentCount)"
+              pwsh: true
