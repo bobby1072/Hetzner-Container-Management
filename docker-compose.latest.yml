@@ -1,0 +1,13 @@
+services:
+  containermanagement:
+    container_name: hetzner-container-management
+    image: bobby1072/hetzner-container-management:latest
+    ports:
+      - 7107:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+80
+      DockerEngineApiSettings__UseTestHttpEndPoint: false
+      ApiKey__0: test-key

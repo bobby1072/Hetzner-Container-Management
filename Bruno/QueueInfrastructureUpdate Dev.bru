@@ -1,13 +1,17 @@
 meta {
-  name: QueueInfrastructureUpdateAndWaitForUpdate
+  name: QueueInfrastructureUpdate Dev
   type: http
-  seq: 3
+  seq: 1
 }
 
 post {
-  url: {{DevUrl}}/Api/ContainerManagement/QueueAndWaitForInfrastructureUpdate
+  url: {{DevUrl}}/Api/ContainerManagement/QueueInfrastructureUpdate
   body: json
   auth: inherit
+}
+
+headers {
+  x-api-key: 4a6a45fd424d4e1b81516fcadfef1c6f
 }
 
 body:json {

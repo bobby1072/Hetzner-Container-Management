@@ -1,0 +1,16 @@
+services:
+  containermanagement:
+    container_name: hetzner-container-management
+    build:
+      context: .
+      dockerfile: src/Hetzner.Container.Management/dockerfile.api
+    ports:
+      - 7110:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+80
+      DockerEngineApiSettings__UseTestHttpEndPoint: false
+      ApiKey__0: test-key
+    user: "root"

@@ -7,7 +7,7 @@ variables:
     value: bobby1072/hetzner-container-management
   - name: DockerEngineApiSettings.UnixDomainSocketEndPoint
     value: /var/run/docker.sock
-  - name: UseTestHttpEndPoint
+  - name: DockerEngineApiSettings.UseTestHttpEndPoint
     value: "false"
   - name: ApiKey.0
     value: ""

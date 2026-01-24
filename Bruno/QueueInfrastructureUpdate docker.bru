@@ -1,0 +1,40 @@
+meta {
+  name: QueueInfrastructureUpdate docker
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{DockerComposeUrl}}/Api/ContainerManagement/QueueInfrastructureUpdate
+  body: json
+  auth: inherit
+}
+
+headers {
+  x-api-key: test-key
+}
+
+body:json {
+  [
+    {
+      "dockerHubDetails": {
+        "username": "bobby1072",
+        "password": "Crudboys123@",
+        "repositoryName": "aitrainer_core"
+      },
+      "containerName": "aitrainer-core",
+      "externalPortNumber": 4000,
+      "internalPortNumber": 80,
+      "configMap": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://+80",
+        "ApiKey__0": "test-api-key"
+      }
+    }
+  ]
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
