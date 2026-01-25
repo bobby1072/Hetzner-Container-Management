@@ -94,4 +94,9 @@ internal interface IDockerEngineClient
         string volumeName,
         CancellationToken cancellationToken = default
     );
+    Task<DockerApiActionResult> RemoveVolumeAsync(
+        string volumeName,
+        bool force = false,
+        CancellationToken cancellationToken = default
+    );
 }

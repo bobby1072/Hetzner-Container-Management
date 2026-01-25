@@ -62,14 +62,10 @@ internal sealed class ContainerManagementService : IContainerManagementService
 
             var updateAttemptRetryPipeline = _commonOperationRetrySettings.ToPipeline();
 
-            var updateInfraComponents = await updateAttemptRetryPipeline.ExecuteAsync(
-                async ct =>
-                    await Task.WhenAll(
-                        infrastructureDocuments.Select(x =>
-                            UpdateInfrastructureComponentAsync(x, ct)
-                        )
-                    ),
-                cancellationToken
+            var updateInfraComponents = await Task.WhenAll(
+                infrastructureDocuments.Select(x =>
+                        updateAttemptRetryPipeline.ExecuteAsync(async ct => await UpdateInfrastructureComponentAsync(x, ct), cancellationToken).AsTask()
+                )
             );
 
             var didUpdate = updateInfraComponents.All(x =>
@@ -262,15 +258,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                     $"A different container with name: {infrastructureComponentInput.ContainerName} already exists."
                 );
             }
-
-            if (existingContainer is not  null)
-            {
-                await RemoveExistingContainerAsync(
-                    existingContainer.Name,
-                    IsVolumesDifferent(infrastructureComponentInput, existingContainer),
-                    cancellationToken
-                );
-            }
+            
 
             var createdContainerName = await CreateAndStartContainerAsync(
                 existingContainer,
@@ -304,10 +292,42 @@ internal sealed class ContainerManagementService : IContainerManagementService
         CancellationToken cancellationToken
     )
     {
+        var createAndUpdatePreContainerCreateJobList = new List<Task>();
+        if (containerInspectResponse is not null)
+        {
+            createAndUpdatePreContainerCreateJobList.Add(RemoveExistingContainerAsync(
+                containerInspectResponse.Name,
+                false,
+                cancellationToken
+            ));
+        }
+
+        var hangingVolumes = containerInspectResponse?
+            .HostConfig?
+            .Mounts?
+            .Where(x => x.Source != infrastructureComponentInput.Volume?.VolumeName)
+            .ToArray();
+
+        if (hangingVolumes is not null && hangingVolumes.Length > 0)
+        {
+            createAndUpdatePreContainerCreateJobList = createAndUpdatePreContainerCreateJobList.Concat(hangingVolumes.Select(x => _containerUpdateServicesServiceProvider
+                .DockerEngineClient
+                .RemoveVolumeAsync(x.Source, false, cancellationToken))
+            ).ToList();
+        }
+        
+        var isVolumeDiff = IsVolumesDifferent(infrastructureComponentInput, containerInspectResponse);
+        if (isVolumeDiff)
+        {
+            createAndUpdatePreContainerCreateJobList.Add(GetNameOrCreateVolumeAsync(infrastructureComponentInput.Volume!, cancellationToken));
+        }
+
+        await Task.WhenAll(createAndUpdatePreContainerCreateJobList);
+        
         var requestModel = BuildCreateContainerRequest(
             infrastructureComponentInput,
             dockerHubFetchedDetails,
-            IsVolumesDifferent(infrastructureComponentInput, containerInspectResponse)
+            isVolumeDiff
         );
 
         var createResult =
@@ -502,10 +522,29 @@ internal sealed class ContainerManagementService : IContainerManagementService
         );
     }
 
+    private async Task<string> GetNameOrCreateVolumeAsync(VolumeInfo volumeInfo, CancellationToken cancellationToken)
+    {
+        var foundVolume = await _containerUpdateServicesServiceProvider.DockerEngineClient.InspectImageAsync(volumeInfo.VolumeName, false, cancellationToken);
+
+        if (foundVolume.Data is not null)
+        {
+            return foundVolume.Data.Id;
+        }
+
+        var createdVolume = await 
+            _containerUpdateServicesServiceProvider.DockerEngineClient.CreateVolumeAsync(new VolumeCreateRequest {Name = volumeInfo.VolumeName}, cancellationToken);
+
+        if (!createdVolume.IsSuccess || createdVolume.Data is null)
+        {
+            throw new ApiException(LogLevel.Error, HttpStatusCode.InternalServerError, "Failed to create volume.");
+        }
+        
+        return createdVolume.Data.Name;
+    }
     private ContainerCreateRequest BuildCreateContainerRequest(
         InfrastructureComponentUpdateInput infrastructureComponentInput,
         (GetRepositoryResponse RepoResp, RepositoryTag RepoTag) dockerHubFetchedDetails,
-        bool createVolume = false
+        bool mountVolume = false
     )
     {
         var imageFull =
@@ -544,14 +583,23 @@ internal sealed class ContainerManagementService : IContainerManagementService
             },
         };
 
-        if (createVolume && !string.IsNullOrWhiteSpace(infrastructureComponentInput.VolumeName))
+        if (mountVolume && !string.IsNullOrWhiteSpace(infrastructureComponentInput.Volume?.VolumeName))
         {
             request = request with
             {
-                Volumes = new Dictionary<string, object>
+                HostConfig = request.HostConfig with
                 {
-                    { infrastructureComponentInput.VolumeName, new Dictionary<object, object>() },
-                },
+                    Mounts = 
+                    [
+                        new Mount
+                        {
+                            Type = "volume",
+                            Source = infrastructureComponentInput.Volume.VolumeName,
+                            Target = infrastructureComponentInput.Volume.InternalMountTarget,
+                            ReadOnly = false,
+                        }
+                    ]
+                }
             };
         }
 
@@ -621,16 +669,17 @@ internal sealed class ContainerManagementService : IContainerManagementService
     private static bool IsVolumesDifferent(
         InfrastructureComponentUpdateInput infrastructureComponentInput,
         ContainerInspectResponse? containerInspectResponse
-    ) =>
-        !string.IsNullOrWhiteSpace(infrastructureComponentInput.VolumeName)
-            ? (
-                containerInspectResponse is null
-                || containerInspectResponse.Config?.Volumes?.ContainsKey(
-                    infrastructureComponentInput.VolumeName
-                ) != true
-            )
-            : containerInspectResponse?.Config?.Volumes?.Any() == true;
+    )
+    {
+        if (string.IsNullOrWhiteSpace(infrastructureComponentInput.Volume?.VolumeName))
+        {
+            return false;
+        }
 
+        return containerInspectResponse?.Config?.Volumes?.ContainsKey(
+            infrastructureComponentInput.Volume.VolumeName
+        ) ?? true;
+    }
     private sealed record ContainerUpdateServicesServiceProvider
     {
         private readonly IServiceProvider _serviceProvider;

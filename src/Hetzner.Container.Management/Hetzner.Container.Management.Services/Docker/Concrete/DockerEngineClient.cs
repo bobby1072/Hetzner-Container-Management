@@ -665,6 +665,41 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         }
     }
 
+    public async Task<DockerApiActionResult> RemoveVolumeAsync(
+        string volumeName,
+        bool force = false,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            var builder = GetBaseUrl()
+                .AppendPathSegment("volumes")
+                .AppendPathSegment(volumeName)
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+
+            if (force)
+            {
+                builder = builder.AppendQueryParameter("force", "true");
+            }
+
+            await builder.SendAsync(_httpClient, HttpMethod.Delete, cancellationToken);
+            return new DockerApiActionResult();
+        }
+        catch (BT.Common.Http.Exceptions.HttpRequestException ex)
+        {
+            return new DockerApiActionResult
+            {
+                ExceptionMessage = ex.Message,
+                StatusCode = ex.HttpStatusCode,
+            };
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex, nameof(RemoveVolumeAsync));
+        }
+    }
+
     private HttpRequestBuilder GetBaseUrl() =>
         _dockerEngineApiSettings.UseTestHttpEndPoint
             ? _dockerEngineApiSettings.TestUnixHttpEndPoint.AppendPathSegment(ApiVersion)

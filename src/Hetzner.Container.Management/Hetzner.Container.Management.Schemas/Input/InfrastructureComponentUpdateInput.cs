@@ -25,8 +25,8 @@ public sealed record InfrastructureComponentUpdateInput : IValidatable<Infrastru
     [JsonPropertyName("configMap")]
     public Dictionary<string, string?> ConfigMap { get; init; } = new();
     
-    [JsonPropertyName("volumeName")]
-    public string? VolumeName { get; init; }
+    [JsonPropertyName("volumeInfo")]
+    public VolumeInfo? Volume { get; init; }
     
     public Func<(bool, string?)>[] ValidatorFunctions =>
         [
