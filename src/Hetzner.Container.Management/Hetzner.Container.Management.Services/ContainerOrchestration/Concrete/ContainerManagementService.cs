@@ -72,10 +72,9 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 currentInfrastructureDocument.Components.Any(y => !y.IsSame(x))
             );
 
-            var newInfraStructureDocument = currentInfrastructureDocument;
             if (didUpdate)
             {
-                newInfraStructureDocument = currentInfrastructureDocument with
+                var newInfraStructureDocument = currentInfrastructureDocument with
                 {
                     LastUpdated = DateTime.UtcNow,
                     Components = currentInfrastructureDocument
@@ -97,7 +96,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
             }
             else if(currentInfrastructureDocument.Components.Length == 0)
             {
-                newInfraStructureDocument = currentInfrastructureDocument with
+                var newInfraStructureDocument = currentInfrastructureDocument with
                 {
                     LastUpdated = DateTime.UtcNow,
                     Components = updateInfraComponents,
@@ -473,7 +472,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
         }
 
         
-        var getRepoJob = await _containerUpdateServicesServiceProvider.DockerHubClient.GetRepositoryAsync(
+        var getRepoJob = _containerUpdateServicesServiceProvider.DockerHubClient.GetRepositoryAsync(
             dockerHubDetails,
             accessToken,
             cancellationToken
@@ -487,9 +486,9 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 cancellationToken
             );
 
-        // await Task.WhenAll(getRepoJob, getTagJob);
+        await Task.WhenAll(getRepoJob, getTagJob);
 
-        var getRepo = getRepoJob;
+        var getRepo = await getRepoJob;
         var getTag = await getTagJob;
 
         if (!getRepo.IsSuccess || !getTag.IsSuccess || getRepo.Data is null || getTag.Data is null)
