@@ -39,7 +39,7 @@ public class ContainerManagementServiceTestFixture
                     { "ENV_VAR_2", "value2" },
                 },
             VolumeName = volumeName,
-            DockerHubDetails = new DockerHubDetailsWithRepositoryName
+            DockerHubDetails = new DockerHubDetails
             {
                 RepositoryName = "test-repo",
                 Username = "test-user",

@@ -68,8 +68,8 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 )
             );
 
-            var didUpdate = updateInfraComponents.All(x =>
-                currentInfrastructureDocument.Components.Any(y => y.IsSame(x))
+            var didUpdate = updateInfraComponents.Any(x =>
+                currentInfrastructureDocument.Components.Any(y => !y.IsSame(x))
             );
 
             var newInfraStructureDocument = currentInfrastructureDocument;
@@ -447,26 +447,35 @@ internal sealed class ContainerManagementService : IContainerManagementService
         GetRepositoryResponse RepoResp,
         RepositoryTag RepoTag
     )> GetDockerHubRepositoryDetailsAsync(
-        DockerHubDetailsWithRepositoryName dockerHubDetails,
+        DockerHubDetails dockerHubDetails,
         string imageVersionTag,
         CancellationToken cancellationToken
     )
     {
-        var accessToken = await _containerUpdateServicesServiceProvider.DockerHubClient.CreateAccessTokenAsync(dockerHubDetails.Username, dockerHubDetails.Password, cancellationToken);
-
-        if (!accessToken.IsSuccess || accessToken.Data is null)
+        string? accessToken = null;
+        if (!string.IsNullOrWhiteSpace(dockerHubDetails.Username) &&
+            !string.IsNullOrWhiteSpace(dockerHubDetails.Password))
         {
-            throw new ApiException(
-                LogLevel.Information,
-                HttpStatusCode.BadRequest,
-                !string.IsNullOrWhiteSpace(accessToken.ExceptionMessage) ? accessToken.ExceptionMessage
-                : "Failed to get docker hub access token" 
-            );
+            var accessTokenApiResult =
+                await _containerUpdateServicesServiceProvider.DockerHubClient.CreateAccessTokenAsync(
+                    dockerHubDetails.Username, dockerHubDetails.Password, cancellationToken);
+            if (!accessTokenApiResult.IsSuccess || accessTokenApiResult.Data is null)
+            {
+                throw new ApiException(
+                    LogLevel.Information,
+                    HttpStatusCode.BadRequest,
+                    !string.IsNullOrWhiteSpace(accessTokenApiResult.ExceptionMessage) ? accessTokenApiResult.ExceptionMessage
+                    : "Failed to get docker hub access token" 
+                );
+            }
+            
+            accessToken = accessTokenApiResult.Data;
         }
+
         
-        var getRepoJob = _containerUpdateServicesServiceProvider.DockerHubClient.GetRepositoryAsync(
+        var getRepoJob = await _containerUpdateServicesServiceProvider.DockerHubClient.GetRepositoryAsync(
             dockerHubDetails,
-            accessToken.Data,
+            accessToken,
             cancellationToken
         );
 
@@ -474,13 +483,13 @@ internal sealed class ContainerManagementService : IContainerManagementService
             _containerUpdateServicesServiceProvider.DockerHubClient.GetRepositoryTagAsync(
                 dockerHubDetails,
                 imageVersionTag,
-                accessToken.Data,
+                accessToken,
                 cancellationToken
             );
 
-        await Task.WhenAll(getRepoJob, getTagJob);
+        // await Task.WhenAll(getRepoJob, getTagJob);
 
-        var getRepo = await getRepoJob;
+        var getRepo = getRepoJob;
         var getTag = await getTagJob;
 
         if (!getRepo.IsSuccess || !getTag.IsSuccess || getRepo.Data is null || getTag.Data is null)
@@ -524,11 +533,11 @@ internal sealed class ContainerManagementService : IContainerManagementService
 
     private async Task<string> GetNameOrCreateVolumeAsync(VolumeInfo volumeInfo, CancellationToken cancellationToken)
     {
-        var foundVolume = await _containerUpdateServicesServiceProvider.DockerEngineClient.InspectImageAsync(volumeInfo.VolumeName, false, cancellationToken);
+        var foundVolume = await _containerUpdateServicesServiceProvider.DockerEngineClient.InspectVolumeAsync(volumeInfo.VolumeName, cancellationToken);
 
         if (foundVolume.Data is not null)
         {
-            return foundVolume.Data.Id;
+            return foundVolume.Data.Name;
         }
 
         var createdVolume = await 

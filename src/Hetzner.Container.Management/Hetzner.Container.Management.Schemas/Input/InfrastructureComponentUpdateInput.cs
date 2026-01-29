@@ -6,7 +6,7 @@ public sealed record InfrastructureComponentUpdateInput : IValidatable<Infrastru
 {
     [JsonPropertyName("dockerHubDetails")]
     [JsonRequired]
-    public required DockerHubDetailsWithRepositoryName DockerHubDetails { get; init; }
+    public required DockerHubDetails DockerHubDetails { get; init; }
 
     [JsonPropertyName("containerName")]
     [JsonRequired]

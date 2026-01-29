@@ -2,7 +2,7 @@ namespace Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
 
 public sealed record Mount
 {
-    public required string Target { get; init; }
+    public string? Target { get; init; }
     public required string Source { get; init; }
     public required string Type { get; init; }
     public bool ReadOnly { get; init; }

@@ -350,7 +350,7 @@ public sealed class ContainerManagementControllerTests
                 { "ENV_VAR_2", "value2" },
             },
             VolumeName = null,
-            DockerHubDetails = new DockerHubDetailsWithRepositoryName
+            DockerHubDetails = new DockerHubDetails
             {
                 RepositoryName = "test-repo",
                 Username = "test-user",

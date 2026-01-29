@@ -91,7 +91,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -107,7 +107,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryTagAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -156,7 +156,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -172,7 +172,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryTagAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -226,7 +226,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -242,7 +242,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryTagAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -385,7 +385,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -395,7 +395,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryTagAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -533,7 +533,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -543,7 +543,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryTagAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -631,7 +631,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -641,7 +641,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryTagAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -662,7 +662,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerProcessExecutor
             .Setup(x =>
                 x.PullDockerImageFromHub(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -729,7 +729,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerProcessExecutor.Verify(
             x =>
                 x.PullDockerImageFromHub(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     repoResponse.Name,
                     tagResponse.Name,
                     repoResponse.Namespace,
@@ -803,7 +803,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -813,7 +813,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryTagAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -958,7 +958,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -968,7 +968,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryTagAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -1068,7 +1068,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -1078,7 +1078,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryTagAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -1172,7 +1172,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -1182,7 +1182,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryTagAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -1274,7 +1274,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -1284,7 +1284,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryTagAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -1436,7 +1436,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -1446,7 +1446,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .SetupSequence(x =>
                 x.GetRepositoryTagAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
@@ -1571,7 +1571,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()
                 )
@@ -1581,7 +1581,7 @@ public sealed class ContainerManagementServiceTests
         _mockDockerHubClient
             .Setup(x =>
                 x.GetRepositoryTagAsync(
-                    It.IsAny<DockerHubDetailsWithRepositoryName>(),
+                    It.IsAny<DockerHubDetails>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<CancellationToken>()

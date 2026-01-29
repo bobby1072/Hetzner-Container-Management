@@ -25,8 +25,12 @@ internal sealed class DockerProcessExecutor : IDockerProcessExecutor
         CancellationToken cancellationToken = default
     )
     {
+        if (!string.IsNullOrWhiteSpace(dockerHubDetails.Username) &&
+            !string.IsNullOrWhiteSpace(dockerHubDetails.Password))
+        {
+            await LoginToDockerHub(dockerHubDetails, cancellationToken);
+        }
         var command = $"pull {@namespace}/{imageName}:{versionTag}";
-        await LoginToDockerHub(dockerHubDetails, cancellationToken);
         using var process = new Process();
         process.StartInfo = new ProcessStartInfo
         {
