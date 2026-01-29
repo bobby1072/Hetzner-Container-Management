@@ -86,4 +86,17 @@ internal interface IDockerEngineClient
         bool size = false,
         CancellationToken cancellationToken = default
     );
+    Task<DockerApiActionResult<VolumeCreateResponse?>> CreateVolumeAsync(
+        VolumeCreateRequest request,
+        CancellationToken cancellationToken = default
+    );
+    Task<DockerApiActionResult<VolumeInspectResponse?>> InspectVolumeAsync(
+        string volumeName,
+        CancellationToken cancellationToken = default
+    );
+    Task<DockerApiActionResult> RemoveVolumeAsync(
+        string volumeName,
+        bool force = false,
+        CancellationToken cancellationToken = default
+    );
 }

@@ -8,14 +8,14 @@ namespace Hetzner.Container.Management.Services.Docker.Abstract;
 internal interface IDockerHubClient
 {
     Task<DockerApiActionResult<GetRepositoryResponse?>> GetRepositoryAsync(
-        DockerHubDetailsWithRepositoryName dockerHubDetails,
-        string accessToken,
+        DockerHubDetails dockerHubDetails,
+        string? accessToken = null,
         CancellationToken cancellationToken = default
     );
     Task<DockerApiActionResult<RepositoryTag?>> GetRepositoryTagAsync(
-        DockerHubDetailsWithRepositoryName dockerHubDetails,
+        DockerHubDetails dockerHubDetails,
         string tag,
-        string accessToken,
+        string? accessToken = null,
         CancellationToken cancellationToken = default
     );
     Task<DockerApiActionResult<string?>> CreateAccessTokenAsync(

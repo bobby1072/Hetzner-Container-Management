@@ -15,7 +15,6 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
     private readonly HttpClient _httpClient;
     private readonly DockerHubApiSettings _settings;
     private readonly IMemoryCache _memoryCache;
-    private readonly ILogger<DockerHubClient> _logger;
 
     public DockerHubClient(
         HttpClient httpClient,
@@ -28,12 +27,11 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
         _httpClient = httpClient;
         _settings = settings;
         _memoryCache = memoryCache;
-        _logger = logger;
     }
 
     public async Task<DockerApiActionResult<GetRepositoryResponse?>> GetRepositoryAsync(
-        DockerHubDetailsWithRepositoryName dockerHubDetails,
-        string accessToken,
+        DockerHubDetails dockerHubDetails,
+        string? accessToken = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -43,10 +41,15 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
             var builder = _settings
                 .BaseUrl.AppendPathSegment("v2")
                 .AppendPathSegment("namespaces")
-                .AppendPathSegment(dockerHubDetails.Username)
+                .AppendPathSegment(dockerHubDetails.Namespace)
                 .AppendPathSegment("repositories")
-                .AppendPathSegment(dockerHubDetails.RepositoryName)
+                .AppendPathSegment(dockerHubDetails.RepositoryName);
+
+            if (!string.IsNullOrWhiteSpace(accessToken))
+            {
+               builder = builder 
                 .WithHeader(HeaderNames.Authorization, $"Bearer {accessToken}");
+            }
             var result = await builder
                 .GetJsonAsync<GetRepositoryResponse>(_httpClient, cancellationToken);
 
@@ -66,26 +69,33 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
     }
 
     public async Task<DockerApiActionResult<RepositoryTag?>> GetRepositoryTagAsync(
-        DockerHubDetailsWithRepositoryName dockerHubDetails,
+        DockerHubDetails dockerHubDetails,
         string tag,
-        string accessToken,
+        string? accessToken = null,
         CancellationToken cancellationToken = default
     )
     {
         try
         {
             
-            var result = await _settings
+            var builder = _settings
                 .BaseUrl.AppendPathSegment("v2")
                 .AppendPathSegment("namespaces")
-                .AppendPathSegment(dockerHubDetails.Username)
+                .AppendPathSegment(dockerHubDetails.Namespace)
                 .AppendPathSegment("repositories")
                 .AppendPathSegment(dockerHubDetails.RepositoryName)
                 .AppendPathSegment("tags")
                 .AppendPathSegment(tag)
-                .WithHeader(HeaderNames.Authorization, $"Bearer {accessToken}")
+                .WithHeader(HeaderNames.Authorization, $"Bearer {accessToken}");
+                
+            if (!string.IsNullOrWhiteSpace(accessToken))
+            {
+                builder = builder 
+                    .WithHeader(HeaderNames.Authorization, $"Bearer {accessToken}");
+            }
+            var result = await builder
                 .GetJsonAsync<RepositoryTag>(_httpClient, cancellationToken);
-
+            
             return new DockerApiActionResult<RepositoryTag?> { Data = result };
         }
         catch (HttpRequestException ex)

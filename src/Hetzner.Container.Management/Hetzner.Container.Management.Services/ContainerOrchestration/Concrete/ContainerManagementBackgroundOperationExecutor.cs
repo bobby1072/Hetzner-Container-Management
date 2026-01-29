@@ -51,7 +51,7 @@ internal sealed class ContainerManagementBackgroundOperationExecutor: Background
         throw new NotImplementedException();
     }
 
-    private async Task<(InfrastructureDocument?, ApiException?)> ExecuteOperationAsync(Guid jobId, InfrastructureComponentUpdateInput[] input, CancellationToken cancellationToken)
+    private async Task<(InfrastructureComponent[]?, ApiException?)> ExecuteOperationAsync(Guid jobId, InfrastructureComponentUpdateInput[] input, CancellationToken cancellationToken)
     {
         using (_logger.BeginScope(new LoggingScopeVariableDictionary { ["JobId"] = jobId }))
         {

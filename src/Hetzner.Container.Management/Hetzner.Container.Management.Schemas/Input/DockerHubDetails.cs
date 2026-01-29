@@ -1,7 +1,9 @@
-namespace Hetzner.Container.Management.Schemas.Input;
+﻿namespace Hetzner.Container.Management.Schemas.Input;
 
-public record DockerHubDetails
+public sealed record DockerHubDetails
 {
-    public required string Username { get; init; }
-    public required string Password { get; init; }
+    public string? Username { get; init; }
+    public string? Password { get; init; }
+    public required string Namespace { get; init; }
+    public required string RepositoryName { get; init; }
 }

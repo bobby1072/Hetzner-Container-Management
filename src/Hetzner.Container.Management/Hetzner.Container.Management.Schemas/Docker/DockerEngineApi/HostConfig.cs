@@ -4,4 +4,5 @@ public sealed record HostConfig
 {
     public Dictionary<string, PortBinding[]>? PortBindings { get; init; }
     public RestartPolicy? RestartPolicy { get; init; }
+    public Mount[]? Mounts { get; init; }
 }

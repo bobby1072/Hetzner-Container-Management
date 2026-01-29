@@ -6,7 +6,7 @@ public sealed record InfrastructureComponentUpdateInput : IValidatable<Infrastru
 {
     [JsonPropertyName("dockerHubDetails")]
     [JsonRequired]
-    public required DockerHubDetailsWithRepositoryName DockerHubDetails { get; init; }
+    public required DockerHubDetails DockerHubDetails { get; init; }
 
     [JsonPropertyName("containerName")]
     [JsonRequired]
@@ -25,8 +25,8 @@ public sealed record InfrastructureComponentUpdateInput : IValidatable<Infrastru
     [JsonPropertyName("configMap")]
     public Dictionary<string, string?> ConfigMap { get; init; } = new();
     
-    [JsonPropertyName("volumeName")]
-    public string? VolumeName { get; init; }
+    [JsonPropertyName("volumeInfo")]
+    public VolumeInfo? Volume { get; init; }
     
     public Func<(bool, string?)>[] ValidatorFunctions =>
         [

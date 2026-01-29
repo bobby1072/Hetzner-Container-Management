@@ -15,10 +15,12 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     private readonly DockerEngineApiSettings _dockerEngineApiSettings;
     private const string ApiVersion = "v1.52";
 
-    public DockerEngineClient(HttpClient httpClient, 
+    public DockerEngineClient(
+        HttpClient httpClient,
         DockerEngineApiSettings dockerEngineApiSettings,
-        ILogger<DockerEngineClient> logger)
-            : base(logger)
+        ILogger<DockerEngineClient> logger
+    )
+        : base(logger)
     {
         _httpClient = httpClient;
         _dockerEngineApiSettings = dockerEngineApiSettings;
@@ -52,7 +54,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<ContainerSummaryResponse[]?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -94,7 +96,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -124,7 +126,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -154,7 +156,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -190,7 +192,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -220,7 +222,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -250,7 +252,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -282,7 +284,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -314,7 +316,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -344,7 +346,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -379,7 +381,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<ContainerCreateResponse?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -414,7 +416,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<ContainerStatsResponse?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -450,8 +452,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<string?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
-
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -512,7 +513,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<ImageSummaryResponse[]?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -551,7 +552,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<ImageInspectResponse?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -590,7 +591,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<ContainerInspectResponse?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode
+                StatusCode = ex.HttpStatusCode,
             };
         }
         catch (Exception ex)
@@ -599,7 +600,112 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         }
     }
 
-    private async Task<string?> ErrorExtractor(
+    public async Task<DockerApiActionResult<VolumeCreateResponse?>> CreateVolumeAsync(
+        VolumeCreateRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            var builder = GetBaseUrl()
+                .AppendPathSegment("volumes")
+                .AppendPathSegment("create")
+                .WithApplicationJson(request)
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+
+            var data = await builder.PostJsonAsync<VolumeCreateResponse>(
+                _httpClient,
+                cancellationToken
+            );
+            return new DockerApiActionResult<VolumeCreateResponse?> { Data = data };
+        }
+        catch (BT.Common.Http.Exceptions.HttpRequestException ex)
+        {
+            return new DockerApiActionResult<VolumeCreateResponse?>
+            {
+                ExceptionMessage = ex.Message,
+                StatusCode = ex.HttpStatusCode,
+            };
+        }
+        catch (Exception ex)
+        {
+            return HandleError<VolumeCreateResponse?>(ex, nameof(CreateVolumeAsync));
+        }
+    }
+
+    public async Task<DockerApiActionResult<VolumeInspectResponse?>> InspectVolumeAsync(
+        string volumeName,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            var builder = GetBaseUrl()
+                .AppendPathSegment("volumes")
+                .AppendPathSegment(volumeName)
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+
+            var data = await builder.GetJsonAsync<VolumeInspectResponse>(
+                _httpClient,
+                cancellationToken
+            );
+            return new DockerApiActionResult<VolumeInspectResponse?> { Data = data };
+        }
+        catch (BT.Common.Http.Exceptions.HttpRequestException ex)
+        {
+            return new DockerApiActionResult<VolumeInspectResponse?>
+            {
+                ExceptionMessage = ex.Message,
+                StatusCode = ex.HttpStatusCode,
+            };
+        }
+        catch (Exception ex)
+        {
+            return HandleError<VolumeInspectResponse?>(ex, nameof(InspectVolumeAsync));
+        }
+    }
+
+    public async Task<DockerApiActionResult> RemoveVolumeAsync(
+        string volumeName,
+        bool force = false,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            var builder = GetBaseUrl()
+                .AppendPathSegment("volumes")
+                .AppendPathSegment(volumeName)
+                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+
+            if (force)
+            {
+                builder = builder.AppendQueryParameter("force", "true");
+            }
+
+            await builder.SendAsync(_httpClient, HttpMethod.Delete, cancellationToken);
+            return new DockerApiActionResult();
+        }
+        catch (BT.Common.Http.Exceptions.HttpRequestException ex)
+        {
+            return new DockerApiActionResult
+            {
+                ExceptionMessage = ex.Message,
+                StatusCode = ex.HttpStatusCode,
+            };
+        }
+        catch (Exception ex)
+        {
+            return HandleError(ex, nameof(RemoveVolumeAsync));
+        }
+    }
+
+    private HttpRequestBuilder GetBaseUrl() =>
+        _dockerEngineApiSettings.UseTestHttpEndPoint
+            ? _dockerEngineApiSettings.TestUnixHttpEndPoint.AppendPathSegment(ApiVersion)
+            : "http://localhost".AppendPathSegment(ApiVersion);
+
+    private static async Task<string?> ErrorExtractor(
         HttpResponseMessage response,
         CancellationToken cancellationToken
     )
@@ -611,12 +717,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
 
         return foundErrorMessage?.Message;
     }
-    private HttpRequestBuilder GetBaseUrl()
-        => _dockerEngineApiSettings.UseTestHttpEndPoint
-            ? _dockerEngineApiSettings.TestUnixHttpEndPoint
-                .AppendPathSegment(ApiVersion)
-            : "http://localhost"
-                .AppendPathSegment(ApiVersion);
+
     private static async Task<T?> TryGetDataFromResponse<T>(
         HttpResponseMessage response,
         CancellationToken cancellationToken

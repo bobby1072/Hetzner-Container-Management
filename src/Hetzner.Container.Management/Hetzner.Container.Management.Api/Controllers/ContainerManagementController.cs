@@ -83,16 +83,8 @@ public sealed class ContainerManagementController : ControllerBase
                 );
 
             //Remove container summaries on api response
-            queueResult = queueResult with
-            {
-                Components = queueResult.Components.Select(x =>
-                {
-                    x = x with { LatestContainerSummary = null };
-                    return x;
-                }).ToArray()
-            };
 
-            return Results.Ok(queueResult);
+            return Results.Ok(queueResult.Select(x => x with {LatestContainerSummary = null}).ToArray());
         }
         catch (ApiException ex)
         {
