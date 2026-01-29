@@ -5,7 +5,7 @@ namespace Hetzner.Container.Management.Services.ContainerOrchestration.Abstract;
 
 internal interface IContainerManagementService
 {
-    Task<InfrastructureDocument> UpdateCurrentInfrastructure(
+    Task<InfrastructureComponent[]> UpdateCurrentInfrastructure(
         InfrastructureComponentUpdateInput[] infrastructureDocuments,
         CancellationToken cancellationToken
     );

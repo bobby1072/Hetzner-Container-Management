@@ -36,7 +36,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
         _logger = logger;
     }
 
-    public async Task<InfrastructureDocument> UpdateCurrentInfrastructure(
+    public async Task<InfrastructureComponent[]> UpdateCurrentInfrastructure(
         InfrastructureComponentUpdateInput[] infrastructureDocuments,
         CancellationToken cancellationToken = default
     )
@@ -110,7 +110,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 );
             }
 
-            return newInfraStructureDocument;
+            return updateInfraComponents;
         }
         catch (ApiException)
         {
