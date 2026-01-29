@@ -22,7 +22,7 @@ public class ContainerManagementServiceTestFixture
         int? internalPort = null,
         int? publicPort = null,
         Dictionary<string, string?>? configMap = null,
-        string? volumeName = null
+        VolumeInfo? volumeInfo = null
     )
     {
         return new InfrastructureComponentUpdateInput
@@ -38,9 +38,10 @@ public class ContainerManagementServiceTestFixture
                     { "ENV_VAR_1", "value1" },
                     { "ENV_VAR_2", "value2" },
                 },
-            VolumeName = volumeName,
+            Volume = volumeInfo,
             DockerHubDetails = new DockerHubDetails
             {
+                Namespace = "test-namespace",
                 RepositoryName = "test-repo",
                 Username = "test-user",
                 Password = "test-password",
@@ -86,19 +87,6 @@ public class ContainerManagementServiceTestFixture
         {
             Name = name ?? "test-repo",
             Namespace = ns ?? "test-namespace",
-            Description = _fixture.Create<string>(),
-            IsPrivate = false,
-            RepositoryType = "image",
-            Status = 1,
-            IsAutomated = false,
-            StarCount = 0,
-            PullCount = 0,
-            LastUpdated = DateTimeOffset.UtcNow.AddDays(-10),
-            DateRegistered = DateTimeOffset.UtcNow.AddDays(-100),
-            CollaboratorCount = 1,
-            HubUser = "test-user",
-            HasStarred = false,
-            ImmutableTagsSettings = new ImmutableTagsSettings { Enabled = false, Rules = [] },
         };
     }
 

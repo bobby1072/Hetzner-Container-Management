@@ -161,18 +161,30 @@ public sealed class ContainerManagementControllerTests
     {
         // Arrange
         var input = CreateValidInput();
-        var expectedDocument = CreateInfrastructureDocument();
+        var expectedComponents = new[]
+        {
+            new InfrastructureComponent
+            {
+                ContainerName = "test-container",
+                ImageVersionTag = "latest",
+                DockerhubName = "test-repo",
+                DockerhubNamespace = "test-namespace",
+                InternalPortNumber = "8080",
+                PublicFacingPortNumber = "80",
+                ConfigMap = new Dictionary<string, string?>(),
+            },
+        };
         _mockOperationQueue
             .Setup(x => x.QueueAndWaitForUpdateOperation(input, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedDocument);
+            .ReturnsAsync(expectedComponents);
 
         // Act
         var result = await _sut.QueueAndWaitForInfrastructureUpdate(input);
 
         // Assert
-        var okResult = Assert.IsType<Ok<InfrastructureDocument>>(result);
+        var okResult = Assert.IsType<Ok<InfrastructureComponent[]>>(result);
         Assert.NotNull(okResult.Value);
-        Assert.Equivalent(expectedDocument, okResult.Value);
+        Assert.Equivalent(expectedComponents, okResult.Value);
         _mockOperationQueue.Verify(
             x => x.QueueAndWaitForUpdateOperation(input, It.IsAny<CancellationToken>()),
             Times.Once
@@ -259,13 +271,25 @@ public sealed class ContainerManagementControllerTests
     {
         // Arrange
         var input = CreateValidInput();
-        var expectedDocument = CreateInfrastructureDocument();
+        var expectedComponents = new[]
+        {
+            new InfrastructureComponent
+            {
+                ContainerName = "test-container",
+                ImageVersionTag = "latest",
+                DockerhubName = "test-repo",
+                DockerhubNamespace = "test-namespace",
+                InternalPortNumber = "8080",
+                PublicFacingPortNumber = "80",
+                ConfigMap = new Dictionary<string, string?>(),
+            },
+        };
         var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
 
         _mockOperationQueue
             .Setup(x => x.QueueAndWaitForUpdateOperation(input, cancellationToken))
-            .ReturnsAsync(expectedDocument);
+            .ReturnsAsync(expectedComponents);
 
         // Act
         await _sut.QueueAndWaitForInfrastructureUpdate(input, cancellationToken);
@@ -282,17 +306,17 @@ public sealed class ContainerManagementControllerTests
     {
         // Arrange
         var input = Array.Empty<InfrastructureComponentUpdateInput>();
-        var expectedDocument = CreateInfrastructureDocument();
+        var expectedComponents = Array.Empty<InfrastructureComponent>();
 
         _mockOperationQueue
             .Setup(x => x.QueueAndWaitForUpdateOperation(input, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expectedDocument);
+            .ReturnsAsync(expectedComponents);
 
         // Act
         var result = await _sut.QueueAndWaitForInfrastructureUpdate(input);
 
         // Assert
-        var okResult = Assert.IsType<Ok<InfrastructureDocument>>(result);
+        var okResult = Assert.IsType<Ok<InfrastructureComponent[]>>(result);
         Assert.NotNull(okResult.Value);
         _mockOperationQueue.Verify(
             x => x.QueueAndWaitForUpdateOperation(input, It.IsAny<CancellationToken>()),
@@ -349,9 +373,10 @@ public sealed class ContainerManagementControllerTests
                 { "ENV_VAR_1", "value1" },
                 { "ENV_VAR_2", "value2" },
             },
-            VolumeName = null,
+            Volume = null,
             DockerHubDetails = new DockerHubDetails
             {
+                Namespace = "test-namespace",
                 RepositoryName = "test-repo",
                 Username = "test-user",
                 Password = "test-password",

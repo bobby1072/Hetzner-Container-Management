@@ -468,8 +468,7 @@ public sealed class ContainerManagementServiceTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(currentInfra.UpdateNumber + 1, result.UpdateNumber);
-        Assert.Contains(result.Components, c => c.ContainerName == "new-container");
+        Assert.Contains(result, c => c.ContainerName == "new-container");
         _mockInfrastructureExplorer.Verify(
             x =>
                 x.ReplaceCurrentInfrastructureAsync(
@@ -1231,7 +1230,11 @@ public sealed class ContainerManagementServiceTests
             _fixture.CreateValidInfrastructureComponentUpdateInput(
                 "test-container",
                 "latest",
-                volumeName: "/data"
+                volumeInfo: new VolumeInfo
+                {
+                    VolumeName = "data-volume",
+                    InternalMountTarget = "/data",
+                }
             ),
         };
         var repoResponse = _fixture.CreateGetRepositoryResponse();
@@ -1377,7 +1380,7 @@ public sealed class ContainerManagementServiceTests
                 x.RemoveContainerAsync(
                     It.IsAny<string>(),
                     true,
-                    true,
+                    false,
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -1535,9 +1538,9 @@ public sealed class ContainerManagementServiceTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(2, result.Components.Length);
-        Assert.Contains(result.Components, c => c.ContainerName == "container-1");
-        Assert.Contains(result.Components, c => c.ContainerName == "container-2");
+        Assert.Equal(2, result.Length);
+        Assert.Contains(result, c => c.ContainerName == "container-1");
+        Assert.Contains(result, c => c.ContainerName == "container-2");
     }
 
     [Fact]
