@@ -36,7 +36,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment("json")
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             if (all)
             {
@@ -75,7 +75,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             if (force)
             {
@@ -116,7 +116,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("start")
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             await builder.PostAsync(_httpClient, cancellationToken);
             return new DockerApiActionResult();
@@ -146,7 +146,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("stop")
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             await builder.PostAsync(_httpClient, cancellationToken);
             return new DockerApiActionResult();
@@ -177,7 +177,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("kill")
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             if (!string.IsNullOrWhiteSpace(signal))
             {
@@ -212,7 +212,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("pause")
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             await builder.PostAsync(_httpClient, cancellationToken);
             return new DockerApiActionResult();
@@ -242,7 +242,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("unpause")
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             await builder.PostAsync(_httpClient, cancellationToken);
             return new DockerApiActionResult();
@@ -274,7 +274,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("rename")
                 .AppendQueryParameter("name", newName)
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             await builder.PostAsync(_httpClient, cancellationToken);
             return new DockerApiActionResult();
@@ -306,7 +306,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("update")
                 .WithApplicationJson(updateRequest)
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             await builder.PostJsonAsync<object>(_httpClient, cancellationToken);
             return new DockerApiActionResult();
@@ -336,7 +336,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("restart")
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             await builder.PostAsync(_httpClient, cancellationToken);
             return new DockerApiActionResult();
@@ -368,7 +368,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendPathSegment("create")
                 .AppendQueryParameter("name", name)
                 .WithApplicationJson(request)
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             var data = await builder.PostJsonAsync<ContainerCreateResponse>(
                 _httpClient,
@@ -403,7 +403,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("stats")
                 .AppendQueryParameter("stream", stream.ToString().ToLowerInvariant())
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             var data = await builder.GetJsonAsync<ContainerStatsResponse>(
                 _httpClient,
@@ -442,7 +442,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendQueryParameter("stdout", stdout.ToString().ToLowerInvariant())
                 .AppendQueryParameter("stderr", stderr.ToString().ToLowerInvariant())
                 .AppendQueryParameter("timestamps", timestamps.ToString().ToLowerInvariant())
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             var data = await builder.GetStringAsync(_httpClient, cancellationToken);
             return new DockerApiActionResult<string?> { Data = data };
@@ -475,7 +475,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             var builder = GetBaseUrl()
                 .AppendPathSegment("images")
                 .AppendPathSegment("json")
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             if (all)
             {
@@ -534,7 +534,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendPathSegment("images")
                 .AppendPathSegment(imageName)
                 .AppendPathSegment("json")
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             if (manifests)
             {
@@ -573,7 +573,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
                 .AppendPathSegment("json")
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             if (size)
             {
@@ -611,7 +611,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendPathSegment("volumes")
                 .AppendPathSegment("create")
                 .WithApplicationJson(request)
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor );
 
             var data = await builder.PostJsonAsync<VolumeCreateResponse>(
                 _httpClient,
@@ -643,7 +643,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             var builder = GetBaseUrl()
                 .AppendPathSegment("volumes")
                 .AppendPathSegment(volumeName)
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             var data = await builder.GetJsonAsync<VolumeInspectResponse>(
                 _httpClient,
@@ -676,7 +676,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             var builder = GetBaseUrl()
                 .AppendPathSegment("volumes")
                 .AppendPathSegment(volumeName)
-                .AddErrorExtractor(x => ErrorExtractor(x, cancellationToken));
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             if (force)
             {
