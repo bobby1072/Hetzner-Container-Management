@@ -2,14 +2,15 @@
   <Folder Name="/Submodules/">
     <Project Path="..\Submodules\BT\src\BT.Common\BT.Common.Api.Helpers\BT.Common.Api.Helpers.csproj" />
     <Project Path="..\Submodules\BT\src\BT.Common\BT.Common.Helpers\BT.Common.Helpers.csproj" />
-    <Project Path="..\Submodules\BT\src\BT.Common\BT.Common.Http\BT.Common.Http.csproj" Type="Classic C#" />
-    <Project Path="..\Submodules\BT\src\BT.Common\BT.Common.Polly\BT.Common.Polly.csproj" Type="Classic C#" />
-    <Project Path="..\Submodules\BT\src\BT.Common\BT.Common.Services\BT.Common.Services.csproj" Type="Classic C#" />
+    <Project Path="..\Submodules\BT\src\BT.Common\BT.Common.Http\BT.Common.Http.csproj" />
+    <Project Path="..\Submodules\BT\src\BT.Common\BT.Common.Polly\BT.Common.Polly.csproj" />
+    <Project Path="..\Submodules\BT\src\BT.Common\BT.Common.Services\BT.Common.Services.csproj" />
   </Folder>
   <Folder Name="/Tests/">
-    <Project Path="Hetzner.Container.Management.Tests\Hetzner.Container.Management.Tests.csproj" Type="Classic C#" />
+    <Project Path="Hetzner.Container.Management.Tests\Hetzner.Container.Management.Tests.csproj" />
   </Folder>
   <Project Path="Hetzner.Container.Management.Api/Hetzner.Container.Management.Api.csproj" />
+  <Project Path="Hetzner.Container.Management.Aspire/Hetzner.Container.Management.Aspire.csproj" Id="b5021719-36af-4138-aac4-7115000e639d" />
   <Project Path="Hetzner.Container.Management.Schemas/Hetzner.Container.Management.Schemas.csproj" />
   <Project Path="Hetzner.Container.Management.Services/Hetzner.Container.Management.Services.csproj" />
 </Solution>
