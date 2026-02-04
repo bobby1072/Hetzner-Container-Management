@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Submodules\BT\src\BT.Common\BT.Common.Api.Helpers\BT.Common.Api.Helpers.csproj" />
     <ProjectReference Include="..\..\Submodules\BT\src\BT.Common\BT.Common.Http\BT.Common.Http.csproj" />
+    <ProjectReference Include="..\..\Submodules\BT\src\BT.Common\BT.Common.Services\BT.Common.Services.csproj" />
     <ProjectReference Include="..\Hetzner.Container.Management.Schemas\Hetzner.Container.Management.Schemas.csproj" />
   </ItemGroup>
 

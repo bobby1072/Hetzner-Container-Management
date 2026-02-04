@@ -1,4 +1,6 @@
 using System.Net.Sockets;
+using System.Reflection;
+using BT.Common.Api.Helpers.Models;
 using BT.Common.Helpers.Extensions;
 using BT.Common.Http.Extensions;
 using Hetzner.Container.Management.Schemas.Configuration;
@@ -10,6 +12,7 @@ using Hetzner.Container.Management.Services.Infrastructure.Abstract;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using BT.Common.Services.Extensions;
 
 namespace Hetzner.Container.Management.Services.Extensions;
 
@@ -17,11 +20,24 @@ public static class HostApplicationBuilderExtensions
 {
     public static IHostApplicationBuilder AddContainerManagementApplication<TInfraExplorer>(
         this IHostApplicationBuilder hostAppBuilder,
+        ServiceInfo serviceInfo,
         Func<IServiceProvider, TInfraExplorer>? explorerCreator = null
     )
         where TInfraExplorer : class, ICurrentInfrastructureExplorer
     {
-        hostAppBuilder.AddHttpClientStuff();
+        hostAppBuilder
+            .AddHttpClientStuff();
+        
+        hostAppBuilder
+            .Services
+            .AddTelemetryService(
+                string.IsNullOrWhiteSpace(serviceInfo.ReleaseName)
+                ? Assembly
+                    .GetExecutingAssembly()
+                    .GetName()
+                    .FullName:
+                serviceInfo.ReleaseName
+            );
 
         if (explorerCreator is not null)
         {

@@ -17,7 +17,7 @@ try
     var builder = WebApplication.CreateBuilder(args);
     builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
     
-    builder.CheckAndAddSingletonOptions<ServiceInfo>();
+    var serviceOpts = builder.CheckAndAddSingletonOptions<ServiceInfo>();
     
     var requestTimeout = builder.Configuration.GetValue<int>("RequestTimeout");
 
@@ -51,7 +51,7 @@ try
 
     var infraJsonPath = builder.Configuration.GetValue<string>("InfrastructureJsonPath");
     
-    builder.AddContainerManagementApplication<CurrentInfrastructureExplorer>(sp => new CurrentInfrastructureExplorer(
+    builder.AddContainerManagementApplication<CurrentInfrastructureExplorer>(serviceOpts,sp => new CurrentInfrastructureExplorer(
         string.IsNullOrWhiteSpace(infraJsonPath) ? 
             Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), $"Data{Path.DirectorySeparatorChar}CurrentInfrastructure.json")) :
             Path.GetFullPath(infraJsonPath),
