@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Threading.Channels;
 using BT.Common.Api.Helpers.Exceptions;
+using BT.Common.Services.Concrete;
 using Hetzner.Container.Management.Schemas.Infrastructure;
 using Hetzner.Container.Management.Schemas.Input;
 using Hetzner.Container.Management.Services.ContainerOrchestration.Abstract;
@@ -23,9 +24,14 @@ internal sealed class ContainerManagementOperationQueue: IContainerManagementOpe
     public async Task<Guid> QueueUpdateOperation(InfrastructureComponentUpdateInput[] input,
         CancellationToken cancellationToken = default)
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(input), input.Length);
+        
         var jobId = Guid.NewGuid();
         
         _logger.LogInformation("About to queue update operation with job id: {JobId}", jobId);
+        
+        activity?.SetTag(nameof(jobId), jobId);
 
         await _updateOperationChannel.Writer.WriteAsync(
             new KeyValuePair<Guid, (InfrastructureComponentUpdateInput[] Input, Func<Guid, InfrastructureComponent[]?, ApiException?, CancellationToken, Task>? AddToCompleteQueueFunc)>(jobId,
@@ -37,6 +43,8 @@ internal sealed class ContainerManagementOperationQueue: IContainerManagementOpe
     public async Task<InfrastructureComponent[]> QueueAndWaitForUpdateOperation(InfrastructureComponentUpdateInput[] input,
         CancellationToken cancellationToken = default)
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(input), input.Length);
         
         var completeQueue = 
             Channel.CreateUnbounded<KeyValuePair<Guid, (InfrastructureComponent[]? Response, ApiException? Exception)>>();
@@ -61,6 +69,8 @@ internal sealed class ContainerManagementOperationQueue: IContainerManagementOpe
     }
     public async Task<KeyValuePair<Guid, (InfrastructureComponentUpdateInput[] Input, Func<Guid, InfrastructureComponent[]?, ApiException?, CancellationToken, Task>? AddToCompleteQueueFunc)>> DequeueUpdateOperationAsync(CancellationToken cancellationToken)
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        
         return await _updateOperationChannel.Reader.ReadAsync(cancellationToken);
     }
 
@@ -70,9 +80,14 @@ internal sealed class ContainerManagementOperationQueue: IContainerManagementOpe
         Func<Guid, InfrastructureComponent[]?, ApiException?, CancellationToken, Task> addToCompleteQueueFunc,
         CancellationToken cancellationToken = default)
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(input), input.Length);
+        
         var jobId = Guid.NewGuid();
         
         _logger.LogInformation("About to queue update operation with job id: {JobId}", jobId);
+        
+        activity?.SetTag(nameof(jobId), jobId);
 
         await _updateOperationChannel.Writer.WriteAsync(
             new KeyValuePair<Guid, (InfrastructureComponentUpdateInput[] Input, Func<Guid, InfrastructureComponent[]?, ApiException?, CancellationToken, Task>? AddToCompleteQueueFunc)>(jobId,
