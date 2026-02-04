@@ -21,6 +21,7 @@ COPY src/Submodules/BT/src/BT.Common/BT.Common.Helpers/*.csproj ./Submodules/BT/
 COPY src/Submodules/BT/src/BT.Common/BT.Common.Polly/*.csproj ./Submodules/BT/src/BT.Common/BT.Common.Polly/
 COPY src/Submodules/BT/src/BT.Common/BT.Common.Api.Helpers/*.csproj ./Submodules/BT/src/BT.Common/BT.Common.Api.Helpers/
 COPY src/Submodules/BT/src/BT.Common/BT.Common.Http/*.csproj ./Submodules/BT/src/BT.Common/BT.Common.Http/
+COPY src/Submodules/BT/src/BT.Common/BT.Common.Services/*.csproj ./Submodules/BT/src/BT.Common/BT.Common.Services/
 
 RUN dotnet restore Hetzner.Container.Management/Hetzner.Container.Management.Api/Hetzner.Container.Management.Api.csproj 
 
@@ -31,6 +32,7 @@ COPY src/Submodules/BT/src/BT.Common/BT.Common.Helpers/ ./Submodules/BT/src/BT.C
 COPY src/Submodules/BT/src/BT.Common/BT.Common.Polly/ ./Submodules/BT/src/BT.Common/BT.Common.Polly/
 COPY src/Submodules/BT/src/BT.Common/BT.Common.Api.Helpers/ ./Submodules/BT/src/BT.Common/BT.Common.Api.Helpers/
 COPY src/Submodules/BT/src/BT.Common/BT.Common.Http/ ./Submodules/BT/src/BT.Common/BT.Common.Http/
+COPY src/Submodules/BT/src/BT.Common/BT.Common.Services/ ./Submodules/BT/src/BT.Common/BT.Common.Services/
 
 
 WORKDIR /src/Hetzner.Container.Management/Hetzner.Container.Management.Api 
