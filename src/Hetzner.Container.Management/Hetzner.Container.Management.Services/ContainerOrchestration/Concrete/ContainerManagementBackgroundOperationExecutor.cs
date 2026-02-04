@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using BT.Common.Api.Helpers.Exceptions;
 using BT.Common.Helpers.Models;
+using BT.Common.Services.Concrete;
 using Hetzner.Container.Management.Schemas.Infrastructure;
 using Hetzner.Container.Management.Schemas.Input;
 using Hetzner.Container.Management.Services.ContainerOrchestration.Abstract;
@@ -29,6 +30,8 @@ internal sealed class ContainerManagementBackgroundOperationExecutor: Background
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        
         _logger.LogInformation("{BackgroundServiceName} is starting up...", nameof(ContainerManagementBackgroundOperationExecutor));
 
         while (!stoppingToken.IsCancellationRequested)
@@ -53,6 +56,10 @@ internal sealed class ContainerManagementBackgroundOperationExecutor: Background
 
     private async Task<(InfrastructureComponent[]?, ApiException?)> ExecuteOperationAsync(Guid jobId, InfrastructureComponentUpdateInput[] input, CancellationToken cancellationToken)
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(jobId), jobId);
+        activity?.SetTag(nameof(input), input.Length);
+        
         using (_logger.BeginScope(new LoggingScopeVariableDictionary { ["JobId"] = jobId }))
         {
             try

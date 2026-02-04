@@ -1,4 +1,5 @@
 using BT.Common.Http.Extensions;
+using BT.Common.Services.Concrete;
 using Hetzner.Container.Management.Schemas.Configuration;
 using Hetzner.Container.Management.Schemas.Docker;
 using Hetzner.Container.Management.Schemas.Docker.DockerHubApi;
@@ -35,6 +36,10 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(dockerHubDetails.Namespace), dockerHubDetails.Namespace);
+        activity?.SetTag(nameof(dockerHubDetails.RepositoryName), dockerHubDetails.RepositoryName);
+        
         try
         {
 
@@ -75,6 +80,11 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(dockerHubDetails.Namespace), dockerHubDetails.Namespace);
+        activity?.SetTag(nameof(dockerHubDetails.RepositoryName), dockerHubDetails.RepositoryName);
+        activity?.SetTag(nameof(tag), tag);
+        
         try
         {
             
@@ -114,6 +124,9 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(identifier), identifier);
+        
         try
         {
             var cacheKey = $"dockerhub_access_token_{identifier}";

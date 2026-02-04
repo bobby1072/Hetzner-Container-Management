@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Json;
 using BT.Common.Http.Extensions;
 using BT.Common.Http.Models;
+using BT.Common.Services.Concrete;
 using Hetzner.Container.Management.Schemas.Configuration;
 using Hetzner.Container.Management.Schemas.Docker;
 using Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
@@ -31,6 +32,9 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(all), all);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -70,6 +74,11 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(containerId), containerId);
+        activity?.SetTag(nameof(force), force);
+        activity?.SetTag(nameof(deleteVolumes), deleteVolumes);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -110,6 +119,9 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(containerId), containerId);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -140,6 +152,9 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(containerId), containerId);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -171,6 +186,10 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(containerId), containerId);
+        activity?.SetTag(nameof(signal), signal);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -206,6 +225,9 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(containerId), containerId);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -236,6 +258,9 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(containerId), containerId);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -267,6 +292,10 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(containerId), containerId);
+        activity?.SetTag(nameof(newName), newName);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -299,6 +328,9 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(containerId), containerId);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -330,6 +362,9 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(containerId), containerId);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -361,6 +396,9 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(name), name);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -396,6 +434,10 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(containerId), containerId);
+        activity?.SetTag(nameof(stream), stream);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -433,6 +475,12 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(containerId), containerId);
+        activity?.SetTag(nameof(stdout), stdout);
+        activity?.SetTag(nameof(stderr), stderr);
+        activity?.SetTag(nameof(timestamps), timestamps);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -470,6 +518,10 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(all), all);
+        activity?.SetTag(nameof(filters), filters);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -528,6 +580,10 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(imageName), imageName);
+        activity?.SetTag(nameof(manifests), manifests);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -567,6 +623,10 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(containerId), containerId);
+        activity?.SetTag(nameof(size), size);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -605,6 +665,8 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        
         try
         {
             var builder = GetBaseUrl()
@@ -638,6 +700,9 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(volumeName), volumeName);
+        
         try
         {
             var builder = GetBaseUrl()
@@ -671,6 +736,10 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(volumeName), volumeName);
+        activity?.SetTag(nameof(force), force);
+        
         try
         {
             var builder = GetBaseUrl()

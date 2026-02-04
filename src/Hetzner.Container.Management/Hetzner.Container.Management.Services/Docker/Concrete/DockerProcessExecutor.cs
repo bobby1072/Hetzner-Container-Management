@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Net;
 using BT.Common.Api.Helpers.Exceptions;
+using BT.Common.Services.Concrete;
 using Hetzner.Container.Management.Schemas.Input;
 using Hetzner.Container.Management.Services.Docker.Abstract;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,11 @@ internal sealed class DockerProcessExecutor : IDockerProcessExecutor
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(imageName), imageName);
+        activity?.SetTag(nameof(versionTag), versionTag);
+        activity?.SetTag(nameof(@namespace), @namespace);
+        
         if (!string.IsNullOrWhiteSpace(dockerHubDetails.Username) &&
             !string.IsNullOrWhiteSpace(dockerHubDetails.Password))
         {
@@ -65,6 +71,9 @@ internal sealed class DockerProcessExecutor : IDockerProcessExecutor
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(details.Username), details.Username);
+        
         _logger.LogInformation(
             "Attempting login to Docker Hub for user: {Username}",
             details.Username

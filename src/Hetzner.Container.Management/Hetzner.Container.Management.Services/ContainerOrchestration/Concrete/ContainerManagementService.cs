@@ -4,6 +4,7 @@ using BT.Common.Api.Helpers.Exceptions;
 using BT.Common.Helpers.Models;
 using BT.Common.Polly.Extensions;
 using BT.Common.Polly.Models.Concrete;
+using BT.Common.Services.Concrete;
 using Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
 using Hetzner.Container.Management.Schemas.Docker.DockerHubApi;
 using Hetzner.Container.Management.Schemas.Extensions;
@@ -41,6 +42,9 @@ internal sealed class ContainerManagementService : IContainerManagementService
         CancellationToken cancellationToken = default
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(infrastructureDocuments), infrastructureDocuments.Length);
+        
         try
         {
             if (infrastructureDocuments.Length == 0)
@@ -136,6 +140,10 @@ internal sealed class ContainerManagementService : IContainerManagementService
         CancellationToken cancellationToken
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(infrastructureComponentInput.ContainerName), infrastructureComponentInput.ContainerName);
+        activity?.SetTag(nameof(infrastructureComponentInput.ImageTag), infrastructureComponentInput.ImageTag);
+        
         using (
             _logger.BeginScope(
                 new LoggingScopeVariableDictionary
@@ -230,6 +238,9 @@ internal sealed class ContainerManagementService : IContainerManagementService
         CancellationToken cancellationToken
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(infrastructureComponentInput.ContainerName), infrastructureComponentInput.ContainerName);
+        
         var combinedImageNameAndTag =
             $"{dockerHubFetchedDetails.RepoResp.Namespace}/{dockerHubFetchedDetails.RepoResp.Name}:{dockerHubFetchedDetails.RepoTag.Name}";
         var existingContainer = await GetExistingContainerFromDockerEngineAsync(
@@ -291,6 +302,9 @@ internal sealed class ContainerManagementService : IContainerManagementService
         CancellationToken cancellationToken
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(infrastructureComponentInput.ContainerName), infrastructureComponentInput.ContainerName);
+        
         var createAndUpdatePreContainerCreateJobList = new List<Task>();
         if (containerInspectResponse is not null)
         {
@@ -352,6 +366,9 @@ internal sealed class ContainerManagementService : IContainerManagementService
 
     private async Task StartContainerAsync(string containerId, CancellationToken cancellationToken)
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(containerId), containerId);
+        
         var startResult = await _containerUpdateServicesServiceProvider.DockerEngineClient
             .StartContainerAsync(containerId, cancellationToken);
 
@@ -370,6 +387,10 @@ internal sealed class ContainerManagementService : IContainerManagementService
         CancellationToken cancellationToken
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(containerName), containerName);
+        activity?.SetTag(nameof(removeVolumes), removeVolumes);
+        
         var result =
             await _containerUpdateServicesServiceProvider.DockerEngineClient.RemoveContainerAsync(
                 containerName,
@@ -393,6 +414,9 @@ internal sealed class ContainerManagementService : IContainerManagementService
         CancellationToken cancellationToken
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(containerName), containerName);
+        
         var dockerEngineResult =
             await _containerUpdateServicesServiceProvider.DockerEngineClient.InspectContainerAsync(
                 containerName,
@@ -424,6 +448,11 @@ internal sealed class ContainerManagementService : IContainerManagementService
         CancellationToken cancellationToken
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(imageName), imageName);
+        activity?.SetTag(nameof(imageTag), imageTag);
+        activity?.SetTag(nameof(@namespace), @namespace);
+        
         var listImages =
             await _containerUpdateServicesServiceProvider.DockerEngineClient.ListImagesAsync(true, null, false, false,
                 false, cancellationToken);
@@ -451,6 +480,10 @@ internal sealed class ContainerManagementService : IContainerManagementService
         CancellationToken cancellationToken
     )
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(imageVersionTag), imageVersionTag);
+        activity?.SetTag(nameof(dockerHubDetails.RepositoryName), dockerHubDetails.RepositoryName);
+        
         string? accessToken = null;
         if (!string.IsNullOrWhiteSpace(dockerHubDetails.Username) &&
             !string.IsNullOrWhiteSpace(dockerHubDetails.Password))
@@ -532,6 +565,9 @@ internal sealed class ContainerManagementService : IContainerManagementService
 
     private async Task<string> GetNameOrCreateVolumeAsync(VolumeInfo volumeInfo, CancellationToken cancellationToken)
     {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(volumeInfo.VolumeName), volumeInfo.VolumeName);
+        
         var foundVolume = await _containerUpdateServicesServiceProvider.DockerEngineClient.InspectVolumeAsync(volumeInfo.VolumeName, cancellationToken);
 
         if (foundVolume.Data is not null)
