@@ -50,8 +50,6 @@ internal sealed class ContainerManagementBackgroundOperationExecutor: Background
                     stoppingToken);
             }
         }
-        
-        throw new NotImplementedException();
     }
 
     private async Task<(InfrastructureComponent[]?, ApiException?)> ExecuteOperationAsync(Guid jobId, InfrastructureComponentUpdateInput[] input, CancellationToken cancellationToken)
