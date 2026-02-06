@@ -57,8 +57,6 @@ docker run -d \
 ### Example docker-compose.yml
 
 ```yaml
-version: "3.8"
-
 services:
   hetzner-container-management:
     image: bobby1072/hetzner-container-management:latest
@@ -99,15 +97,18 @@ Content-Type: application/json
     "internalPortNumber": int,
     "imageTag": string | null = "latest",
     "dockerHubDetails": {
-      "username": string,
-      "password": string,
+      "username": string | null,
+      "password": string | null,
+      "namespace": string,
       "repositoryName": string
     },
     "configMap": {
-      [EnvVarLabel:string]: string | null,
       [EnvVarLabel:string]: string | null
     } | null = {},
-    "volumeName": string | null
+    "volumeInfo": {
+      "volumeName": string,
+      "internalMountTarget": string
+    } | null
   }
 ]
 ```
@@ -143,15 +144,18 @@ Content-Type: application/json
     "internalPortNumber": int,
     "imageTag": string | null = "latest",
     "dockerHubDetails": {
-      "username": string,
-      "password": string,
+      "username": string | null,
+      "password": string | null,
+      "namespace": string,
       "repositoryName": string
     },
     "configMap": {
-      [EnvVarLabel:string]: string | null,
       [EnvVarLabel:string]: string | null
     } | null = {},
-    "volumeName": string | null
+    "volumeInfo": {
+      "volumeName": string,
+      "internalMountTarget": string
+    } | null
   }
 ]
 ```

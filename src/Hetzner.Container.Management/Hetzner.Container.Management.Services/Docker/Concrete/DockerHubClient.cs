@@ -129,7 +129,7 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
         
         try
         {
-            var cacheKey = $"dockerhub_access_token_{identifier}";
+            var cacheKey = GetDockerAccessTokenCacheKey(identifier);
 
             if (_memoryCache.TryGetValue<string>(cacheKey, out var cachedToken))
             {
@@ -144,13 +144,8 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
                 .AppendPathSegment("token")
                 .WithApplicationJson(request)
                 .PostJsonAsync<AuthCreateTokenResponse>(_httpClient, cancellationToken);
-
-            var cacheOptions = new MemoryCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(45),
-            };
-
-            _memoryCache.Set(cacheKey, response.AccessToken, cacheOptions);
+            
+            _memoryCache.Set(cacheKey, response.AccessToken, GetCacheOptions());
 
             return new DockerApiActionResult<string?> { Data = response.AccessToken };
         }
@@ -163,4 +158,9 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
             return HandleError<string?>(ex, nameof(GetRepositoryTagAsync));
         }
     }
+    private static MemoryCacheEntryOptions GetCacheOptions() => new()
+    {
+        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(45),
+    };
+    private static string GetDockerAccessTokenCacheKey(string identifier) => $"dockerhub_access_token_{identifier}";
 }
