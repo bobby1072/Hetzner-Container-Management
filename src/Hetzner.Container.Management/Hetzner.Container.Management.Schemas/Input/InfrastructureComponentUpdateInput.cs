@@ -1,8 +1,10 @@
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace Hetzner.Container.Management.Schemas.Input;
 
-public sealed record InfrastructureComponentUpdateInput : IValidatable<InfrastructureComponentUpdateInput>
+public sealed partial record InfrastructureComponentUpdateInput
+    : IValidatable<InfrastructureComponentUpdateInput>
 {
     [JsonPropertyName("dockerHubDetails")]
     [JsonRequired]
@@ -15,6 +17,7 @@ public sealed record InfrastructureComponentUpdateInput : IValidatable<Infrastru
     [JsonPropertyName("externalPortNumber")]
     [JsonRequired]
     public required int PublicFacingPortNumber { get; init; }
+
     [JsonPropertyName("internalPortNumber")]
     [JsonRequired]
     public required int InternalPortNumber { get; init; }
@@ -24,33 +27,26 @@ public sealed record InfrastructureComponentUpdateInput : IValidatable<Infrastru
 
     [JsonPropertyName("configMap")]
     public Dictionary<string, string?> ConfigMap { get; init; } = new();
-    
+
     [JsonPropertyName("volumeInfo")]
     public VolumeInfo? Volume { get; init; }
-    
+
     public Func<(bool, string?)>[] ValidatorFunctions =>
         [
-            IsPublicFacingPortNumberValid, 
+            IsPublicFacingPortNumberValid,
             IsInternalPortNumberValid,
             IsValidConfigMap,
-            IsValidContainerName
+            IsValidContainerName,
         ];
     public Func<(Task<bool>, string?)>[] AsyncValidatorFunctions => [];
 
-
-    public string[] CreateEnvStringArrayFromConfigMap(string splitter = "=")
-        => ConfigMap
-                .Select(kv => $"{kv.Key}{splitter}{kv.Value}")
-                .ToArray();
-
+    public string[] CreateEnvStringArrayFromConfigMap(string splitter = "=") =>
+        ConfigMap.Select(kv => $"{kv.Key}{splitter}{kv.Value}").ToArray();
 
     private (bool, string?) IsInternalPortNumberValid() => IsValidPortNumber(InternalPortNumber);
-    private (bool, string?) IsPublicFacingPortNumberValid() => IsValidPortNumber(PublicFacingPortNumber);
-    private static (bool, string?) IsValidPortNumber(int portNum) =>
-        (
-            portNum > 0 && portNum <= 65535,
-            "Invalid port number provided"
-        );
+
+    private (bool, string?) IsPublicFacingPortNumberValid() =>
+        IsValidPortNumber(PublicFacingPortNumber);
 
     private (bool, string?) IsValidConfigMap()
     {
@@ -63,5 +59,11 @@ public sealed record InfrastructureComponentUpdateInput : IValidatable<Infrastru
     }
 
     private (bool, string?) IsValidContainerName() =>
-        (ContainerName.Length >= 1 && ContainerName.Length <= 255, "Invalid container name provided");
+        (ContainerNameRegex().IsMatch(ContainerName), "Invalid container name provided");
+
+    [GeneratedRegex(@"^/?[a-zA-Z0-9][a-zA-Z0-9_.-]+$")]
+    private static partial Regex ContainerNameRegex();
+
+    private static (bool, string?) IsValidPortNumber(int portNum) =>
+        (portNum > 0 && portNum <= 65535, "Invalid port number provided");
 }
