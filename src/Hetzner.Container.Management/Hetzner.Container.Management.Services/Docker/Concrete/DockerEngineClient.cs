@@ -34,7 +34,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(all), all);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -44,7 +44,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
 
             if (all)
             {
-                builder = builder.AppendQueryParameter("all", "true");
+                builder = builder.AppendQueryParameter("all", true.ToString().ToLowerInvariant());
             }
 
             var data = await builder.GetJsonAsync<ContainerSummaryResponse[]>(
@@ -78,7 +78,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         activity?.SetTag(nameof(containerId), containerId);
         activity?.SetTag(nameof(force), force);
         activity?.SetTag(nameof(deleteVolumes), deleteVolumes);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -88,12 +88,12 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
 
             if (force)
             {
-                builder = builder.AppendQueryParameter("force", "true");
+                builder = builder.AppendQueryParameter("force", true.ToString().ToLowerInvariant());
             }
 
             if (deleteVolumes)
             {
-                builder = builder.AppendQueryParameter("v", "true");
+                builder = builder.AppendQueryParameter("v", true.ToString().ToLowerInvariant());
             }
 
             await builder.SendAsync(_httpClient, HttpMethod.Delete, cancellationToken);
@@ -121,7 +121,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(containerId), containerId);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -154,7 +154,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(containerId), containerId);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -189,7 +189,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(containerId), containerId);
         activity?.SetTag(nameof(signal), signal);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -227,7 +227,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(containerId), containerId);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -260,7 +260,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(containerId), containerId);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -295,7 +295,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(containerId), containerId);
         activity?.SetTag(nameof(newName), newName);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -330,7 +330,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(containerId), containerId);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -364,7 +364,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(containerId), containerId);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -398,7 +398,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(name), name);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -437,7 +437,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(containerId), containerId);
         activity?.SetTag(nameof(stream), stream);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -471,7 +471,8 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         string containerId,
         bool stdout = true,
         bool stderr = true,
-        bool timestamps = false,
+        long? since = null,
+        long? until = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -479,8 +480,9 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         activity?.SetTag(nameof(containerId), containerId);
         activity?.SetTag(nameof(stdout), stdout);
         activity?.SetTag(nameof(stderr), stderr);
-        activity?.SetTag(nameof(timestamps), timestamps);
-        
+        activity?.SetTag(nameof(since), since);
+        activity?.SetTag(nameof(until), until);
+
         try
         {
             var builder = GetBaseUrl()
@@ -489,8 +491,18 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
                 .AppendPathSegment("logs")
                 .AppendQueryParameter("stdout", stdout.ToString().ToLowerInvariant())
                 .AppendQueryParameter("stderr", stderr.ToString().ToLowerInvariant())
-                .AppendQueryParameter("timestamps", timestamps.ToString().ToLowerInvariant())
+                .AppendQueryParameter("timestamps", true.ToString().ToLowerInvariant())
                 .AddAsyncErrorExtractor(ErrorExtractor);
+
+            if (since.HasValue)
+            {
+                builder = builder.AppendQueryParameter("since", since.Value.ToString());
+            }
+
+            if (until.HasValue)
+            {
+                builder = builder.AppendQueryParameter("until", until.Value.ToString());
+            }
 
             var data = await builder.GetStringAsync(_httpClient, cancellationToken);
             return new DockerApiActionResult<string?> { Data = data };
@@ -521,7 +533,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(all), all);
         activity?.SetTag(nameof(filters), filters);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -531,7 +543,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
 
             if (all)
             {
-                builder = builder.AppendQueryParameter("all", "true");
+                builder = builder.AppendQueryParameter("all", true.ToString().ToLowerInvariant());
             }
 
             if (!string.IsNullOrWhiteSpace(filters))
@@ -541,17 +553,26 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
 
             if (sharedSize)
             {
-                builder = builder.AppendQueryParameter("shared-size", "true");
+                builder = builder.AppendQueryParameter(
+                    "shared-size",
+                    true.ToString().ToLowerInvariant()
+                );
             }
 
             if (digests)
             {
-                builder = builder.AppendQueryParameter("digests", "true");
+                builder = builder.AppendQueryParameter(
+                    "digests",
+                    true.ToString().ToLowerInvariant()
+                );
             }
 
             if (manifests)
             {
-                builder = builder.AppendQueryParameter("manifests", "true");
+                builder = builder.AppendQueryParameter(
+                    "manifests",
+                    true.ToString().ToLowerInvariant()
+                );
             }
 
             var data = await builder.GetJsonAsync<ImageSummaryResponse[]>(
@@ -583,7 +604,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(imageName), imageName);
         activity?.SetTag(nameof(manifests), manifests);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -594,7 +615,10 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
 
             if (manifests)
             {
-                builder = builder.AppendQueryParameter("manifests", "true");
+                builder = builder.AppendQueryParameter(
+                    "manifests",
+                    true.ToString().ToLowerInvariant()
+                );
             }
 
             var data = await builder.GetJsonAsync<ImageInspectResponse?>(
@@ -626,7 +650,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(containerId), containerId);
         activity?.SetTag(nameof(size), size);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -637,7 +661,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
 
             if (size)
             {
-                builder = builder.AppendQueryParameter("size", "true");
+                builder = builder.AppendQueryParameter("size", true.ToString().ToLowerInvariant());
             }
 
             var data = await builder.GetJsonAsync<ContainerInspectResponse>(
@@ -666,14 +690,14 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     )
     {
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
-        
+
         try
         {
             var builder = GetBaseUrl()
                 .AppendPathSegment("volumes")
                 .AppendPathSegment("create")
                 .WithApplicationJson(request)
-                .AddAsyncErrorExtractor(ErrorExtractor );
+                .AddAsyncErrorExtractor(ErrorExtractor);
 
             var data = await builder.PostJsonAsync<VolumeCreateResponse>(
                 _httpClient,
@@ -702,7 +726,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
     {
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(volumeName), volumeName);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -739,7 +763,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(volumeName), volumeName);
         activity?.SetTag(nameof(force), force);
-        
+
         try
         {
             var builder = GetBaseUrl()
@@ -749,7 +773,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
 
             if (force)
             {
-                builder = builder.AppendQueryParameter("force", "true");
+                builder = builder.AppendQueryParameter("force", true.ToString().ToLowerInvariant());
             }
 
             await builder.SendAsync(_httpClient, HttpMethod.Delete, cancellationToken);

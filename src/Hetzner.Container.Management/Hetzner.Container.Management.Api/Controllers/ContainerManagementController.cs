@@ -90,6 +90,7 @@ public sealed class ContainerManagementController : ControllerBase
         {
             _logger.Log(
                 ex.LogLevel,
+                ex,
                 "An api exception occured during request with message: {ExMessage}",
                 ex.Message
             );

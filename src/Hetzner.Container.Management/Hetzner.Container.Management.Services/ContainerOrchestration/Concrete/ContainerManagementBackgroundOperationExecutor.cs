@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Hetzner.Container.Management.Services.ContainerOrchestration.Concrete;
 
-internal sealed class ContainerManagementBackgroundOperationExecutor: BackgroundService
+internal sealed class ContainerManagementBackgroundOperationExecutor : BackgroundService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IContainerManagementOperationQueue _containerManagementOperationQueue;
@@ -31,44 +31,60 @@ internal sealed class ContainerManagementBackgroundOperationExecutor: Background
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
-        
-        _logger.LogInformation("{BackgroundServiceName} is starting up...", nameof(ContainerManagementBackgroundOperationExecutor));
+
+        _logger.LogInformation(
+            "{BackgroundServiceName} is starting up...",
+            nameof(ContainerManagementBackgroundOperationExecutor)
+        );
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            var dequeuedOperationJob = await _containerManagementOperationQueue.DequeueUpdateOperationAsync(stoppingToken);
-            
-            var executionResult = await ExecuteOperationAsync(dequeuedOperationJob.Key, 
+            var dequeuedOperationJob =
+                await _containerManagementOperationQueue.DequeueUpdateOperationAsync(stoppingToken);
+
+            var executionResult = await ExecuteOperationAsync(
+                dequeuedOperationJob.Key,
                 dequeuedOperationJob.Value.Input,
-                stoppingToken);
+                stoppingToken
+            );
 
             if (dequeuedOperationJob.Value.AddToCompleteQueueFunc is not null)
             {
-                await dequeuedOperationJob.Value.AddToCompleteQueueFunc.Invoke(dequeuedOperationJob.Key,
+                await dequeuedOperationJob.Value.AddToCompleteQueueFunc.Invoke(
+                    dequeuedOperationJob.Key,
                     executionResult.Item1,
                     executionResult.Item2,
-                    stoppingToken);
+                    stoppingToken
+                );
             }
         }
     }
 
-    private async Task<(InfrastructureComponent[]?, ApiException?)> ExecuteOperationAsync(Guid jobId, InfrastructureComponentUpdateInput[] input, CancellationToken cancellationToken)
+    private async Task<(InfrastructureComponent[]?, ApiException?)> ExecuteOperationAsync(
+        Guid jobId,
+        InfrastructureComponentUpdateInput[] input,
+        CancellationToken cancellationToken
+    )
     {
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(jobId), jobId);
         activity?.SetTag(nameof(input), input.Length);
-        
+
         using (_logger.BeginScope(new LoggingScopeVariableDictionary { ["JobId"] = jobId }))
         {
             try
             {
                 await using var asyncScope = _serviceScopeFactory.CreateAsyncScope();
-                var managerService = asyncScope.ServiceProvider.GetRequiredService<IContainerManagementService>();
-                
-                var result = await managerService.UpdateCurrentInfrastructure(input, cancellationToken);
-                
+                var managerService =
+                    asyncScope.ServiceProvider.GetRequiredService<IContainerManagementService>();
+
+                var result = await managerService.UpdateCurrentInfrastructure(
+                    input,
+                    cancellationToken
+                );
+
                 _logger.LogInformation("Infrastructure has successfully been updated");
-                
+
                 return (result, null);
             }
             catch (ApiException exception)
@@ -77,11 +93,20 @@ internal sealed class ContainerManagementBackgroundOperationExecutor: Background
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, "Unhandled exception occurred executing update operation in the background");
-                
-                return (null, new ApiException(LogLevel.Error, 
-                    HttpStatusCode.InternalServerError, 
-                    ApplicationConstants.ExceptionConstants.InternalError, exception));
+                _logger.LogError(
+                    exception,
+                    "Unhandled exception occurred executing update operation in the background"
+                );
+
+                return (
+                    null,
+                    new ApiException(
+                        LogLevel.Error,
+                        HttpStatusCode.InternalServerError,
+                        ApplicationConstants.ExceptionConstants.InternalError,
+                        exception
+                    )
+                );
             }
         }
     }
