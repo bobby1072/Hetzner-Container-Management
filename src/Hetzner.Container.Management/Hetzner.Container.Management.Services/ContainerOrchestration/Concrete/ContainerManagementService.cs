@@ -20,20 +20,20 @@ namespace Hetzner.Container.Management.Services.ContainerOrchestration.Concrete;
 
 internal sealed class ContainerManagementService : IContainerManagementService
 {
+    private readonly IServiceProvider _serviceProvider;
+    private Lazy<IDockerHubClient> DockerHubClient => new (() => _serviceProvider.GetRequiredService<IDockerHubClient>());
+    private Lazy<IDockerEngineClient> DockerEngineClient => new (() => _serviceProvider.GetRequiredService<IDockerEngineClient>());
+    private Lazy<IDockerProcessExecutor> DockerProcessExecutor => new (() => _serviceProvider.GetRequiredService<IDockerProcessExecutor>());
+    private Lazy<ICurrentInfrastructureExplorer> CurrentInfrastructureExplorer => new (() => _serviceProvider.GetRequiredService<ICurrentInfrastructureExplorer>());
+    private readonly ILogger<ContainerManagementService> _logger;
     private static readonly PollyRetrySettings _commonOperationRetrySettings =
         new() { TotalAttempts = 2 };
-
-    private readonly ContainerUpdateServicesServiceProvider _containerUpdateServicesServiceProvider;
-    private readonly ILogger<ContainerManagementService> _logger;
-
     public ContainerManagementService(
         IServiceProvider serviceProvider,
         ILogger<ContainerManagementService> logger
     )
     {
-        _containerUpdateServicesServiceProvider = new ContainerUpdateServicesServiceProvider(
-            serviceProvider
-        );
+        _serviceProvider = serviceProvider;
         _logger = logger;
     }
 
@@ -53,8 +53,8 @@ internal sealed class ContainerManagementService : IContainerManagementService
             }
             
             var currentInfrastructureDocument =
-                await _containerUpdateServicesServiceProvider
-                    .CurrentInfrastructureExplorer
+                await CurrentInfrastructureExplorer
+                    .Value
                     .TryGetCurrentInfrastructureDocumentAsync(
                         cancellationToken
                     )
@@ -93,7 +93,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                     UpdateNumber = currentInfrastructureDocument.UpdateNumber + 1,
                 };
 
-                await _containerUpdateServicesServiceProvider.CurrentInfrastructureExplorer.ReplaceCurrentInfrastructureAsync(
+                await CurrentInfrastructureExplorer.Value.ReplaceCurrentInfrastructureAsync(
                     newInfraStructureDocument,
                     cancellationToken
                 );
@@ -107,7 +107,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                     UpdateNumber = currentInfrastructureDocument.UpdateNumber + 1,
                 };
                 
-                await _containerUpdateServicesServiceProvider.CurrentInfrastructureExplorer.ReplaceCurrentInfrastructureAsync(
+                await CurrentInfrastructureExplorer.Value.ReplaceCurrentInfrastructureAsync(
                     newInfraStructureDocument,
                     cancellationToken
                 );
@@ -183,7 +183,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                     )
                 )
                 {
-                    await _containerUpdateServicesServiceProvider.DockerProcessExecutor.PullDockerImageFromHub(
+                    await DockerProcessExecutor.Value.PullDockerImageFromHub(
                         infrastructureComponentInput.DockerHubDetails,
                         dockerHubFetchedDetails.RepoResp.Name,
                         dockerHubFetchedDetails.RepoTag.Name,
@@ -323,8 +323,8 @@ internal sealed class ContainerManagementService : IContainerManagementService
 
         if (hangingVolumes is not null && hangingVolumes.Length > 0)
         {
-            createAndUpdatePreContainerCreateJobList = createAndUpdatePreContainerCreateJobList.Concat(hangingVolumes.Select(x => _containerUpdateServicesServiceProvider
-                .DockerEngineClient
+            createAndUpdatePreContainerCreateJobList = createAndUpdatePreContainerCreateJobList.Concat(hangingVolumes.Select(x => DockerEngineClient
+                .Value
                 .RemoveVolumeAsync(x.Source, false, cancellationToken))
             ).ToList();
         }
@@ -344,7 +344,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
         );
 
         var createResult =
-            await _containerUpdateServicesServiceProvider.DockerEngineClient.CreateContainerAsync(
+            await DockerEngineClient.Value.CreateContainerAsync(
                 requestModel,
                 infrastructureComponentInput.ContainerName,
                 cancellationToken
@@ -369,7 +369,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(containerId), containerId);
         
-        var startResult = await _containerUpdateServicesServiceProvider.DockerEngineClient
+        var startResult = await DockerEngineClient.Value
             .StartContainerAsync(containerId, cancellationToken);
 
         if (!startResult.IsSuccess)
@@ -392,7 +392,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
         activity?.SetTag(nameof(removeVolumes), removeVolumes);
         
         var result =
-            await _containerUpdateServicesServiceProvider.DockerEngineClient.RemoveContainerAsync(
+            await DockerEngineClient.Value.RemoveContainerAsync(
                 containerName,
                 true,
                 removeVolumes,
@@ -418,7 +418,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
         activity?.SetTag(nameof(containerName), containerName);
         
         var dockerEngineResult =
-            await _containerUpdateServicesServiceProvider.DockerEngineClient.InspectContainerAsync(
+            await DockerEngineClient.Value.InspectContainerAsync(
                 containerName,
                 false,
                 cancellationToken
@@ -454,7 +454,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
         activity?.SetTag(nameof(@namespace), @namespace);
         
         var listImages =
-            await _containerUpdateServicesServiceProvider.DockerEngineClient.ListImagesAsync(true, null, false, false,
+            await DockerEngineClient.Value.ListImagesAsync(true, null, false, false,
                 false, cancellationToken);
 
         var dockerEngineResult = listImages.Data?.FirstOrDefault(x => x.RepoTags.Any(y => y == $"{imageName}:{imageTag}"))
@@ -489,7 +489,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
             !string.IsNullOrWhiteSpace(dockerHubDetails.Password))
         {
             var accessTokenApiResult =
-                await _containerUpdateServicesServiceProvider.DockerHubClient.CreateAccessTokenAsync(
+                await DockerHubClient.Value.CreateAccessTokenAsync(
                     dockerHubDetails.Username, dockerHubDetails.Password, cancellationToken);
             if (!accessTokenApiResult.IsSuccess || accessTokenApiResult.Data is null)
             {
@@ -505,14 +505,14 @@ internal sealed class ContainerManagementService : IContainerManagementService
         }
 
         
-        var getRepoJob = _containerUpdateServicesServiceProvider.DockerHubClient.GetRepositoryAsync(
+        var getRepoJob = DockerHubClient.Value.GetRepositoryAsync(
             dockerHubDetails,
             accessToken,
             cancellationToken
         );
 
         var getTagJob =
-            _containerUpdateServicesServiceProvider.DockerHubClient.GetRepositoryTagAsync(
+            DockerHubClient.Value.GetRepositoryTagAsync(
                 dockerHubDetails,
                 imageVersionTag,
                 accessToken,
@@ -568,7 +568,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(volumeInfo.VolumeName), volumeInfo.VolumeName);
         
-        var foundVolume = await _containerUpdateServicesServiceProvider.DockerEngineClient.InspectVolumeAsync(volumeInfo.VolumeName, cancellationToken);
+        var foundVolume = await DockerEngineClient.Value.InspectVolumeAsync(volumeInfo.VolumeName, cancellationToken);
 
         if (foundVolume.Data is not null)
         {
@@ -576,7 +576,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
         }
 
         var createdVolume = await 
-            _containerUpdateServicesServiceProvider.DockerEngineClient.CreateVolumeAsync(new VolumeCreateRequest {Name = volumeInfo.VolumeName}, cancellationToken);
+            DockerEngineClient.Value.CreateVolumeAsync(new VolumeCreateRequest {Name = volumeInfo.VolumeName}, cancellationToken);
 
         if (!createdVolume.IsSuccess || createdVolume.Data is null)
         {
@@ -723,30 +723,5 @@ internal sealed class ContainerManagementService : IContainerManagementService
         return containerInspectResponse?.Config?.Volumes?.ContainsKey(
             infrastructureComponentInput.Volume.VolumeName
         ) ?? true;
-    }
-    private sealed record ContainerUpdateServicesServiceProvider
-    {
-        private readonly IServiceProvider _serviceProvider;
-
-        [field: AllowNull, MaybeNull]
-        public IDockerHubClient DockerHubClient =>
-            field ??= _serviceProvider.GetRequiredService<IDockerHubClient>();
-
-        [field: AllowNull, MaybeNull]
-        public IDockerEngineClient DockerEngineClient =>
-            field ??= _serviceProvider.GetRequiredService<IDockerEngineClient>();
-
-        [field: AllowNull, MaybeNull]
-        public IDockerProcessExecutor DockerProcessExecutor =>
-            field ??= _serviceProvider.GetRequiredService<IDockerProcessExecutor>();
-
-        [field: AllowNull, MaybeNull]
-        public ICurrentInfrastructureExplorer CurrentInfrastructureExplorer =>
-            field ??= _serviceProvider.GetRequiredService<ICurrentInfrastructureExplorer>();
-
-        public ContainerUpdateServicesServiceProvider(IServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
     }
 }
