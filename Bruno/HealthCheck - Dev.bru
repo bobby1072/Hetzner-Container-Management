@@ -1,0 +1,20 @@
+meta {
+  name: HealthCheck - Dev
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{DevUrl}}/Api/Healthz
+  body: none
+  auth: inherit
+}
+
+headers {
+  x-api-key: 4a6a45fd424d4e1b81516fcadfef1c6f
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
