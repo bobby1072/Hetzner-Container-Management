@@ -25,7 +25,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Hetzner.Container.Management.Api\Hetzner.Container.Management.Api.csproj" />
-      <ProjectReference Include="..\Hetzner.Container.Management.Services\Hetzner.Container.Management.Services.csproj" />
     </ItemGroup>
 
 </Project>
