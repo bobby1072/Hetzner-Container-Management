@@ -51,37 +51,7 @@ internal sealed class ContainerManagementOperationQueue : IContainerManagementOp
     public async Task<Guid> QueueUpdateOperation(
         InfrastructureComponentUpdateInput[] input,
         CancellationToken cancellationToken = default
-    )
-    {
-        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
-        activity?.SetTag(nameof(input), input.Length);
-
-        var jobId = Guid.NewGuid();
-
-        _logger.LogInformation("About to queue update operation with job id: {JobId}", jobId);
-
-        activity?.SetTag(nameof(jobId), jobId);
-
-        await _updateOperationChannel.Writer.WriteAsync(
-            new KeyValuePair<
-                Guid,
-                (
-                    InfrastructureComponentUpdateInput[] Input,
-                    Func<
-                        Guid,
-                        InfrastructureComponent[]?,
-                        ApiException?,
-                        CancellationToken,
-                        Task
-                    >? AddToCompleteQueueFunc
-                )
-            >(jobId, (input, null)),
-            cancellationToken
-        );
-
-        return jobId;
-    }
-
+    ) => await QueueUpdateOperation(input, null, cancellationToken);
     public async Task<InfrastructureComponent[]> QueueAndWaitForUpdateOperation(
         InfrastructureComponentUpdateInput[] input,
         CancellationToken cancellationToken = default
@@ -158,7 +128,7 @@ internal sealed class ContainerManagementOperationQueue : IContainerManagementOp
             ApiException?,
             CancellationToken,
             Task
-        > addToCompleteQueueFunc,
+        >? addToCompleteQueueFunc,
         CancellationToken cancellationToken = default
     )
     {
