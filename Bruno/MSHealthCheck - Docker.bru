@@ -1,0 +1,20 @@
+meta {
+  name: MSHealthCheck - Docker
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{DockerComposeUrl}}/Api/Health
+  body: none
+  auth: inherit
+}
+
+headers {
+  x-api-key: test-key
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

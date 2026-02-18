@@ -1,0 +1,20 @@
+meta {
+  name: HealthCheck - Docker
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{DockerComposeUrl}}/Api/Healthz
+  body: none
+  auth: inherit
+}
+
+headers {
+  x-api-key: test-key
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
