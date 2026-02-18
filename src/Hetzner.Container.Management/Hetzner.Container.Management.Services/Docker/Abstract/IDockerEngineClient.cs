@@ -65,7 +65,8 @@ internal interface IDockerEngineClient
         string containerId,
         bool stdout = true,
         bool stderr = true,
-        bool timestamps = false,
+        long? since = null,
+        long? until = null,
         CancellationToken cancellationToken = default
     );
     Task<DockerApiActionResult<ImageSummaryResponse[]?>> ListImagesAsync(
