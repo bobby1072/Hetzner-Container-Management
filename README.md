@@ -219,36 +219,39 @@ Add the template to your Azure Pipeline:
 
 ```yaml
 steps:
-  - template: azure-pipeline-templates/deploy-infrastructure.yml@hetzner-management
+  - template: azure-pipeline-templates/deploy-infrastructure.yml@Hetzner-Container-Management
     parameters:
-      serverUrl: 'https://your-server.com:8080'
-      apiKey: '$(HETZNER_API_KEY)'  # Use secret variable
-      requestBodyPath: '$(Build.SourcesDirectory)/infrastructure.json'
+      serverUrl: "https://your-server.com:8080"
+      apiKey: "$(HETZNER_API_KEY)" # Use secret variable
+      requestBodyPath: "$(Build.SourcesDirectory)/infrastructure.json"
       waitForCompletion: true
       timeoutInMinutes: 15
 ```
 
 ### Template Parameters
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `serverUrl` | string | Yes | - | URL of your Hetzner Container Management API |
-| `apiKey` | string | Yes | - | API key for authentication (use secret variables) |
-| `requestBodyPath` | string | Yes | - | Path to JSON file containing infrastructure configuration |
-| `waitForCompletion` | boolean | No | true | Wait for deployment to complete vs queue only |
-| `timeoutInMinutes` | number | No | 10 | Maximum time to wait for deployment |
+| Parameter           | Type    | Required | Default | Description                                               |
+| ------------------- | ------- | -------- | ------- | --------------------------------------------------------- |
+| `serverUrl`         | string  | Yes      | -       | URL of your Hetzner Container Management API              |
+| `apiKey`            | string  | Yes      | -       | API key for authentication (use secret variables)         |
+| `requestBodyPath`   | string  | Yes      | -       | Path to JSON file containing infrastructure configuration |
+| `waitForCompletion` | boolean | No       | true    | Wait for deployment to complete vs queue only             |
+| `timeoutInMinutes`  | number  | No       | 10      | Maximum time to wait for deployment                       |
 
 ### Output Variables
 
 When `waitForCompletion: true`:
+
 - `DeployedComponentCount`: Number of components successfully deployed
 
 When `waitForCompletion: false`:
+
 - `OperationId`: GUID of the queued operation
 
 ### Example Files
 
 See the `azure-pipeline-templates/` directory for:
+
 - `deploy-infrastructure.yml` - The reusable template task
 - `example-usage.yml` - Complete pipeline examples
 - `example-request-body.json` - Sample infrastructure configuration
