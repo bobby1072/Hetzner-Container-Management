@@ -219,7 +219,7 @@ Add the template to your Azure Pipeline:
 
 ```yaml
 steps:
-  - template: azure-pipeline-templates/deploy-infrastructure.yml@Hetzner-Container-Management
+  - template: templates/deploy-infrastructure.yml@Hetzner-Container-Management
     parameters:
       serverUrl: "https://your-server.com:8080"
       apiKey: "$(HETZNER_API_KEY)" # Use secret variable
