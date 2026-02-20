@@ -15,9 +15,9 @@ parameters:
     default: ''
 
   - name: allowInsecureTls
-      type: boolean
-      displayName: 'Allow insecure TLS (skip certificate validation)'
-      default: false
+    type: boolean
+    displayName: 'Allow insecure TLS (skip certificate validation)'
+    default: false
 
 steps:
   - task: PowerShell@2
