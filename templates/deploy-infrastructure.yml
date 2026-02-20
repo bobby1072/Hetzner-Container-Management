@@ -14,6 +14,11 @@ parameters:
     displayName: 'Path to JSON request body file'
     default: ''
 
+  - name: allowInsecureTls
+      type: boolean
+      displayName: 'Allow insecure TLS (skip certificate validation)'
+      default: false
+
 steps:
   - task: PowerShell@2
     displayName: 'Deploy Infrastructure Update'
@@ -27,6 +32,7 @@ steps:
         $serverUrl = "${{ parameters.serverUrl }}".TrimEnd('/')
         $apiKey = "${{ parameters.apiKey }}"
         $requestBodyPath = "${{ parameters.requestBodyPath }}"
+        $allowInsecureTls = "${{ parameters.allowInsecureTls }}" -eq "true"
 
         if ([string]::IsNullOrWhiteSpace($serverUrl)) {
             Write-Error "Server URL parameter is required"
@@ -75,7 +81,20 @@ steps:
         # Make API request
         Write-Host "Sending infrastructure update request..."
         try {
-            $response = Invoke-RestMethod -Uri $endpoint -Method Post -Headers $headers -Body $requestBody -ContentType "application/json"
+            $invokeParams = @{
+                Uri = $endpoint
+                Method = "Post"
+                Headers = $headers
+                Body = $requestBody
+                ContentType = "application/json"
+            }
+
+            if ($allowInsecureTls) {
+                Write-Warning "TLS certificate validation is disabled for this request. Use only in trusted/non-production environments."
+                $invokeParams.SkipCertificateCheck = $true
+            }
+
+            $response = Invoke-RestMethod @invokeParams
 
             Write-Host "##[section]Deployment completed successfully"
             Write-Host "Response:"
