@@ -685,12 +685,12 @@ internal sealed class ContainerManagementService : IContainerManagementService
                     new Dictionary<object, object>()
                 },
             },
-            Labels = new Dictionary<string, string>
+            Labels = infrastructureComponentInput.Labels.Concat(new Dictionary<string, string>
             {
                 { "com.hetzner.container.name", infrastructureComponentInput.ContainerName },
                 { "com.hetzner.container.image", dockerHubFetchedDetails.RepoResp.Name },
                 { "com.hetzner.container.tag", dockerHubFetchedDetails.RepoTag.Name },
-            },
+            }).ToDictionary(),
             HostConfig = new HostConfig
             {
                 PortBindings = new Dictionary<string, PortBinding[]>

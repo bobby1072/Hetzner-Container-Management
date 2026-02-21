@@ -105,6 +105,9 @@ Content-Type: application/json
     "configMap": {
       [EnvVarLabel:string]: string | null
     } | null = {},
+    "labels": {
+      [Label:string]: string | null
+    } | null = {},
     "volumeInfo": {
       "volumeName": string,
       "internalMountTarget": string
@@ -152,6 +155,9 @@ Content-Type: application/json
     "configMap": {
       [EnvVarLabel:string]: string | null
     } | null = {},
+    "labels": {
+      [Label:string]: string | null
+    } | null = {},    
     "volumeInfo": {
       "volumeName": string,
       "internalMountTarget": string
