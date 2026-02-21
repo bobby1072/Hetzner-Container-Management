@@ -27,6 +27,9 @@ public sealed partial record InfrastructureComponentUpdateInput
 
     [JsonPropertyName("configMap")]
     public Dictionary<string, string?> ConfigMap { get; init; } = new();
+    
+    [JsonPropertyName("labels")]
+    public Dictionary<string, string> Labels { get; init; } = new();
 
     [JsonPropertyName("volumeInfo")]
     public VolumeInfo? Volume { get; init; }
