@@ -58,27 +58,6 @@ public static class HostApplicationBuilderExtensions
 
         return hostAppBuilder;
     }
-
-    public static T CheckAndAddSingletonOptions<T>(
-        this IHostApplicationBuilder hostAppBuilder,
-        string? nameofSection = null
-    )
-        where T : class
-    {
-        var sectname = nameofSection ?? typeof(T).Name;
-
-        var configSection = hostAppBuilder.Configuration.GetSection(sectname);
-
-        if (!configSection.Exists())
-        {
-            throw new ArgumentException(sectname);
-        }
-
-        hostAppBuilder.Services.ConfigureSingletonOptions<T>(configSection);
-
-        return configSection.Get<T>() ?? throw new ArgumentException(sectname);
-    }
-
     private static IHostApplicationBuilder AddHttpClientStuff(
         this IHostApplicationBuilder hostAppBuilder
     )
