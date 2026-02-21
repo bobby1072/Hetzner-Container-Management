@@ -614,7 +614,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
         {
             var errorString = string.Join(
                 ". ",
-                $"{infrastructureComponentInputs.ContainerName} : {validateResult.Errors}"
+                $"{infrastructureComponentInputs.ContainerName} : {string.Join(". ", validateResult.Errors)}"
             );
 
             _logger.LogInformation(
