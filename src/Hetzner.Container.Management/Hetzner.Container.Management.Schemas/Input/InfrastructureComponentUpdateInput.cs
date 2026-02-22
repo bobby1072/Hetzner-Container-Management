@@ -16,31 +16,29 @@ public sealed partial record InfrastructureComponentUpdateInput
 
     [JsonPropertyName("externalPortNumber")]
     [JsonRequired]
-    public required int PublicFacingPortNumber { get; init; }
+    public int? PublicFacingPortNumber { get; init; }
 
     [JsonPropertyName("internalPortNumber")]
     [JsonRequired]
-    public required int InternalPortNumber { get; init; }
+    public int? InternalPortNumber { get; init; }
 
     [JsonPropertyName("imageTag")]
     public string ImageTag { get; init; } = "latest";
 
     [JsonPropertyName("configMap")]
     public Dictionary<string, string?> ConfigMap { get; init; } = new();
-    
+
     [JsonPropertyName("labels")]
     public Dictionary<string, string> Labels { get; init; } = new();
 
     [JsonPropertyName("volumeInfo")]
     public VolumeInfo? Volume { get; init; }
 
+    [JsonPropertyName("networks")]
+    public List<string> Networks { get; init; } = new();
+
     public Func<(bool, string?)>[] ValidatorFunctions =>
-        [
-            IsPublicFacingPortNumberValid,
-            IsInternalPortNumberValid,
-            IsValidConfigMap,
-            IsValidContainerName,
-        ];
+        [IsPublicFacingPortNumberValid, IsInternalPortNumberValid, IsValidContainerName];
     public Func<(Task<bool>, string?)>[] AsyncValidatorFunctions => [];
 
     public string[] CreateEnvStringArrayFromConfigMap(string splitter = "=") =>
@@ -51,22 +49,12 @@ public sealed partial record InfrastructureComponentUpdateInput
     private (bool, string?) IsPublicFacingPortNumberValid() =>
         IsValidPortNumber(PublicFacingPortNumber);
 
-    private (bool, string?) IsValidConfigMap()
-    {
-        const string configMapErrorMessage = "Invalid config map provided";
-        if (ConfigMap.Keys.Any(string.IsNullOrWhiteSpace))
-        {
-            return (false, configMapErrorMessage);
-        }
-        return (true, null);
-    }
-
     private (bool, string?) IsValidContainerName() =>
         (ContainerNameRegex().IsMatch(ContainerName), "Invalid container name provided");
 
     [GeneratedRegex(@"^/?[a-zA-Z0-9][a-zA-Z0-9_.-]+$")]
     private static partial Regex ContainerNameRegex();
 
-    private static (bool, string?) IsValidPortNumber(int portNum) =>
-        (portNum > 0 && portNum <= 65535, "Invalid port number provided");
+    private static (bool, string?) IsValidPortNumber(int? portNum) => 
+        (portNum is null || (portNum > 0 && portNum <= 65535), "Invalid port number provided");
 }
