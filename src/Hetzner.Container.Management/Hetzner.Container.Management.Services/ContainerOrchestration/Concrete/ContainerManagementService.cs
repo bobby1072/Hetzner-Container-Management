@@ -678,13 +678,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
         {
             Image = imageFull,
             Env = infrastructureComponentInput.CreateEnvStringArrayFromConfigMap(),
-            ExposedPorts = new Dictionary<string, object>
-            {
-                {
-                    infrastructureComponentInput.InternalPortNumber.ToString(),
-                    new Dictionary<object, object>()
-                },
-            },
+
             Labels = infrastructureComponentInput.Labels.Concat(new Dictionary<string, string>
             {
                 { "com.hetzner.container.name", infrastructureComponentInput.ContainerName },
@@ -693,23 +687,23 @@ internal sealed class ContainerManagementService : IContainerManagementService
             }).ToDictionary(),
             HostConfig = new HostConfig
             {
-                PortBindings = new Dictionary<string, PortBinding[]>
-                {
-                    {
-                        infrastructureComponentInput.InternalPortNumber.ToString(),
-                        [
-                            new PortBinding
-                            {
-                                HostPort =
-                                    infrastructureComponentInput.PublicFacingPortNumber.ToString(),
-                            },
-                        ]
-                    },
-                },
                 RestartPolicy = new RestartPolicy { Name = "always" },
             },
+            
         };
 
+        if (infrastructureComponentInput.Networks.Any())
+        {
+            request = request with
+            {
+                NetworkingConfig = new NetworkingConfig
+                {
+                    EndpointsConfig = infrastructureComponentInput.Networks
+                        .Select(x => new KeyValuePair<string, EndpointSettings>(x, new EndpointSettings()))
+                        .ToDictionary()
+                }
+            };
+        }
         if (
             mountVolume
             && !string.IsNullOrWhiteSpace(infrastructureComponentInput.Volume?.VolumeName)
@@ -733,6 +727,43 @@ internal sealed class ContainerManagementService : IContainerManagementService
             };
         }
 
+        if (infrastructureComponentInput.PublicFacingPortNumber is not null && 
+            infrastructureComponentInput.InternalPortNumber is int internalPortNum)
+        {
+            request = request with
+            {
+                HostConfig = request.HostConfig with
+                {
+                    PortBindings = new Dictionary<string, PortBinding[]>
+                    {
+                        {
+                            internalPortNum.ToString(),
+                            [
+                                new PortBinding
+                                {
+                                    HostPort =
+                                        infrastructureComponentInput.PublicFacingPortNumber.ToString(),
+                                },
+                            ]
+                        },
+                    },
+                }
+            };
+        }
+        if (infrastructureComponentInput.InternalPortNumber is int internalPortNumber)
+        {
+            request = request with
+            {
+                ExposedPorts = new Dictionary<string, object>
+                {
+                    {
+                        internalPortNumber.ToString(),
+                        new Dictionary<object, object>()
+                    },
+                }
+            };
+        }
+        
         _logger.LogInformation(
             "Container create request to be sent: {@ContainerCreateRequest}",
             request
@@ -747,13 +778,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
     )
     {
         var foundInternalPortNumber =
-            containerInspectResponse.Config?.ExposedPorts?.FirstOrDefault().Key
-            ?? throw new ApiException(
-                LogLevel.Error,
-                HttpStatusCode.InternalServerError,
-                ApplicationConstants.ExceptionConstants.InternalError
-            );
-
+            containerInspectResponse.Config?.ExposedPorts?.FirstOrDefault().Key;
         return new InfrastructureComponent
         {
             Id = containerInspectResponse.Id,
@@ -766,14 +791,9 @@ internal sealed class ContainerManagementService : IContainerManagementService
             PublicFacingPortNumber =
                 containerInspectResponse
                     .HostConfig?.PortBindings?.FirstOrDefault(x => x.Key == foundInternalPortNumber)
-                    .Value.FirstOrDefault()
-                    ?.HostPort
-                ?? throw new ApiException(
-                    LogLevel.Error,
-                    HttpStatusCode.InternalServerError,
-                    ApplicationConstants.ExceptionConstants.InternalError
-                ),
-            VolumeName = containerInspectResponse.Config.Volumes?.FirstOrDefault().Key,
+                    .Value?.FirstOrDefault()
+                    ?.HostPort,
+            VolumeName = containerInspectResponse.Config?.Volumes?.FirstOrDefault().Key,
             LatestContainerSummary = containerInspectResponse,
             LastUpdated = DateTime.UtcNow,
         };
@@ -792,9 +812,9 @@ internal sealed class ContainerManagementService : IContainerManagementService
             || IsVolumesDifferent(infrastructureComponentInput, containerInspectResponse)
             || stringArrayEnv.All(x => containerInspectResponse.Config?.Env?.Contains(x) == true)
                 != true
-            || containerInspectResponse.Config?.ExposedPorts?.Any(x =>
-                x.Key.Contains(infrastructureComponentInput.InternalPortNumber.ToString())
-            ) != true
+            || (containerInspectResponse.Config?.ExposedPorts?.Any(x =>
+                infrastructureComponentInput.InternalPortNumber is int internalPortNum && x.Key.Contains(internalPortNum.ToString())
+            ) != true)
             || containerInspectResponse
                 .HostConfig?.PortBindings?.Values.SelectMany(x => x)
                 .Any(x =>
