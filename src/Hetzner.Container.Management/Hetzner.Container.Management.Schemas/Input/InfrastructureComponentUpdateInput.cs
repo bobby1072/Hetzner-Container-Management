@@ -15,27 +15,25 @@ public sealed partial record InfrastructureComponentUpdateInput
     public required string ContainerName { get; init; }
 
     [JsonPropertyName("externalPortNumber")]
-    [JsonRequired]
     public int? PublicFacingPortNumber { get; init; }
 
     [JsonPropertyName("internalPortNumber")]
-    [JsonRequired]
     public int? InternalPortNumber { get; init; }
 
     [JsonPropertyName("imageTag")]
     public string ImageTag { get; init; } = "latest";
 
     [JsonPropertyName("configMap")]
-    public Dictionary<string, string?> ConfigMap { get; init; } = new();
+    public IReadOnlyDictionary<string, string?> ConfigMap { get; init; } = new Dictionary<string, string?>();
 
     [JsonPropertyName("labels")]
-    public Dictionary<string, string> Labels { get; init; } = new();
+    public IReadOnlyDictionary<string, string> Labels { get; init; } = new Dictionary<string, string>();
 
     [JsonPropertyName("volumeInfo")]
     public VolumeInfo? Volume { get; init; }
 
     [JsonPropertyName("networks")]
-    public List<string> Networks { get; init; } = new();
+    public IReadOnlyCollection<string> Networks { get; init; } = new List<string>();
 
     public Func<(bool, string?)>[] ValidatorFunctions =>
         [IsPublicFacingPortNumberValid, IsInternalPortNumberValid, IsValidContainerName];

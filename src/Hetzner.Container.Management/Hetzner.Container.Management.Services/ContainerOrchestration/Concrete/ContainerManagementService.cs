@@ -778,13 +778,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
     )
     {
         var foundInternalPortNumber =
-            containerInspectResponse.Config?.ExposedPorts?.FirstOrDefault().Key
-            ?? throw new ApiException(
-                LogLevel.Error,
-                HttpStatusCode.InternalServerError,
-                ApplicationConstants.ExceptionConstants.InternalError
-            );
-
+            containerInspectResponse.Config?.ExposedPorts?.FirstOrDefault().Key;
         return new InfrastructureComponent
         {
             Id = containerInspectResponse.Id,
@@ -797,14 +791,9 @@ internal sealed class ContainerManagementService : IContainerManagementService
             PublicFacingPortNumber =
                 containerInspectResponse
                     .HostConfig?.PortBindings?.FirstOrDefault(x => x.Key == foundInternalPortNumber)
-                    .Value.FirstOrDefault()
-                    ?.HostPort
-                ?? throw new ApiException(
-                    LogLevel.Error,
-                    HttpStatusCode.InternalServerError,
-                    ApplicationConstants.ExceptionConstants.InternalError
-                ),
-            VolumeName = containerInspectResponse.Config.Volumes?.FirstOrDefault().Key,
+                    .Value?.FirstOrDefault()
+                    ?.HostPort,
+            VolumeName = containerInspectResponse.Config?.Volumes?.FirstOrDefault().Key,
             LatestContainerSummary = containerInspectResponse,
             LastUpdated = DateTime.UtcNow,
         };

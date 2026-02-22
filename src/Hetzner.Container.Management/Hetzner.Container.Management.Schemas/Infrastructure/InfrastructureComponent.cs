@@ -8,8 +8,8 @@ public sealed record InfrastructureComponent
     public required string ContainerName { get; init; }
     public required string DockerhubNamespace { get; init; }
     public required string DockerhubName { get; init; }
-    public required string PublicFacingPortNumber { get; init; }
-    public required string InternalPortNumber { get; init; }
+    public string? PublicFacingPortNumber { get; init; }
+    public string? InternalPortNumber { get; init; }
     public required string ImageVersionTag { get; init; }
     public required Dictionary<string, string?> ConfigMap { get; init; }
     public string? VolumeName { get; init; }
