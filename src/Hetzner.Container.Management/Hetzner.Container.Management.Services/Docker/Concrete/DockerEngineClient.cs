@@ -14,7 +14,6 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
 {
     private readonly HttpClient _httpClient;
     private readonly DockerEngineApiSettings _dockerEngineApiSettings;
-    private const string ApiVersion = "v1.52";
 
     public DockerEngineClient(
         HttpClient httpClient,
@@ -795,8 +794,10 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
 
     private HttpRequestBuilder GetBaseUrl() =>
         _dockerEngineApiSettings.UseTestHttpEndPoint
-            ? _dockerEngineApiSettings.TestUnixHttpEndPoint.AppendPathSegment(ApiVersion)
-            : "http://localhost".AppendPathSegment(ApiVersion);
+            ? _dockerEngineApiSettings.TestUnixHttpEndPoint.AppendPathSegment(
+                _dockerEngineApiSettings.ApiVersion
+            )
+            : "http://localhost".AppendPathSegment(_dockerEngineApiSettings.ApiVersion);
 
     private static async Task<string?> ErrorExtractor(
         HttpResponseMessage response,
