@@ -788,6 +788,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
             DockerhubNamespace = dockerHubFetchedDetails.RepoResp.Namespace,
             ImageVersionTag = dockerHubFetchedDetails.RepoTag.Name,
             InternalPortNumber = foundInternalPortNumber,
+            Labels = containerInspectResponse.Config?.Labels ?? new Dictionary<string, string?>(),
             PublicFacingPortNumber =
                 containerInspectResponse
                     .HostConfig?.PortBindings?.FirstOrDefault(x => x.Key == foundInternalPortNumber)
