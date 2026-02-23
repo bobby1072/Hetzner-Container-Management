@@ -34,8 +34,8 @@ internal sealed class CurrentInfrastructureExplorer : ICurrentInfrastructureExpl
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(_infraJsonLocation), _infraJsonLocation);
         activity?.SetTag(
-            nameof(infrastructureDocument.Components.Length),
-            infrastructureDocument.Components.Length
+            nameof(infrastructureDocument.Components.Count),
+            infrastructureDocument.Components.Count
         );
         activity?.SetTag(
             nameof(infrastructureDocument.LastUpdated),
