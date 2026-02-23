@@ -820,7 +820,10 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 .HostConfig?.PortBindings?.Values.SelectMany(x => x)
                 .Any(x =>
                     x.HostPort == infrastructureComponentInput.PublicFacingPortNumber.ToString()
-                ) != true;
+                ) != true ||
+            ((containerInspectResponse.Config?.Labels?.Any() != true && !infrastructureComponentInput.Labels.Any()) ||containerInspectResponse.Config?.Labels?.All(kv =>
+                infrastructureComponentInput.Labels.ContainsKey(kv.Key) && containerInspectResponse.Config.Labels[kv.Key]!.Equals(infrastructureComponentInput.Labels[kv.Key])) != true ||
+            !containerInspectResponse.Config.Labels.All(kv => infrastructureComponentInput.Labels.ContainsKey(kv.Key) && containerInspectResponse.Config.Labels[kv.Key]!.Equals(infrastructureComponentInput.Labels[kv.Key])) != true);
     }
 
     private static bool IsVolumesDifferent(
