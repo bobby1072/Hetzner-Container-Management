@@ -12,4 +12,4 @@ builder.Services.AddLogging(ctx =>
 builder.AddProject<Projects.Hetzner_Container_Management_Api>("hetzner-container-management-api")
     .WithExternalHttpEndpoints();
 
-builder.Build().Run();
+await builder.Build().RunAsync();

@@ -22,7 +22,7 @@ public sealed record ContainerConfig
     public string[]? Entrypoint { get; init; }
     public bool NetworkDisabled { get; init; }
     public string[]? OnBuild { get; init; }
-    public Dictionary<string, string>? Labels { get; init; }
+    public Dictionary<string, string?>? Labels { get; init; }
     public string? StopSignal { get; init; }
     public int? StopTimeout { get; init; }
     public string[]? Shell { get; init; }
