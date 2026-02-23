@@ -109,7 +109,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                     cancellationToken
                 );
             }
-            else if (currentInfrastructureDocument.Components.Length == 0)
+            else if (currentInfrastructureDocument.Components.Count == 0)
             {
                 var newInfraStructureDocument = currentInfrastructureDocument with
                 {

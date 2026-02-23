@@ -2,7 +2,7 @@
 
 public sealed record InfrastructureDocument
 {
-    public InfrastructureComponent[] Components { get; init; } = [];
+    public IReadOnlyCollection<InfrastructureComponent> Components { get; init; } = [];
     public DateTime LastUpdated
     {
         get => field.ToUniversalTime();
