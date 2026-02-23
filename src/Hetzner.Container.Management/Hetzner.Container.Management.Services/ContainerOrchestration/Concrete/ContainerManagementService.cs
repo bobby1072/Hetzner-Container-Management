@@ -29,10 +29,8 @@ internal sealed class ContainerManagementService : IContainerManagementService
     private Lazy<ICurrentInfrastructureExplorer> CurrentInfrastructureExplorer =>
         new(_serviceProvider.GetRequiredService<ICurrentInfrastructureExplorer>);
     private readonly ILogger<ContainerManagementService> _logger;
-    private static readonly PollyRetrySettings _commonOperationRetrySettings = new()
-    {
-        TotalAttempts = 2,
-    };
+    private static readonly PollyRetrySettings _commonOperationRetrySettings =
+        new() { TotalAttempts = 2 };
 
     public ContainerManagementService(
         IServiceProvider serviceProvider,
@@ -428,7 +426,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                 HttpStatusCode.InternalServerError,
                 $"Failed to start the container with exception message: {startResult.ExceptionMessage}",
                 null,
-                new Dictionary<string, object?> {{"Logs",  logValues}}
+                new Dictionary<string, object?> { { "Logs", logValues } }
             );
         }
     }
@@ -679,17 +677,20 @@ internal sealed class ContainerManagementService : IContainerManagementService
             Image = imageFull,
             Env = infrastructureComponentInput.CreateEnvStringArrayFromConfigMap(),
 
-            Labels = infrastructureComponentInput.Labels.Concat(new Dictionary<string, string>
-            {
-                { "com.hetzner.container.name", infrastructureComponentInput.ContainerName },
-                { "com.hetzner.container.image", dockerHubFetchedDetails.RepoResp.Name },
-                { "com.hetzner.container.tag", dockerHubFetchedDetails.RepoTag.Name },
-            }).ToDictionary(),
-            HostConfig = new HostConfig
-            {
-                RestartPolicy = new RestartPolicy { Name = "always" },
-            },
-            
+            Labels = infrastructureComponentInput
+                .Labels.Concat(
+                    new Dictionary<string, string>
+                    {
+                        {
+                            "com.hetzner.container.name",
+                            infrastructureComponentInput.ContainerName
+                        },
+                        { "com.hetzner.container.image", dockerHubFetchedDetails.RepoResp.Name },
+                        { "com.hetzner.container.tag", dockerHubFetchedDetails.RepoTag.Name },
+                    }
+                )
+                .ToDictionary(),
+            HostConfig = new HostConfig { RestartPolicy = new RestartPolicy { Name = "always" } },
         };
 
         if (infrastructureComponentInput.Networks.Any())
@@ -698,10 +699,13 @@ internal sealed class ContainerManagementService : IContainerManagementService
             {
                 NetworkingConfig = new NetworkingConfig
                 {
-                    EndpointsConfig = infrastructureComponentInput.Networks
-                        .Select(x => new KeyValuePair<string, EndpointSettings>(x, new EndpointSettings()))
-                        .ToDictionary()
-                }
+                    EndpointsConfig = infrastructureComponentInput
+                        .Networks.Select(x => new KeyValuePair<string, EndpointSettings>(
+                            x,
+                            new EndpointSettings()
+                        ))
+                        .ToDictionary(),
+                },
             };
         }
         if (
@@ -727,8 +731,10 @@ internal sealed class ContainerManagementService : IContainerManagementService
             };
         }
 
-        if (infrastructureComponentInput.PublicFacingPortNumber is not null && 
-            infrastructureComponentInput.InternalPortNumber is int internalPortNum)
+        if (
+            infrastructureComponentInput.PublicFacingPortNumber is not null
+            && infrastructureComponentInput.InternalPortNumber is int internalPortNum
+        )
         {
             request = request with
             {
@@ -738,6 +744,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                     {
                         {
                             internalPortNum.ToString(),
+
                             [
                                 new PortBinding
                                 {
@@ -747,7 +754,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
                             ]
                         },
                     },
-                }
+                },
             };
         }
         if (infrastructureComponentInput.InternalPortNumber is int internalPortNumber)
@@ -756,14 +763,11 @@ internal sealed class ContainerManagementService : IContainerManagementService
             {
                 ExposedPorts = new Dictionary<string, object>
                 {
-                    {
-                        internalPortNumber.ToString(),
-                        new Dictionary<object, object>()
-                    },
-                }
+                    { internalPortNumber.ToString(), new Dictionary<object, object>() },
+                },
             };
         }
-        
+
         _logger.LogInformation(
             "Container create request to be sent: {@ContainerCreateRequest}",
             request
@@ -777,8 +781,9 @@ internal sealed class ContainerManagementService : IContainerManagementService
         (GetRepositoryResponse RepoResp, RepositoryTag RepoTag) dockerHubFetchedDetails
     )
     {
-        var foundInternalPortNumber =
-            containerInspectResponse.Config?.ExposedPorts?.FirstOrDefault().Key;
+        var foundInternalPortNumber = containerInspectResponse
+            .Config?.ExposedPorts?.FirstOrDefault()
+            .Key;
         return new InfrastructureComponent
         {
             Id = containerInspectResponse.Id,
@@ -789,11 +794,10 @@ internal sealed class ContainerManagementService : IContainerManagementService
             ImageVersionTag = dockerHubFetchedDetails.RepoTag.Name,
             InternalPortNumber = foundInternalPortNumber,
             Labels = containerInspectResponse.Config?.Labels ?? new Dictionary<string, string?>(),
-            PublicFacingPortNumber =
-                containerInspectResponse
-                    .HostConfig?.PortBindings?.FirstOrDefault(x => x.Key == foundInternalPortNumber)
-                    .Value?.FirstOrDefault()
-                    ?.HostPort,
+            PublicFacingPortNumber = containerInspectResponse
+                .HostConfig?.PortBindings?.FirstOrDefault(x => x.Key == foundInternalPortNumber)
+                .Value?.FirstOrDefault()
+                ?.HostPort,
             VolumeName = containerInspectResponse.Config?.Volumes?.FirstOrDefault().Key,
             LatestContainerSummary = containerInspectResponse,
             LastUpdated = DateTime.UtcNow,
@@ -813,17 +817,37 @@ internal sealed class ContainerManagementService : IContainerManagementService
             || IsVolumesDifferent(infrastructureComponentInput, containerInspectResponse)
             || stringArrayEnv.All(x => containerInspectResponse.Config?.Env?.Contains(x) == true)
                 != true
-            || (containerInspectResponse.Config?.ExposedPorts?.Any(x =>
-                infrastructureComponentInput.InternalPortNumber is int internalPortNum && x.Key.Contains(internalPortNum.ToString())
-            ) != true)
+            || (
+                containerInspectResponse.Config?.ExposedPorts?.Any(x =>
+                    infrastructureComponentInput.InternalPortNumber is int internalPortNum
+                    && x.Key.Contains(internalPortNum.ToString())
+                ) != true
+            )
             || containerInspectResponse
                 .HostConfig?.PortBindings?.Values.SelectMany(x => x)
                 .Any(x =>
                     x.HostPort == infrastructureComponentInput.PublicFacingPortNumber.ToString()
-                ) != true ||
-            ((containerInspectResponse.Config?.Labels?.Any() != true && !infrastructureComponentInput.Labels.Any()) ||containerInspectResponse.Config?.Labels?.All(kv =>
-                infrastructureComponentInput.Labels.ContainsKey(kv.Key) && containerInspectResponse.Config.Labels[kv.Key]!.Equals(infrastructureComponentInput.Labels[kv.Key])) != true ||
-            !containerInspectResponse.Config.Labels.All(kv => infrastructureComponentInput.Labels.ContainsKey(kv.Key) && containerInspectResponse.Config.Labels[kv.Key]!.Equals(infrastructureComponentInput.Labels[kv.Key])) != true);
+                ) != true
+            || AreLabelsChanged(
+                infrastructureComponentInput.Labels,
+                containerInspectResponse.Config?.Labels
+            );
+    }
+
+    private static bool AreLabelsChanged(
+        IReadOnlyDictionary<string, string> inputLabels,
+        Dictionary<string, string?>? containerLabels
+    )
+    {
+        var containerNonSystemLabels =
+            containerLabels
+                ?.Where(kv => !kv.Key.StartsWith("com.hetzner.container."))
+                .ToDictionary() ?? [];
+
+        return inputLabels.Count != containerNonSystemLabels.Count
+            || !inputLabels.All(kv =>
+                containerNonSystemLabels.TryGetValue(kv.Key, out var val) && val == kv.Value
+            );
     }
 
     private static bool IsVolumesDifferent(
