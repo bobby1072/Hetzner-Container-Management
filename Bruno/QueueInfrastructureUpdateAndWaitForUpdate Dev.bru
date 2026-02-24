@@ -18,19 +18,119 @@ body:json {
   [
     {
       "dockerHubDetails": {
+        "namespace": "library",
+        "repositoryName": "postgres"
+      },
+      "containerName": "pokegame-db",
+      "imageTag": "18-alpine",
+      "internalPortNumber": 5432,
+      "configMap": {
+        "POSTGRES_DB": "poke_game",
+        "POSTGRES_USER": "c7ceab94aa984affaa458b10fe362cd7",
+        "POSTGRES_PASSWORD": "2011c6e5af4543c8b4610a6c73d9a4ab"
+      },
+      "labels": {
+        "com.docker.compose.project": "pokegame",
+        "ReleaseVersion": "26.2055.2"
+      },
+      "volumeInfo": {
+        "volumeName": "postgres_data",
+        "internalMountTarget": "/var/lib/postgresql"
+      },
+      "networks": [
+        "web"
+      ]
+    },
+    {
+      "containerName": "pokegame-api",
+      "imageTag": "26.2055.7",
+      "dockerHubDetails": {
         "username": "bobby1072",
         "password": "Crudboys123@",
-        "repositoryName": "hetzner-container-management",
-        "namespace": "bobby1072"
+        "namespace": "bobby1072",
+        "repositoryName": "poke_game_api"
       },
-      "containerName": "test-container",
-      "externalPortNumber": 4000,
-      "internalPortNumber": 80,
+      "labels": {
+        "com.docker.compose.project": "pokegame",
+        "traefik.enable": "true",
+        "traefik.http.routers.pokegame-api.rule": "Host(`static.124.204.224.46.clients.your-server.de`) && PathPrefix(`/pokegame-api`)",
+        "traefik.http.middlewares.pokegame-api-strip.stripprefix.prefixes": "/pokegame-api",
+        "traefik.http.routers.pokegame-api.middlewares": "pokegame-api-strip",
+        "traefik.http.routers.pokegame-api.entrypoints": "websecure",
+        "traefik.http.routers.pokegame-api.tls.certresolver": "myresolver",
+        "traefik.http.services.pokegame-api.loadbalancer.server.port": "80",
+        "ReleaseVersion": "26.2055.2"
+      },
       "configMap": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "http://+80",
-        "ApiKey__0": "test-api-key"
-      }
+        "ASPNETCORE_ENVIRONMENT": "Production",
+        "Logging__LogLevel__Default": "Debug",
+        "ASPNETCORE_URLS": "http://+:80",
+        "ConnectionStrings__PostgresConnection": "Server=pokegame-db;Port=5432;Database=poke_game;User ID=c7ceab94aa984affaa458b10fe362cd7;Password=2011c6e5af4543c8b4610a6c73d9a4ab;SslMode=Disable;Include Error Detail=false"
+      },
+      "networks": [
+        "web"
+      ]
+    },
+    {
+      "containerName": "pokegame-singalr",
+      "imageTag": "26.2055.7",
+      "dockerHubDetails": {
+        "username": "bobby1072",
+        "password": "Crudboys123@",
+        "namespace": "bobby1072",
+        "repositoryName": "poke_game_signal_r_api"
+      },
+      "labels": {
+        "com.docker.compose.project": "pokegame",
+        "traefik.enable": "true",
+        "traefik.http.routers.pokegame-singalr.rule": "Host(`static.124.204.224.46.clients.your-server.de`) && PathPrefix(`/pokegame-singalr`)",
+        "traefik.http.middlewares.pokegame-signalr-strip.stripprefix.prefixes": "/pokegame-signalr",
+        "traefik.http.routers.pokegame-signalr.middlewares": "pokegame-signalr-strip",
+        "traefik.http.routers.pokegame-singalr.entrypoints": "websecure",
+        "traefik.http.routers.pokegame-singalr.tls.certresolver": "myresolver",
+        "traefik.http.services.pokegame-singalr.loadbalancer.server.port": "80",
+        "ReleaseVersion": "26.2055.2"
+      },
+      "configMap": {
+        "ASPNETCORE_ENVIRONMENT": "Production",
+        "Logging__LogLevel__Default": "Debug",
+        "ASPNETCORE_URLS": "http://+:80",
+        "ConnectionStrings__PostgresConnection": "Server=pokegame-db;Port=5432;Database=poke_game;User ID=c7ceab94aa984affaa458b10fe362cd7;Password=2011c6e5af4543c8b4610a6c73d9a4ab;SslMode=Disable;Include Error Detail=false"
+      },
+      "networks": [
+        "web"
+      ]
+    },
+    {
+      "containerName": "pokegame-react-server",
+      "imageTag": "26.2055.7",
+      "dockerHubDetails": {
+        "username": "bobby1072",
+        "password": "Crudboys123@",
+        "namespace": "bobby1072",
+        "repositoryName": "poke_game_react_server"
+      },
+      "labels": {
+        "com.docker.compose.project": "pokegame",
+        "traefik.enable": "true",
+        "traefik.http.routers.pokegame-react-server.rule": "Host(`static.124.204.224.46.clients.your-server.de`) && PathPrefix(`/pokegame-react-server`)",
+        "traefik.http.middlewares.pokegame-react-strip.stripprefix.prefixes": "/pokegame-react-server",
+        "traefik.http.routers.pokegame-react-server.middlewares": "pokegame-react-strip",
+        "traefik.http.routers.pokegame-react-server.entrypoints": "websecure",
+        "traefik.http.routers.pokegame-react-server.tls.certresolver": "myresolver",
+        "traefik.http.services.pokegame-react-server.loadbalancer.server.port": "80",
+        "ReleaseVersion": "26.2055.7"
+      },
+      "configMap": {
+        "ASPNETCORE_ENVIRONMENT": "Production",
+        "Logging__LogLevel__Default": "Debug",
+        "ASPNETCORE_URLS": "http://+:80",
+        "PokeGameBackendSettings__PokeGameApiProdUri": "https://static.124.204.224.46.clients.your-server.de:7107/pokegame-api",
+        "PokeGameBackendSettings__PokeGameSignalRProdUri": "https://static.124.204.224.46.clients.your-server.de:7107/pokegame-signalr"
+      },
+      "networks": [
+        "web"
+      ]
     }
   ]
 }
