@@ -1039,7 +1039,7 @@ public sealed class ContainerManagementServiceTests
         var tagResponse = _fixture.CreateRepositoryTag("v2.0");
         var oldContainerInspectResponse = _fixture.CreateContainerInspectResponse(
             "test-container",
-            $"{repoResponse.Namespace}/{repoResponse.Name}",
+            "different-namespace/different-repo",
             "v1.0"
         );
         var existingComponent = _fixture.CreateInfrastructureComponent("test-container", "v1.0");
@@ -1102,21 +1102,6 @@ public sealed class ContainerManagementServiceTests
             .ReturnsAsync(
                 ContainerManagementServiceTestFixture.CreateSuccessResult(
                     oldContainerInspectResponse
-                )
-            );
-
-        _mockDockerEngineClient
-            .Setup(x =>
-                x.RemoveContainerAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<CancellationToken>()
-                )
-            )
-            .ReturnsAsync(
-                ContainerManagementServiceTestFixture.CreateFailureResult<object?>(
-                    "Failed to remove container"
                 )
             );
 

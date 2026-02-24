@@ -58,7 +58,7 @@ internal sealed class CurrentInfrastructureExplorer : ICurrentInfrastructureExpl
 
         var retryPipeline = _writeToFileRetrySettings.ToPipeline();
         await retryPipeline.ExecuteAsync(
-            async (ct) => await File.WriteAllTextAsync(_infraJsonLocation, serialisedDocument, ct),
+            async ct => await File.WriteAllTextAsync(_infraJsonLocation, serialisedDocument, ct),
             cancellationToken
         );
     }

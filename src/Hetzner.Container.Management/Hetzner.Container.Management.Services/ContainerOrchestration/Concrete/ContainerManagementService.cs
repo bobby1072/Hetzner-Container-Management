@@ -259,9 +259,9 @@ internal sealed class ContainerManagementService : IContainerManagementService
             nameof(infrastructureComponentInput.ContainerName),
             infrastructureComponentInput.ContainerName
         );
-
+        var combinedImageName = $"{dockerHubFetchedDetails.RepoResp.Namespace}/{dockerHubFetchedDetails.RepoResp.Name}";
         var combinedImageNameAndTag =
-            $"{dockerHubFetchedDetails.RepoResp.Namespace}/{dockerHubFetchedDetails.RepoResp.Name}:{dockerHubFetchedDetails.RepoTag.Name}";
+            $"{combinedImageName}:{dockerHubFetchedDetails.RepoTag.Name}";
         var existingContainer = await GetExistingContainerFromDockerEngineAsync(
             infrastructureComponentInput.ContainerName,
             cancellationToken
@@ -278,7 +278,7 @@ internal sealed class ContainerManagementService : IContainerManagementService
         {
             if (
                 existingContainer is not null
-                && existingContainer.Config?.Image?.Contains(combinedImageNameAndTag) != true
+                && existingContainer.Config?.Image?.Contains(combinedImageName) != true
             )
             {
                 throw new ApiException(
