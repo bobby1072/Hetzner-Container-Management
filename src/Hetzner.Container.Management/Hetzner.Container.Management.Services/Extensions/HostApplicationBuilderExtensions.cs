@@ -18,15 +18,38 @@ namespace Hetzner.Container.Management.Services.Extensions;
 
 public static class HostApplicationBuilderExtensions
 {
-    public static IHostApplicationBuilder AddContainerManagementApplication<TInfraExplorer>(
+    public static IServiceCollection AddContainerManagementCleanerApplication(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        ServiceInfo serviceInfo
+    )
+    {
+        services
+            .AddHttpClientStuff(configuration);
+        
+        services
+            .AddTelemetryService(
+                string.IsNullOrWhiteSpace(serviceInfo.ReleaseName)
+                    ? Assembly
+                        .GetExecutingAssembly()
+                        .GetName()
+                        .FullName:
+                    serviceInfo.ReleaseName
+            );
+
+        services.AddScoped<IDockerProcessExecutor, DockerProcessExecutor>();
+
+        return services; 
+    }
+    public static IHostApplicationBuilder AddContainerManagementApiApplication<TInfraExplorer>(
         this IHostApplicationBuilder hostAppBuilder,
         ServiceInfo serviceInfo,
         Func<IServiceProvider, TInfraExplorer>? explorerCreator = null
     )
         where TInfraExplorer : class, ICurrentInfrastructureExplorer
     {
-        hostAppBuilder
-            .AddHttpClientStuff();
+        hostAppBuilder.Services
+            .AddHttpClientStuff(hostAppBuilder.Configuration);
         
         hostAppBuilder
             .Services
@@ -58,31 +81,31 @@ public static class HostApplicationBuilderExtensions
 
         return hostAppBuilder;
     }
-    private static IHostApplicationBuilder AddHttpClientStuff(
-        this IHostApplicationBuilder hostAppBuilder
+    private static IServiceCollection AddHttpClientStuff(
+        this IServiceCollection serviceCollection,
+        IConfiguration configuration
     )
     {
         var dockerEngineApiSettings =
-            hostAppBuilder.CheckAndAddSingletonOptions<DockerEngineApiSettings>();
+            serviceCollection.CheckAndAddSingletonOptions<DockerEngineApiSettings>(configuration);
         var dockerHubApiSettings =
-            hostAppBuilder.CheckAndAddSingletonOptions<DockerHubApiSettings>();
+            serviceCollection.CheckAndAddSingletonOptions<DockerHubApiSettings>(configuration);
 
-        hostAppBuilder.Services.AddMemoryCache();
-        hostAppBuilder.Services.AddHttpClient();
-        hostAppBuilder.Services.AddHttpClientWithResilience<IDockerHubClient, DockerHubClient>(
+        serviceCollection.AddMemoryCache();
+        serviceCollection.AddHttpClient();
+        serviceCollection.AddHttpClientWithResilience<IDockerHubClient, DockerHubClient>(
             dockerHubApiSettings
         );
         if (dockerEngineApiSettings.UseTestHttpEndPoint)
         {
-            hostAppBuilder.Services.AddHttpClientWithResilience<
+            serviceCollection.AddHttpClientWithResilience<
                 IDockerEngineClient,
                 DockerEngineClient
             >(dockerEngineApiSettings);
         }
         else
         {
-            hostAppBuilder
-                .Services.AddHttpClientWithResilience<IDockerEngineClient, DockerEngineClient>(
+            serviceCollection.AddHttpClientWithResilience<IDockerEngineClient, DockerEngineClient>(
                     dockerEngineApiSettings
                 )
                 .ConfigurePrimaryHttpMessageHandler(
@@ -108,6 +131,6 @@ public static class HostApplicationBuilderExtensions
                 );
         }
 
-        return hostAppBuilder;
+        return serviceCollection;
     }
 }

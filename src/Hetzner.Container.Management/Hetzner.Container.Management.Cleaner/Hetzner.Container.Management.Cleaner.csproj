@@ -10,5 +10,10 @@
     <ItemGroup>
       <ProjectReference Include="..\Hetzner.Container.Management.Services\Hetzner.Container.Management.Services.csproj" />
     </ItemGroup>
-
+    
+    <ItemGroup>
+        <None Update="appsettings.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 </Project>
