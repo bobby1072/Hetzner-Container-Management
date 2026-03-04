@@ -41,10 +41,15 @@ internal sealed class ContainerManagementUpdateBackgroundExecutor : BackgroundSe
         {
             var dequeuedOperationJob =
                 await _containerManagementOperationQueue.DequeueUpdateOperationAsync(stoppingToken);
+            
+            await using var asyncScope = _serviceScopeFactory.CreateAsyncScope();
+            var managerService =
+                asyncScope.ServiceProvider.GetRequiredService<IContainerManagementUpdateService>();
 
             var executionResult = await ExecuteOperationAsync(
                 dequeuedOperationJob.Key,
                 dequeuedOperationJob.Value.Input,
+                managerService,
                 stoppingToken
             );
 
@@ -57,12 +62,17 @@ internal sealed class ContainerManagementUpdateBackgroundExecutor : BackgroundSe
                     stoppingToken
                 );
             }
+            
+            var cleanerService = asyncScope.ServiceProvider.GetRequiredService<IContainerManagementCleanerService>();
+            
+            await cleanerService.CleanDaemonAsync(stoppingToken);
         }
     }
 
     private async Task<(InfrastructureComponent[]?, ApiException?)> ExecuteOperationAsync(
         Guid jobId,
         InfrastructureComponentUpdateInput[] input,
+        IContainerManagementUpdateService managerService,
         CancellationToken cancellationToken
     )
     {
@@ -74,10 +84,6 @@ internal sealed class ContainerManagementUpdateBackgroundExecutor : BackgroundSe
         {
             try
             {
-                await using var asyncScope = _serviceScopeFactory.CreateAsyncScope();
-                var managerService =
-                    asyncScope.ServiceProvider.GetRequiredService<IContainerManagementUpdateService>();
-
                 var result = await managerService.UpdateCurrentInfrastructure(
                     input,
                     cancellationToken
