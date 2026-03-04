@@ -17,7 +17,7 @@ using Moq;
 
 namespace Hetzner.Container.Management.Tests.ContainerOrchestration;
 
-public sealed class ContainerManagementServiceTests
+public sealed class ContainerManagementUpdateUpdateServiceTests
 {
     private readonly Mock<IDockerHubClient> _mockDockerHubClient;
     private readonly Mock<IDockerEngineClient> _mockDockerEngineClient;
@@ -25,9 +25,9 @@ public sealed class ContainerManagementServiceTests
     private readonly Mock<ICurrentInfrastructureExplorer> _mockInfrastructureExplorer;
     private readonly IServiceProvider _serviceProvider;
     private readonly ContainerManagementServiceTestFixture _fixture;
-    private readonly ContainerManagementService _sut;
+    private readonly ContainerManagementUpdateUpdateService _sut;
 
-    public ContainerManagementServiceTests()
+    public ContainerManagementUpdateUpdateServiceTests()
     {
         _mockDockerHubClient = new Mock<IDockerHubClient>();
         _mockDockerEngineClient = new Mock<IDockerEngineClient>();
@@ -42,9 +42,9 @@ public sealed class ContainerManagementServiceTests
         services.AddSingleton(_mockInfrastructureExplorer.Object);
         _serviceProvider = services.BuildServiceProvider();
 
-        _sut = new ContainerManagementService(
+        _sut = new ContainerManagementUpdateUpdateService(
             _serviceProvider,
-            new NullLogger<ContainerManagementService>()
+            new NullLogger<ContainerManagementUpdateUpdateService>()
         );
     }
 

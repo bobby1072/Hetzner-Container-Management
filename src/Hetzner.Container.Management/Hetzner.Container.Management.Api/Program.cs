@@ -52,7 +52,7 @@ try
 
     var infraJsonPath = builder.Configuration.GetValue<string>("InfrastructureJsonPath");
     
-    builder.AddContainerManagementApplication<CurrentInfrastructureExplorer>(serviceOpts,sp => new CurrentInfrastructureExplorer(
+    builder.AddContainerManagementApiApplication<CurrentInfrastructureExplorer>(serviceOpts,sp => new CurrentInfrastructureExplorer(
         string.IsNullOrWhiteSpace(infraJsonPath) ? 
             Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), $"Data{Path.DirectorySeparatorChar}CurrentInfrastructure.json")) :
             Path.GetFullPath(infraJsonPath),

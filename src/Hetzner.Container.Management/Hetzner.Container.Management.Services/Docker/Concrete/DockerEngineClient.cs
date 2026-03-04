@@ -792,6 +792,126 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         }
     }
 
+    public async Task<DockerApiActionResult<ImagePruneResponse?>> DeleteUnusedImages(
+        string? filters = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(filters), filters);
+
+        try
+        {
+            var builder = GetBaseUrl()
+                .AppendPathSegment("images")
+                .AppendPathSegment("prune")
+                .AddAsyncErrorExtractor(ErrorExtractor);
+
+            if (!string.IsNullOrWhiteSpace(filters))
+            {
+                builder = builder.AppendQueryParameter("filters", filters);
+            }
+
+            var data = await builder.PostJsonAsync<ImagePruneResponse>(
+                _httpClient,
+                cancellationToken
+            );
+            return new DockerApiActionResult<ImagePruneResponse?> { Data = data };
+        }
+        catch (BT.Common.Http.Exceptions.HttpRequestException ex)
+        {
+            return new DockerApiActionResult<ImagePruneResponse?>
+            {
+                ExceptionMessage = ex.Message,
+                StatusCode = ex.HttpStatusCode,
+            };
+        }
+        catch (Exception ex)
+        {
+            return HandleError<ImagePruneResponse?>(ex, nameof(DeleteUnusedImages));
+        }
+    }
+
+    public async Task<DockerApiActionResult<ContainerPruneResponse?>> DeleteStoppedContainers(
+        string? filters = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(filters), filters);
+
+        try
+        {
+            var builder = GetBaseUrl()
+                .AppendPathSegment("containers")
+                .AppendPathSegment("prune")
+                .AddAsyncErrorExtractor(ErrorExtractor);
+
+            if (!string.IsNullOrWhiteSpace(filters))
+            {
+                builder = builder.AppendQueryParameter("filters", filters);
+            }
+
+            var data = await builder.PostJsonAsync<ContainerPruneResponse>(
+                _httpClient,
+                cancellationToken
+            );
+            return new DockerApiActionResult<ContainerPruneResponse?> { Data = data };
+        }
+        catch (BT.Common.Http.Exceptions.HttpRequestException ex)
+        {
+            return new DockerApiActionResult<ContainerPruneResponse?>
+            {
+                ExceptionMessage = ex.Message,
+                StatusCode = ex.HttpStatusCode,
+            };
+        }
+        catch (Exception ex)
+        {
+            return HandleError<ContainerPruneResponse?>(ex, nameof(DeleteStoppedContainers));
+        }
+    }
+
+    public async Task<DockerApiActionResult<VolumePruneResponse?>> DeleteUnusedVolumes(
+        string? filters = null,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
+        activity?.SetTag(nameof(filters), filters);
+
+        try
+        {
+            var builder = GetBaseUrl()
+                .AppendPathSegment("volumes")
+                .AppendPathSegment("prune")
+                .AddAsyncErrorExtractor(ErrorExtractor);
+
+            if (!string.IsNullOrWhiteSpace(filters))
+            {
+                builder = builder.AppendQueryParameter("filters", filters);
+            }
+
+            var data = await builder.PostJsonAsync<VolumePruneResponse>(
+                _httpClient,
+                cancellationToken
+            );
+            return new DockerApiActionResult<VolumePruneResponse?> { Data = data };
+        }
+        catch (BT.Common.Http.Exceptions.HttpRequestException ex)
+        {
+            return new DockerApiActionResult<VolumePruneResponse?>
+            {
+                ExceptionMessage = ex.Message,
+                StatusCode = ex.HttpStatusCode,
+            };
+        }
+        catch (Exception ex)
+        {
+            return HandleError<VolumePruneResponse?>(ex, nameof(DeleteUnusedVolumes));
+        }
+    }
+
     private HttpRequestBuilder GetBaseUrl() =>
         _dockerEngineApiSettings.UseTestHttpEndPoint
             ? _dockerEngineApiSettings.TestUnixHttpEndPoint.AppendPathSegment(

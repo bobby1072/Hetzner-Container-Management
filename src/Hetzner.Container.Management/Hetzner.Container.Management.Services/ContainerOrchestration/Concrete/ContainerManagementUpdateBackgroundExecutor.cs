@@ -11,16 +11,16 @@ using Microsoft.Extensions.Logging;
 
 namespace Hetzner.Container.Management.Services.ContainerOrchestration.Concrete;
 
-internal sealed class ContainerManagementBackgroundOperationExecutor : BackgroundService
+internal sealed class ContainerManagementUpdateBackgroundExecutor : BackgroundService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IContainerManagementOperationQueue _containerManagementOperationQueue;
-    private readonly ILogger<ContainerManagementBackgroundOperationExecutor> _logger;
+    private readonly ILogger<ContainerManagementUpdateBackgroundExecutor> _logger;
 
-    public ContainerManagementBackgroundOperationExecutor(
+    public ContainerManagementUpdateBackgroundExecutor(
         IServiceScopeFactory serviceScopeFactory,
         IContainerManagementOperationQueue containerManagementOperationQueue,
-        ILogger<ContainerManagementBackgroundOperationExecutor> logger
+        ILogger<ContainerManagementUpdateBackgroundExecutor> logger
     )
     {
         _serviceScopeFactory = serviceScopeFactory;
@@ -34,17 +34,22 @@ internal sealed class ContainerManagementBackgroundOperationExecutor : Backgroun
 
         _logger.LogInformation(
             "{BackgroundServiceName} is starting up...",
-            nameof(ContainerManagementBackgroundOperationExecutor)
+            nameof(ContainerManagementUpdateBackgroundExecutor)
         );
 
         while (!stoppingToken.IsCancellationRequested)
         {
             var dequeuedOperationJob =
                 await _containerManagementOperationQueue.DequeueUpdateOperationAsync(stoppingToken);
+            
+            await using var asyncScope = _serviceScopeFactory.CreateAsyncScope();
+            var managerService =
+                asyncScope.ServiceProvider.GetRequiredService<IContainerManagementUpdateService>();
 
             var executionResult = await ExecuteOperationAsync(
                 dequeuedOperationJob.Key,
                 dequeuedOperationJob.Value.Input,
+                managerService,
                 stoppingToken
             );
 
@@ -57,12 +62,17 @@ internal sealed class ContainerManagementBackgroundOperationExecutor : Backgroun
                     stoppingToken
                 );
             }
+            
+            var cleanerService = asyncScope.ServiceProvider.GetRequiredService<IContainerManagementCleanerService>();
+            
+            await cleanerService.CleanDaemonAsync(stoppingToken);
         }
     }
 
     private async Task<(InfrastructureComponent[]?, ApiException?)> ExecuteOperationAsync(
         Guid jobId,
         InfrastructureComponentUpdateInput[] input,
+        IContainerManagementUpdateService managerService,
         CancellationToken cancellationToken
     )
     {
@@ -74,10 +84,6 @@ internal sealed class ContainerManagementBackgroundOperationExecutor : Backgroun
         {
             try
             {
-                await using var asyncScope = _serviceScopeFactory.CreateAsyncScope();
-                var managerService =
-                    asyncScope.ServiceProvider.GetRequiredService<IContainerManagementService>();
-
                 var result = await managerService.UpdateCurrentInfrastructure(
                     input,
                     cancellationToken

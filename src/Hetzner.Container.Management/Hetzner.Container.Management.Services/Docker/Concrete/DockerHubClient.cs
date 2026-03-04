@@ -39,10 +39,9 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(dockerHubDetails.Namespace), dockerHubDetails.Namespace);
         activity?.SetTag(nameof(dockerHubDetails.RepositoryName), dockerHubDetails.RepositoryName);
-        
+
         try
         {
-
             var builder = _settings
                 .BaseUrl.AppendPathSegment("v2")
                 .AppendPathSegment("namespaces")
@@ -52,11 +51,12 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
 
             if (!string.IsNullOrWhiteSpace(accessToken))
             {
-               builder = builder 
-                .WithHeader(HeaderNames.Authorization, $"Bearer {accessToken}");
+                builder = builder.WithHeader(HeaderNames.Authorization, $"Bearer {accessToken}");
             }
-            var result = await builder
-                .GetJsonAsync<GetRepositoryResponse>(_httpClient, cancellationToken);
+            var result = await builder.GetJsonAsync<GetRepositoryResponse>(
+                _httpClient,
+                cancellationToken
+            );
 
             return new DockerApiActionResult<GetRepositoryResponse?> { Data = result };
         }
@@ -84,10 +84,9 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
         activity?.SetTag(nameof(dockerHubDetails.Namespace), dockerHubDetails.Namespace);
         activity?.SetTag(nameof(dockerHubDetails.RepositoryName), dockerHubDetails.RepositoryName);
         activity?.SetTag(nameof(tag), tag);
-        
+
         try
         {
-            
             var builder = _settings
                 .BaseUrl.AppendPathSegment("v2")
                 .AppendPathSegment("namespaces")
@@ -97,15 +96,13 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
                 .AppendPathSegment("tags")
                 .AppendPathSegment(tag)
                 .WithHeader(HeaderNames.Authorization, $"Bearer {accessToken}");
-                
+
             if (!string.IsNullOrWhiteSpace(accessToken))
             {
-                builder = builder 
-                    .WithHeader(HeaderNames.Authorization, $"Bearer {accessToken}");
+                builder = builder.WithHeader(HeaderNames.Authorization, $"Bearer {accessToken}");
             }
-            var result = await builder
-                .GetJsonAsync<RepositoryTag>(_httpClient, cancellationToken);
-            
+            var result = await builder.GetJsonAsync<RepositoryTag>(_httpClient, cancellationToken);
+
             return new DockerApiActionResult<RepositoryTag?> { Data = result };
         }
         catch (HttpRequestException ex)
@@ -126,7 +123,7 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
     {
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(identifier), identifier);
-        
+
         try
         {
             var cacheKey = GetDockerAccessTokenCacheKey(identifier);
@@ -144,7 +141,7 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
                 .AppendPathSegment("token")
                 .WithApplicationJson(request)
                 .PostJsonAsync<AuthCreateTokenResponse>(_httpClient, cancellationToken);
-            
+
             _memoryCache.Set(cacheKey, response.AccessToken, GetCacheOptions());
 
             return new DockerApiActionResult<string?> { Data = response.AccessToken };
@@ -158,9 +155,10 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
             return HandleError<string?>(ex, nameof(GetRepositoryTagAsync));
         }
     }
-    private static MemoryCacheEntryOptions GetCacheOptions() => new()
-    {
-        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(45),
-    };
-    private static string GetDockerAccessTokenCacheKey(string identifier) => $"dockerhub_access_token_{identifier}";
+
+    private static MemoryCacheEntryOptions GetCacheOptions() =>
+        new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(45) };
+
+    private static string GetDockerAccessTokenCacheKey(string identifier) =>
+        $"dockerhub_access_token_{identifier}";
 }

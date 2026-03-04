@@ -100,4 +100,16 @@ internal interface IDockerEngineClient
         bool force = false,
         CancellationToken cancellationToken = default
     );
+    Task<DockerApiActionResult<ImagePruneResponse?>> DeleteUnusedImages(
+        string? filters = null,
+        CancellationToken cancellationToken = default
+    );
+    Task<DockerApiActionResult<ContainerPruneResponse?>> DeleteStoppedContainers(
+        string? filters = null,
+        CancellationToken cancellationToken = default
+    );
+    Task<DockerApiActionResult<VolumePruneResponse?>> DeleteUnusedVolumes(
+        string? filters = null,
+        CancellationToken cancellationToken = default
+    );
 }
