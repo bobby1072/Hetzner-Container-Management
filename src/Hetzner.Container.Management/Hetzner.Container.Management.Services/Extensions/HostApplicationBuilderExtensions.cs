@@ -37,7 +37,9 @@ public static class HostApplicationBuilderExtensions
                     serviceInfo.ReleaseName
             );
 
-        services.AddScoped<IDockerProcessExecutor, DockerProcessExecutor>();
+        services
+            .AddTransient<IContainerManagementCleanerService, ContainerManagementCleanerService>()
+            .AddHostedService<ContainerManagementCleanerBackgroundExecutor>();
 
         return services; 
     }
