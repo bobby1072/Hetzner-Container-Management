@@ -75,9 +75,9 @@ public static class HostApplicationBuilderExtensions
 
         hostAppBuilder
             .Services.AddScoped<IDockerProcessExecutor, DockerProcessExecutor>()
-            .AddScoped<IContainerManagementService, ContainerManagementService>()
+            .AddScoped<IContainerManagementUpdateService, ContainerManagementUpdateUpdateService>()
             .AddSingleton<IContainerManagementOperationQueue, ContainerManagementOperationQueue>()
-            .AddHostedService<ContainerManagementBackgroundOperationExecutor>();
+            .AddHostedService<ContainerManagementUpdateBackgroundExecutor>();
 
         return hostAppBuilder;
     }

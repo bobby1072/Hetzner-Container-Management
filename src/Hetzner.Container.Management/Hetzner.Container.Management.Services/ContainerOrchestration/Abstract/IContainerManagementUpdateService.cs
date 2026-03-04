@@ -3,7 +3,7 @@ using Hetzner.Container.Management.Schemas.Input;
 
 namespace Hetzner.Container.Management.Services.ContainerOrchestration.Abstract;
 
-internal interface IContainerManagementService
+internal interface IContainerManagementUpdateService
 {
     Task<InfrastructureComponent[]> UpdateCurrentInfrastructure(
         InfrastructureComponentUpdateInput[] infrastructureDocuments,

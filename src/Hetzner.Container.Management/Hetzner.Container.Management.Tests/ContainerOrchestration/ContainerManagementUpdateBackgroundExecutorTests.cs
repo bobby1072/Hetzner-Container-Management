@@ -11,28 +11,28 @@ using Moq;
 
 namespace Hetzner.Container.Management.Tests.ContainerOrchestration;
 
-public sealed class ContainerManagementBackgroundOperationExecutorTests
+public sealed class ContainerManagementUpdateBackgroundExecutorTests
 {
     private readonly Mock<IContainerManagementOperationQueue> _mockOperationQueue;
-    private readonly Mock<IContainerManagementService> _mockContainerManagementService;
+    private readonly Mock<IContainerManagementUpdateService> _mockContainerManagementService;
 
-    public ContainerManagementBackgroundOperationExecutorTests()
+    public ContainerManagementUpdateBackgroundExecutorTests()
     {
         _mockOperationQueue = new Mock<IContainerManagementOperationQueue>();
-        _mockContainerManagementService = new Mock<IContainerManagementService>();
+        _mockContainerManagementService = new Mock<IContainerManagementUpdateService>();
     }
 
-    private ContainerManagementBackgroundOperationExecutor CreateSut()
+    private ContainerManagementUpdateBackgroundExecutor CreateSut()
     {
         var services = new ServiceCollection();
         services.AddSingleton(_mockContainerManagementService.Object);
         var serviceProvider = services.BuildServiceProvider();
         var scopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
 
-        return new ContainerManagementBackgroundOperationExecutor(
+        return new ContainerManagementUpdateBackgroundExecutor(
             scopeFactory,
             _mockOperationQueue.Object,
-            new NullLogger<ContainerManagementBackgroundOperationExecutor>()
+            new NullLogger<ContainerManagementUpdateBackgroundExecutor>()
         );
     }
 

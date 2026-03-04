@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Hetzner.Container.Management.Services.ContainerOrchestration.Concrete;
 
-internal sealed class ContainerManagementService : IContainerManagementService
+internal sealed class ContainerManagementUpdateUpdateService : IContainerManagementUpdateService
 {
     private readonly IServiceProvider _serviceProvider;
     private Lazy<IDockerHubClient> DockerHubClient =>
@@ -28,13 +28,13 @@ internal sealed class ContainerManagementService : IContainerManagementService
         new(_serviceProvider.GetRequiredService<IDockerProcessExecutor>);
     private Lazy<ICurrentInfrastructureExplorer> CurrentInfrastructureExplorer =>
         new(_serviceProvider.GetRequiredService<ICurrentInfrastructureExplorer>);
-    private readonly ILogger<ContainerManagementService> _logger;
+    private readonly ILogger<ContainerManagementUpdateUpdateService> _logger;
     private static readonly PollyRetrySettings _commonOperationRetrySettings =
         new() { TotalAttempts = 2 };
 
-    public ContainerManagementService(
+    public ContainerManagementUpdateUpdateService(
         IServiceProvider serviceProvider,
-        ILogger<ContainerManagementService> logger
+        ILogger<ContainerManagementUpdateUpdateService> logger
     )
     {
         _serviceProvider = serviceProvider;
