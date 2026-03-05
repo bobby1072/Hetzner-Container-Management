@@ -3,8 +3,10 @@ using BT.Common.Api.Helpers.Exceptions;
 using Hetzner.Container.Management.Schemas.Infrastructure;
 using Hetzner.Container.Management.Schemas.Input;
 using Hetzner.Container.Management.Services.ContainerOrchestration.Concrete;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 
 namespace Hetzner.Container.Management.Tests.ContainerOrchestration;
 
@@ -15,6 +17,7 @@ public sealed class ContainerManagementOperationQueueTests : IDisposable
     public ContainerManagementOperationQueueTests()
     {
         _sut = new ContainerManagementOperationQueue(
+            Mock.Of<IMemoryCache>(),
             new NullLogger<ContainerManagementOperationQueue>()
         );
     }
@@ -298,6 +301,7 @@ public sealed class ContainerManagementOperationQueueTests : IDisposable
     {
         // Arrange - use a separate instance so the shared one isn't affected
         var queue = new ContainerManagementOperationQueue(
+            Mock.Of<IMemoryCache>(),
             new NullLogger<ContainerManagementOperationQueue>()
         );
         var input = CreateTestInput();
