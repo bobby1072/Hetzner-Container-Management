@@ -21,7 +21,6 @@ public sealed class ContainerManagementController : ControllerBase
 
     public ContainerManagementController(
         IContainerManagementOperationQueue containerManagementOperationQueue,
-        IMemoryCache memoryCache,
         ILogger<ContainerManagementController> logger
     )
     {
@@ -39,7 +38,7 @@ public sealed class ContainerManagementController : ControllerBase
             if (foundJobState is null)
             {
                 return Results.NotFound(
-                    "Failed to find job"    
+                    "Failed to find job. It could have expired (jobs only stored for 5 mins after outcome achieved) or incorrect job id provided"    
                 );
             }
 
