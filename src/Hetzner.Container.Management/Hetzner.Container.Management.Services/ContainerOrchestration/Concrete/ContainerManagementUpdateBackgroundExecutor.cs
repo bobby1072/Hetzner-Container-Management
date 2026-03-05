@@ -87,8 +87,8 @@ internal sealed class ContainerManagementUpdateBackgroundExecutor : BackgroundSe
         activity?.SetTag(nameof(input), input.Length);
         try
         {
-            _memoryCache.Set(jobId, new ContainerUpdateJobState { Status = ContainerUpdateJobStatusEnum.Started, JobId = jobId }, _timeToCacheJob);
-            
+            _memoryCache.Set(jobId, new ContainerUpdateJobState { Status = ContainerUpdateJobStatusEnum.InProgress, JobId = jobId }, _timeToCacheJob);
+
             var result = await managerService.UpdateCurrentInfrastructure(
                 input,
                 cancellationToken

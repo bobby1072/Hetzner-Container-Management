@@ -2,7 +2,8 @@
 
 public enum ContainerUpdateJobStatusEnum
 {
-    Started = 1,
+    NotStarted = 1,
+    InProgress,
     Succeeded,
     Failed,
 }
