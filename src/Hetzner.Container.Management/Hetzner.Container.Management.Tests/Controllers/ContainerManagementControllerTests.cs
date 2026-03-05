@@ -9,7 +9,6 @@ using Hetzner.Container.Management.Services;
 using Hetzner.Container.Management.Services.ContainerOrchestration.Abstract;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -18,7 +17,6 @@ namespace Hetzner.Container.Management.Tests.Controllers;
 public sealed class ContainerManagementControllerTests
 {
     private readonly Mock<IContainerManagementOperationQueue> _mockOperationQueue;
-    private readonly Mock<IMemoryCache> _mockMemoryCache;
     private readonly Mock<ILogger<ContainerManagementController>> _mockLogger;
     private readonly ContainerManagementController _sut;
     private readonly Fixture _fixture;
@@ -26,15 +24,111 @@ public sealed class ContainerManagementControllerTests
     public ContainerManagementControllerTests()
     {
         _mockOperationQueue = new Mock<IContainerManagementOperationQueue>();
-        _mockMemoryCache = new Mock<IMemoryCache>();
         _mockLogger = new Mock<ILogger<ContainerManagementController>>();
         _sut = new ContainerManagementController(
             _mockOperationQueue.Object,
-            _mockMemoryCache.Object,
             _mockLogger.Object
         );
         _fixture = new Fixture();
     }
+
+    #region CheckInfrastructureUpdate Tests
+
+    [Fact]
+    public async Task CheckInfrastructureUpdate_WhenJobNotFound_ReturnsNotFound()
+    {
+        // Arrange
+        var jobId = Guid.NewGuid();
+        _mockOperationQueue
+            .Setup(x => x.GetContainerUpdateJobState(jobId))
+            .Returns((ContainerUpdateJobState?)null);
+
+        // Act
+        var result = await _sut.CheckInfrastructureUpdate(jobId);
+
+        // Assert
+        var notFoundResult = Assert.IsType<NotFound<string>>(result);
+        Assert.Contains("Failed to find job", notFoundResult.Value);
+    }
+
+    [Fact]
+    public async Task CheckInfrastructureUpdate_WhenApiExceptionExists_ReturnsProblemResult()
+    {
+        // Arrange
+        var jobId = Guid.NewGuid();
+        var apiException = new ApiException(
+            LogLevel.Warning,
+            HttpStatusCode.BadRequest,
+            "Invalid update request"
+        );
+
+        _mockOperationQueue
+            .Setup(x => x.GetContainerUpdateJobState(jobId))
+            .Returns(
+                new ContainerUpdateJobState
+                {
+                    JobId = jobId,
+                    Status = ContainerUpdateJobStatusEnum.Failed,
+                    ApiException = apiException,
+                }
+            );
+
+        // Act
+        var result = await _sut.CheckInfrastructureUpdate(jobId);
+
+        // Assert
+        var problemResult = Assert.IsType<ProblemHttpResult>(result);
+        Assert.Equal((int)HttpStatusCode.BadRequest, problemResult.StatusCode);
+        Assert.Equal("Invalid update request", problemResult.ProblemDetails.Detail);
+    }
+
+    [Fact]
+    public async Task CheckInfrastructureUpdate_WhenStatusIsFailed_ReturnsInternalServerError()
+    {
+        // Arrange
+        var jobId = Guid.NewGuid();
+        var failedState = new ContainerUpdateJobState
+        {
+            JobId = jobId,
+            Status = ContainerUpdateJobStatusEnum.Failed,
+        };
+
+        _mockOperationQueue
+            .Setup(x => x.GetContainerUpdateJobState(jobId))
+            .Returns(failedState);
+
+        // Act
+        var result = await _sut.CheckInfrastructureUpdate(jobId);
+
+        // Assert
+        var internalServerErrorResult = Assert.IsType<InternalServerError<ContainerUpdateJobState>>(result);
+        Assert.Equal(failedState, internalServerErrorResult.Value);
+    }
+
+    [Fact]
+    public async Task CheckInfrastructureUpdate_WhenJobExistsAndNotFailed_ReturnsOk()
+    {
+        // Arrange
+        var jobId = Guid.NewGuid();
+        var inProgressState = new ContainerUpdateJobState
+        {
+            JobId = jobId,
+            Status = ContainerUpdateJobStatusEnum.InProgress,
+        };
+
+        _mockOperationQueue
+            .Setup(x => x.GetContainerUpdateJobState(jobId))
+            .Returns(inProgressState);
+
+        // Act
+        var result = await _sut.CheckInfrastructureUpdate(jobId);
+
+        // Assert
+        var okResult = Assert.IsType<Ok<ContainerUpdateJobState>>(result);
+        Assert.Equal(inProgressState, okResult.Value);
+    }
+
+    #endregion
 
     #region QueueInfrastructureUpdate Tests
 

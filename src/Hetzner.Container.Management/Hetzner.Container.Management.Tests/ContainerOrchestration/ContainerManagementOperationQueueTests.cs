@@ -6,25 +6,27 @@ using Hetzner.Container.Management.Services.ContainerOrchestration.Concrete;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
 
 namespace Hetzner.Container.Management.Tests.ContainerOrchestration;
 
 public sealed class ContainerManagementOperationQueueTests : IDisposable
 {
-    private readonly Mock<IMemoryCache> _memoryCache = new();
+    private readonly MemoryCache _memoryCache = new(new MemoryCacheOptions());
     private readonly ContainerManagementOperationQueue _sut;
 
     public ContainerManagementOperationQueueTests()
     {
-        _memoryCache.Setup(x => x.Set(It.IsAny<string>(), It.IsAny<object>())).Returm;
         _sut = new ContainerManagementOperationQueue(
-            _memoryCache.Object,
+            _memoryCache,
             new NullLogger<ContainerManagementOperationQueue>()
         );
     }
 
-    public void Dispose() => _sut.Dispose();
+    public void Dispose()
+    {
+        _sut.Dispose();
+        _memoryCache.Dispose();
+    }
 
     private static InfrastructureComponentUpdateInput[] CreateTestInput(
         string containerName = "test-container"
@@ -302,8 +304,9 @@ public sealed class ContainerManagementOperationQueueTests : IDisposable
     public async Task Dispose_PreventsNewItemsFromBeingQueued()
     {
         // Arrange - use a separate instance so the shared one isn't affected
+        using var localMemoryCache = new MemoryCache(new MemoryCacheOptions());
         var queue = new ContainerManagementOperationQueue(
-            Mock.Of<IMemoryCache>(),
+            localMemoryCache,
             new NullLogger<ContainerManagementOperationQueue>()
         );
         var input = CreateTestInput();

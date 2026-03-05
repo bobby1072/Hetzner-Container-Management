@@ -29,16 +29,21 @@ public sealed class ContainerManagementController : ControllerBase
     }
 
     [HttpGet("[action]")]
-    public async Task<IResult> CheckInfrastructureUpdate([FromQuery] Guid jobId, CancellationToken cancellationToken = default)
+    public async Task<IResult> CheckInfrastructureUpdate(
+        [FromQuery] Guid jobId,
+        CancellationToken cancellationToken = default
+    )
     {
         try
         {
-            var foundJobState = _containerManagementOperationQueue.GetContainerUpdateJobState(jobId);
+            var foundJobState = _containerManagementOperationQueue.GetContainerUpdateJobState(
+                jobId
+            );
 
             if (foundJobState is null)
             {
                 return Results.NotFound(
-                    "Failed to find job. It could have expired (jobs only stored for 5 mins after outcome achieved) or incorrect job id provided"    
+                    "Failed to find job. It could have expired (jobs only stored for 5 mins after outcome achieved) or incorrect job id provided"
                 );
             }
 
@@ -63,7 +68,7 @@ public sealed class ContainerManagementController : ControllerBase
 
             return ex.ToResult();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(
                 ex,
@@ -74,6 +79,7 @@ public sealed class ContainerManagementController : ControllerBase
             return Results.InternalServerError();
         }
     }
+
     [HttpPost("[action]")]
     public async Task<IResult> QueueInfrastructureUpdate(
         [FromBody] InfrastructureComponentUpdateInput[] input,
@@ -127,7 +133,9 @@ public sealed class ContainerManagementController : ControllerBase
 
             //Remove container summaries on api response
 
-            return Results.Ok(queueResult.Select(x => x with {LatestContainerSummary = null}).ToArray());
+            return Results.Ok(
+                queueResult.Select(x => x with { LatestContainerSummary = null }).ToArray()
+            );
         }
         catch (ApiException ex)
         {

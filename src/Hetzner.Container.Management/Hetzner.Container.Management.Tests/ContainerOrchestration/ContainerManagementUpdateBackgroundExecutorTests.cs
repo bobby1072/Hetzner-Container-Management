@@ -4,7 +4,6 @@ using Hetzner.Container.Management.Schemas.Infrastructure;
 using Hetzner.Container.Management.Schemas.Input;
 using Hetzner.Container.Management.Services.ContainerOrchestration.Abstract;
 using Hetzner.Container.Management.Services.ContainerOrchestration.Concrete;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -36,7 +35,6 @@ public sealed class ContainerManagementUpdateBackgroundExecutorTests
         return new ContainerManagementUpdateBackgroundExecutor(
             scopeFactory,
             _mockOperationQueue.Object,
-            new MemoryCache(new MemoryCacheOptions()),
             new NullLogger<ContainerManagementUpdateBackgroundExecutor>()
         );
     }
