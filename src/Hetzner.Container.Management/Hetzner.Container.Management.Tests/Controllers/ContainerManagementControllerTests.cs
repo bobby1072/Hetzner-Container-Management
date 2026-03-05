@@ -9,6 +9,7 @@ using Hetzner.Container.Management.Services;
 using Hetzner.Container.Management.Services.ContainerOrchestration.Abstract;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -17,6 +18,7 @@ namespace Hetzner.Container.Management.Tests.Controllers;
 public sealed class ContainerManagementControllerTests
 {
     private readonly Mock<IContainerManagementOperationQueue> _mockOperationQueue;
+    private readonly Mock<IMemoryCache> _mockMemoryCache;
     private readonly Mock<ILogger<ContainerManagementController>> _mockLogger;
     private readonly ContainerManagementController _sut;
     private readonly Fixture _fixture;
@@ -24,8 +26,13 @@ public sealed class ContainerManagementControllerTests
     public ContainerManagementControllerTests()
     {
         _mockOperationQueue = new Mock<IContainerManagementOperationQueue>();
+        _mockMemoryCache = new Mock<IMemoryCache>();
         _mockLogger = new Mock<ILogger<ContainerManagementController>>();
-        _sut = new ContainerManagementController(_mockOperationQueue.Object, _mockLogger.Object);
+        _sut = new ContainerManagementController(
+            _mockOperationQueue.Object,
+            _mockMemoryCache.Object,
+            _mockLogger.Object
+        );
         _fixture = new Fixture();
     }
 
@@ -107,12 +114,8 @@ public sealed class ContainerManagementControllerTests
         var result = await _sut.QueueInfrastructureUpdate(input);
 
         // Assert
-        var problemResult = Assert.IsType<ProblemHttpResult>(result);
-        Assert.Equal((int)HttpStatusCode.InternalServerError, problemResult.StatusCode);
-        Assert.Equal(
-            ApplicationConstants.ExceptionConstants.InternalError,
-            problemResult.ProblemDetails.Detail
-        );
+        var statusCodeResult = Assert.IsType<StatusCodeHttpResult>(result);
+        Assert.Equal((int)HttpStatusCode.InternalServerError, statusCodeResult.StatusCode);
 
         _mockLogger.Verify(
             x =>
@@ -244,12 +247,8 @@ public sealed class ContainerManagementControllerTests
         var result = await _sut.QueueAndWaitForInfrastructureUpdate(input);
 
         // Assert
-        var problemResult = Assert.IsType<ProblemHttpResult>(result);
-        Assert.Equal((int)HttpStatusCode.InternalServerError, problemResult.StatusCode);
-        Assert.Equal(
-            ApplicationConstants.ExceptionConstants.InternalError,
-            problemResult.ProblemDetails.Detail
-        );
+        var statusCodeResult = Assert.IsType<StatusCodeHttpResult>(result);
+        Assert.Equal((int)HttpStatusCode.InternalServerError, statusCodeResult.StatusCode);
 
         _mockLogger.Verify(
             x =>

@@ -4,6 +4,7 @@ using Hetzner.Container.Management.Schemas.Infrastructure;
 using Hetzner.Container.Management.Schemas.Input;
 using Hetzner.Container.Management.Services.ContainerOrchestration.Abstract;
 using Hetzner.Container.Management.Services.ContainerOrchestration.Concrete;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -15,23 +16,27 @@ public sealed class ContainerManagementUpdateBackgroundExecutorTests
 {
     private readonly Mock<IContainerManagementOperationQueue> _mockOperationQueue;
     private readonly Mock<IContainerManagementUpdateService> _mockContainerManagementService;
+    private readonly Mock<IContainerManagementCleanerService> _mockCleanerService;
 
     public ContainerManagementUpdateBackgroundExecutorTests()
     {
         _mockOperationQueue = new Mock<IContainerManagementOperationQueue>();
         _mockContainerManagementService = new Mock<IContainerManagementUpdateService>();
+        _mockCleanerService = new Mock<IContainerManagementCleanerService>();
     }
 
     private ContainerManagementUpdateBackgroundExecutor CreateSut()
     {
         var services = new ServiceCollection();
         services.AddSingleton(_mockContainerManagementService.Object);
+        services.AddSingleton(_mockCleanerService.Object);
         var serviceProvider = services.BuildServiceProvider();
         var scopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
 
         return new ContainerManagementUpdateBackgroundExecutor(
             scopeFactory,
             _mockOperationQueue.Object,
+            new MemoryCache(new MemoryCacheOptions()),
             new NullLogger<ContainerManagementUpdateBackgroundExecutor>()
         );
     }
