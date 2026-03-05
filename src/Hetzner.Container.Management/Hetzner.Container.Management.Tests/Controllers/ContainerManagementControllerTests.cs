@@ -114,8 +114,7 @@ public sealed class ContainerManagementControllerTests
         var result = await _sut.QueueInfrastructureUpdate(input);
 
         // Assert
-        var statusCodeResult = Assert.IsType<StatusCodeHttpResult>(result);
-        Assert.Equal((int)HttpStatusCode.InternalServerError, statusCodeResult.StatusCode);
+        Assert.IsType<InternalServerError>(result);
 
         _mockLogger.Verify(
             x =>
@@ -247,8 +246,7 @@ public sealed class ContainerManagementControllerTests
         var result = await _sut.QueueAndWaitForInfrastructureUpdate(input);
 
         // Assert
-        var statusCodeResult = Assert.IsType<StatusCodeHttpResult>(result);
-        Assert.Equal((int)HttpStatusCode.InternalServerError, statusCodeResult.StatusCode);
+        Assert.IsType<InternalServerError>(result);
 
         _mockLogger.Verify(
             x =>
