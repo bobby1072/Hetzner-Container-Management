@@ -7,6 +7,7 @@ using Hetzner.Container.Management.Services;
 using Hetzner.Container.Management.Services.ContainerOrchestration.Abstract;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Hetzner.Container.Management.Api.Controllers;
 
@@ -16,17 +17,66 @@ namespace Hetzner.Container.Management.Api.Controllers;
 public sealed class ContainerManagementController : ControllerBase
 {
     private readonly IContainerManagementOperationQueue _containerManagementOperationQueue;
+    private readonly IMemoryCache _memoryCache;
     private readonly ILogger<ContainerManagementController> _logger;
 
     public ContainerManagementController(
         IContainerManagementOperationQueue containerManagementOperationQueue,
+        IMemoryCache memoryCache,
         ILogger<ContainerManagementController> logger
     )
     {
         _containerManagementOperationQueue = containerManagementOperationQueue;
+        _memoryCache = memoryCache;
         _logger = logger;
     }
 
+    [HttpGet("[action]")]
+    public async Task<IResult> CheckInfrastructureUpdate([FromQuery] Guid jobId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var foundJobState = _memoryCache.Get<ContainerUpdateJobState>(jobId);
+
+            if (foundJobState is null)
+            {
+                return Results.NotFound(
+                    "Failed to find job"    
+                );
+            }
+
+            if (foundJobState.ApiException is not null)
+            {
+                return foundJobState.ApiException.ToResult();
+            }
+
+            if (foundJobState.Status == ContainerUpdateJobStatusEnum.Failed)
+            {
+                return Results.InternalServerError(foundJobState);
+            }
+            return Results.Ok(foundJobState);
+        }
+        catch (ApiException ex)
+        {
+            _logger.Log(
+                ex.LogLevel,
+                "An api exception occured during request with message: {ExMessage}",
+                ex.Message
+            );
+
+            return ex.ToResult();
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "An exception occured during request with message: {Message}",
+                ex.Message
+            );
+
+            return Results.InternalServerError();
+        }
+    }
     [HttpPost("[action]")]
     public async Task<IResult> QueueInfrastructureUpdate(
         [FromBody] InfrastructureComponentUpdateInput[] input,
@@ -60,11 +110,7 @@ public sealed class ContainerManagementController : ControllerBase
                 ex.Message
             );
 
-            return Results.Problem(
-                ApplicationConstants.ExceptionConstants.InternalError,
-                null,
-                (int)HttpStatusCode.InternalServerError
-            );
+            return Results.InternalServerError();
         }
     }
 
@@ -105,11 +151,7 @@ public sealed class ContainerManagementController : ControllerBase
                 ex.Message
             );
 
-            return Results.Problem(
-                ApplicationConstants.ExceptionConstants.InternalError,
-                null,
-                (int)HttpStatusCode.InternalServerError
-            );
+            return Results.InternalServerError();
         }
     }
 }
