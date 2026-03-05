@@ -16,19 +16,15 @@ internal sealed class ContainerManagementUpdateBackgroundExecutor : BackgroundSe
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IContainerManagementOperationQueue _containerManagementOperationQueue;
-    private readonly IMemoryCache _memoryCache;
     private readonly ILogger<ContainerManagementUpdateBackgroundExecutor> _logger;
-    private static readonly TimeSpan _timeToCacheJob = TimeSpan.FromMinutes(5);
     public ContainerManagementUpdateBackgroundExecutor(
         IServiceScopeFactory serviceScopeFactory,
         IContainerManagementOperationQueue containerManagementOperationQueue,
-        IMemoryCache memoryCache,
         ILogger<ContainerManagementUpdateBackgroundExecutor> logger
     )
     {
         _serviceScopeFactory = serviceScopeFactory;
         _containerManagementOperationQueue = containerManagementOperationQueue;
-        _memoryCache = memoryCache;
         _logger = logger;
     }
 
@@ -87,7 +83,7 @@ internal sealed class ContainerManagementUpdateBackgroundExecutor : BackgroundSe
         activity?.SetTag(nameof(input), input.Length);
         try
         {
-            _memoryCache.Set(jobId, new ContainerUpdateJobState { Status = ContainerUpdateJobStatusEnum.InProgress, JobId = jobId }, _timeToCacheJob);
+            _containerManagementOperationQueue.CacheJobProgress(jobId, new ContainerUpdateJobState { Status = ContainerUpdateJobStatusEnum.InProgress, JobId = jobId });
 
             var result = await managerService.UpdateCurrentInfrastructure(
                 input,
@@ -96,13 +92,13 @@ internal sealed class ContainerManagementUpdateBackgroundExecutor : BackgroundSe
             
             _logger.LogInformation("Infrastructure has successfully been updated");
 
-            _memoryCache.Set(jobId, new ContainerUpdateJobState { Status = ContainerUpdateJobStatusEnum.Succeeded, JobId = jobId }, _timeToCacheJob);
+            _containerManagementOperationQueue.CacheJobProgress(jobId, new ContainerUpdateJobState { Status = ContainerUpdateJobStatusEnum.Succeeded, JobId = jobId });
             
             return (result, null);
         }
         catch (ApiException exception)
         {
-            _memoryCache.Set(jobId, new ContainerUpdateJobState { Status = ContainerUpdateJobStatusEnum.Failed, JobId = jobId, ApiException = exception }, _timeToCacheJob);
+            _containerManagementOperationQueue.CacheJobProgress(jobId, new ContainerUpdateJobState { Status = ContainerUpdateJobStatusEnum.Failed, JobId = jobId, ApiException = exception });
             
             return (null, exception);
         }
@@ -113,7 +109,7 @@ internal sealed class ContainerManagementUpdateBackgroundExecutor : BackgroundSe
                 "Unhandled exception occurred executing update operation in the background"
             );
 
-            _memoryCache.Set(jobId, new ContainerUpdateJobState { Status = ContainerUpdateJobStatusEnum.Failed, JobId = jobId }, _timeToCacheJob);
+            _containerManagementOperationQueue.CacheJobProgress(jobId, new ContainerUpdateJobState { Status = ContainerUpdateJobStatusEnum.Failed, JobId = jobId });
             
             return (
                 null,

@@ -43,6 +43,7 @@ internal sealed class ContainerManagementOperationQueue : IContainerManagementOp
     >();
     private readonly IMemoryCache _memoryCache;
     private readonly ILogger<ContainerManagementOperationQueue> _logger;
+    private static readonly TimeSpan _timeToCacheJob = TimeSpan.FromMinutes(5);
 
     public ContainerManagementOperationQueue(
         IMemoryCache memoryCache,
@@ -52,6 +53,13 @@ internal sealed class ContainerManagementOperationQueue : IContainerManagementOp
         _logger = logger;
     }
 
+    public void CacheJobProgress(Guid jobId, ContainerUpdateJobState jobState)
+    {
+        _memoryCache.Set(jobId, jobState, _timeToCacheJob);
+    }
+
+    public ContainerUpdateJobState? GetContainerUpdateJobState(Guid jobId)
+        => _memoryCache.Get<ContainerUpdateJobState>(jobId);
     public async Task<Guid> QueueUpdateOperation(
         InfrastructureComponentUpdateInput[] input,
         CancellationToken cancellationToken = default

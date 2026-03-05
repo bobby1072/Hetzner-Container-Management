@@ -12,12 +12,14 @@ namespace Hetzner.Container.Management.Tests.ContainerOrchestration;
 
 public sealed class ContainerManagementOperationQueueTests : IDisposable
 {
+    private readonly Mock<IMemoryCache> _memoryCache = new();
     private readonly ContainerManagementOperationQueue _sut;
 
     public ContainerManagementOperationQueueTests()
     {
+        _memoryCache.Setup(x => x.Set(It.IsAny<string>(), It.IsAny<object>())).Returm;
         _sut = new ContainerManagementOperationQueue(
-            Mock.Of<IMemoryCache>(),
+            _memoryCache.Object,
             new NullLogger<ContainerManagementOperationQueue>()
         );
     }

@@ -17,7 +17,6 @@ namespace Hetzner.Container.Management.Api.Controllers;
 public sealed class ContainerManagementController : ControllerBase
 {
     private readonly IContainerManagementOperationQueue _containerManagementOperationQueue;
-    private readonly IMemoryCache _memoryCache;
     private readonly ILogger<ContainerManagementController> _logger;
 
     public ContainerManagementController(
@@ -27,7 +26,6 @@ public sealed class ContainerManagementController : ControllerBase
     )
     {
         _containerManagementOperationQueue = containerManagementOperationQueue;
-        _memoryCache = memoryCache;
         _logger = logger;
     }
 
@@ -36,7 +34,7 @@ public sealed class ContainerManagementController : ControllerBase
     {
         try
         {
-            var foundJobState = _memoryCache.Get<ContainerUpdateJobState>(jobId);
+            var foundJobState = _containerManagementOperationQueue.GetContainerUpdateJobState(jobId);
 
             if (foundJobState is null)
             {
