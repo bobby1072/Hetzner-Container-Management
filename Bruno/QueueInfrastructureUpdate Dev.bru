@@ -35,6 +35,12 @@ body:json {
   ]
 }
 
+script:post-response {
+  const body = res.getBody();
+  bru.setVar("JobId", body.data);
+  console.log("JobId set to:", body.data);
+}
+
 settings {
   encodeUrl: true
   timeout: 0

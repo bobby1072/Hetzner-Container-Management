@@ -1,13 +1,10 @@
-﻿using System.Net;
-using BT.Common.Api.Helpers.Exceptions;
+﻿using BT.Common.Api.Helpers.Exceptions;
 using BT.Common.Api.Helpers.Models;
 using Hetzner.Container.Management.Schemas.Infrastructure;
 using Hetzner.Container.Management.Schemas.Input;
-using Hetzner.Container.Management.Services;
 using Hetzner.Container.Management.Services.ContainerOrchestration.Abstract;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Hetzner.Container.Management.Api.Controllers;
 
