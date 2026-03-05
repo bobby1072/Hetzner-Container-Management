@@ -25,9 +25,110 @@ public sealed class ContainerManagementControllerTests
     {
         _mockOperationQueue = new Mock<IContainerManagementOperationQueue>();
         _mockLogger = new Mock<ILogger<ContainerManagementController>>();
-        _sut = new ContainerManagementController(_mockOperationQueue.Object, _mockLogger.Object);
+        _sut = new ContainerManagementController(
+            _mockOperationQueue.Object,
+            _mockLogger.Object
+        );
         _fixture = new Fixture();
     }
+
+    #region CheckInfrastructureUpdate Tests
+
+    [Fact]
+    public async Task CheckInfrastructureUpdate_WhenJobNotFound_ReturnsNotFound()
+    {
+        // Arrange
+        var jobId = Guid.NewGuid();
+        _mockOperationQueue
+            .Setup(x => x.GetContainerUpdateJobState(jobId))
+            .Returns((ContainerUpdateJobState?)null);
+
+        // Act
+        var result = await _sut.CheckInfrastructureUpdate(jobId);
+
+        // Assert
+        var notFoundResult = Assert.IsType<NotFound<string>>(result);
+        Assert.Contains("Failed to find job", notFoundResult.Value);
+    }
+
+    [Fact]
+    public async Task CheckInfrastructureUpdate_WhenApiExceptionExists_ReturnsProblemResult()
+    {
+        // Arrange
+        var jobId = Guid.NewGuid();
+        var apiException = new ApiException(
+            LogLevel.Warning,
+            HttpStatusCode.BadRequest,
+            "Invalid update request"
+        );
+
+        _mockOperationQueue
+            .Setup(x => x.GetContainerUpdateJobState(jobId))
+            .Returns(
+                new ContainerUpdateJobState
+                {
+                    JobId = jobId,
+                    Status = ContainerUpdateJobStatusEnum.Failed,
+                    ApiException = apiException,
+                }
+            );
+
+        // Act
+        var result = await _sut.CheckInfrastructureUpdate(jobId);
+
+        // Assert
+        var problemResult = Assert.IsType<ProblemHttpResult>(result);
+        Assert.Equal((int)HttpStatusCode.BadRequest, problemResult.StatusCode);
+        Assert.Equal("Invalid update request", problemResult.ProblemDetails.Detail);
+    }
+
+    [Fact]
+    public async Task CheckInfrastructureUpdate_WhenStatusIsFailed_ReturnsInternalServerError()
+    {
+        // Arrange
+        var jobId = Guid.NewGuid();
+        var failedState = new ContainerUpdateJobState
+        {
+            JobId = jobId,
+            Status = ContainerUpdateJobStatusEnum.Failed,
+        };
+
+        _mockOperationQueue
+            .Setup(x => x.GetContainerUpdateJobState(jobId))
+            .Returns(failedState);
+
+        // Act
+        var result = await _sut.CheckInfrastructureUpdate(jobId);
+
+        // Assert
+        var internalServerErrorResult = Assert.IsType<InternalServerError<ContainerUpdateJobState>>(result);
+        Assert.Equal(failedState, internalServerErrorResult.Value);
+    }
+
+    [Fact]
+    public async Task CheckInfrastructureUpdate_WhenJobExistsAndNotFailed_ReturnsOk()
+    {
+        // Arrange
+        var jobId = Guid.NewGuid();
+        var inProgressState = new ContainerUpdateJobState
+        {
+            JobId = jobId,
+            Status = ContainerUpdateJobStatusEnum.InProgress,
+        };
+
+        _mockOperationQueue
+            .Setup(x => x.GetContainerUpdateJobState(jobId))
+            .Returns(inProgressState);
+
+        // Act
+        var result = await _sut.CheckInfrastructureUpdate(jobId);
+
+        // Assert
+        var okResult = Assert.IsType<Ok<ContainerUpdateJobState>>(result);
+        Assert.Equal(inProgressState, okResult.Value);
+    }
+
+    #endregion
 
     #region QueueInfrastructureUpdate Tests
 
@@ -107,12 +208,7 @@ public sealed class ContainerManagementControllerTests
         var result = await _sut.QueueInfrastructureUpdate(input);
 
         // Assert
-        var problemResult = Assert.IsType<ProblemHttpResult>(result);
-        Assert.Equal((int)HttpStatusCode.InternalServerError, problemResult.StatusCode);
-        Assert.Equal(
-            ApplicationConstants.ExceptionConstants.InternalError,
-            problemResult.ProblemDetails.Detail
-        );
+        Assert.IsType<InternalServerError>(result);
 
         _mockLogger.Verify(
             x =>
@@ -244,12 +340,7 @@ public sealed class ContainerManagementControllerTests
         var result = await _sut.QueueAndWaitForInfrastructureUpdate(input);
 
         // Assert
-        var problemResult = Assert.IsType<ProblemHttpResult>(result);
-        Assert.Equal((int)HttpStatusCode.InternalServerError, problemResult.StatusCode);
-        Assert.Equal(
-            ApplicationConstants.ExceptionConstants.InternalError,
-            problemResult.ProblemDetails.Detail
-        );
+        Assert.IsType<InternalServerError>(result);
 
         _mockLogger.Verify(
             x =>

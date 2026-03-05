@@ -5,6 +5,7 @@ using BT.Common.Services.Concrete;
 using Hetzner.Container.Management.Schemas.Infrastructure;
 using Hetzner.Container.Management.Schemas.Input;
 using Hetzner.Container.Management.Services.ContainerOrchestration.Abstract;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace Hetzner.Container.Management.Services.ContainerOrchestration.Concrete;
@@ -40,14 +41,25 @@ internal sealed class ContainerManagementOperationQueue : IContainerManagementOp
             )
         >
     >();
-
+    private readonly IMemoryCache _memoryCache;
     private readonly ILogger<ContainerManagementOperationQueue> _logger;
+    private static readonly TimeSpan _timeToCacheJob = TimeSpan.FromMinutes(5);
 
-    public ContainerManagementOperationQueue(ILogger<ContainerManagementOperationQueue> logger)
+    public ContainerManagementOperationQueue(
+        IMemoryCache memoryCache,
+        ILogger<ContainerManagementOperationQueue> logger)
     {
+        _memoryCache = memoryCache;
         _logger = logger;
     }
 
+    public void CacheJobProgress(Guid jobId, ContainerUpdateJobState jobState)
+    {
+        _memoryCache.Set(jobId, jobState, _timeToCacheJob);
+    }
+
+    public ContainerUpdateJobState? GetContainerUpdateJobState(Guid jobId)
+        => _memoryCache.Get<ContainerUpdateJobState>(jobId);
     public async Task<Guid> QueueUpdateOperation(
         InfrastructureComponentUpdateInput[] input,
         CancellationToken cancellationToken = default
@@ -140,7 +152,7 @@ internal sealed class ContainerManagementOperationQueue : IContainerManagementOp
         _logger.LogInformation("About to queue update operation with job id: {JobId}", jobId);
 
         activity?.SetTag(nameof(jobId), jobId);
-
+        
         await _updateOperationChannel.Writer.WriteAsync(
             new KeyValuePair<
                 Guid,
@@ -158,6 +170,8 @@ internal sealed class ContainerManagementOperationQueue : IContainerManagementOp
             cancellationToken
         );
 
+        _memoryCache.Set(jobId, new ContainerUpdateJobState { JobId = jobId, Status = ContainerUpdateJobStatusEnum.NotStarted });
+        
         return jobId;
     }
 }

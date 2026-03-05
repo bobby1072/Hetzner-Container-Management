@@ -15,17 +15,20 @@ public sealed class ContainerManagementUpdateBackgroundExecutorTests
 {
     private readonly Mock<IContainerManagementOperationQueue> _mockOperationQueue;
     private readonly Mock<IContainerManagementUpdateService> _mockContainerManagementService;
+    private readonly Mock<IContainerManagementCleanerService> _mockCleanerService;
 
     public ContainerManagementUpdateBackgroundExecutorTests()
     {
         _mockOperationQueue = new Mock<IContainerManagementOperationQueue>();
         _mockContainerManagementService = new Mock<IContainerManagementUpdateService>();
+        _mockCleanerService = new Mock<IContainerManagementCleanerService>();
     }
 
     private ContainerManagementUpdateBackgroundExecutor CreateSut()
     {
         var services = new ServiceCollection();
         services.AddSingleton(_mockContainerManagementService.Object);
+        services.AddSingleton(_mockCleanerService.Object);
         var serviceProvider = services.BuildServiceProvider();
         var scopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
 
