@@ -28,7 +28,7 @@ public static class HostApplicationBuilderExtensions
             .AddHttpClientStuff(configuration);
         
         services
-            .AddTelemetryService(
+            .AddTelemetryServices(
                 string.IsNullOrWhiteSpace(serviceInfo.ReleaseName)
                     ? Assembly
                         .GetExecutingAssembly()
@@ -55,7 +55,7 @@ public static class HostApplicationBuilderExtensions
         
         hostAppBuilder
             .Services
-            .AddTelemetryService(
+            .AddTelemetryServices(
                 string.IsNullOrWhiteSpace(serviceInfo.ReleaseName)
                 ? Assembly
                     .GetExecutingAssembly()

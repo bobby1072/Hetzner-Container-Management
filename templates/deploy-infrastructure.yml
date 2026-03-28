@@ -23,16 +23,21 @@ steps:
   - task: PowerShell@2
     displayName: 'Deploy Infrastructure Update'
     timeoutInMinutes: 15
+    env:
+      DEPLOY_SERVER_URL: ${{ parameters.serverUrl }}
+      DEPLOY_API_KEY: ${{ parameters.apiKey }}
+      DEPLOY_REQUEST_BODY_PATH: ${{ parameters.requestBodyPath }}
+      DEPLOY_ALLOW_INSECURE_TLS: ${{ parameters.allowInsecureTls }}
     inputs:
       targetType: 'inline'
       script: |
         $ErrorActionPreference = "Stop"
 
         # Validate parameters
-        $serverUrl = "${{ parameters.serverUrl }}".TrimEnd('/')
-        $apiKey = "${{ parameters.apiKey }}"
-        $requestBodyPath = "${{ parameters.requestBodyPath }}"
-        $allowInsecureTls = "${{ parameters.allowInsecureTls }}" -eq "true"
+        $serverUrl = $env:DEPLOY_SERVER_URL.TrimEnd('/')
+        $apiKey = $env:DEPLOY_API_KEY
+        $requestBodyPath = $env:DEPLOY_REQUEST_BODY_PATH
+        $allowInsecureTls = $env:DEPLOY_ALLOW_INSECURE_TLS -eq "true"
 
         if ([string]::IsNullOrWhiteSpace($serverUrl)) {
             Write-Error "Server URL parameter is required"
