@@ -80,6 +80,7 @@ try
     app.UseAuthorization();
 
     app
+        .UseBadRequestExceptionHandlingMiddleware()
         .UseMiddleware<ExceptionHandlingMiddleware>()
         .UseCorrelationIdMiddleware()
         .UseMiddleware<ApiKeyMiddleware>();

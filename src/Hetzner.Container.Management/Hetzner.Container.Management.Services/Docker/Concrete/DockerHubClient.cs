@@ -94,8 +94,7 @@ internal sealed class DockerHubClient : BaseDockerClient, IDockerHubClient
                 .AppendPathSegment("repositories")
                 .AppendPathSegment(dockerHubDetails.RepositoryName)
                 .AppendPathSegment("tags")
-                .AppendPathSegment(tag)
-                .WithHeader(HeaderNames.Authorization, $"Bearer {accessToken}");
+                .AppendPathSegment(tag);
 
             if (!string.IsNullOrWhiteSpace(accessToken))
             {
