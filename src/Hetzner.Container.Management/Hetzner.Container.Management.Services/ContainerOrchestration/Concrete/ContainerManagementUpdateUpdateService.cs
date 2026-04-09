@@ -1,5 +1,6 @@
 using System.Net;
 using BT.Common.Api.Helpers.Exceptions;
+using BT.Common.Helpers.Extensions;
 using BT.Common.Helpers.Models;
 using BT.Common.Polly.Extensions;
 using BT.Common.Polly.Models.Concrete;
@@ -676,7 +677,6 @@ internal sealed class ContainerManagementUpdateUpdateService : IContainerManagem
         {
             Image = imageFull,
             Env = infrastructureComponentInput.CreateEnvStringArrayFromConfigMap(),
-
             Labels = infrastructureComponentInput
                 .Labels.Concat(
                     new Dictionary<string, string>
@@ -690,7 +690,14 @@ internal sealed class ContainerManagementUpdateUpdateService : IContainerManagem
                     }
                 )
                 .ToDictionary(),
-            HostConfig = new HostConfig { RestartPolicy = new RestartPolicy { Name = "always" } },
+            HostConfig = 
+                new HostConfig
+                {
+                    RestartPolicy = new RestartPolicy
+                    {
+                        Name =  infrastructureComponentInput.RestartPolicy?.GetDisplayName() ?? "always"
+                    }
+                },
         };
 
         if (infrastructureComponentInput.Networks.Any())
