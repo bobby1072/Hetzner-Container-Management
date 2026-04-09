@@ -34,6 +34,10 @@ public sealed partial record InfrastructureComponentUpdateInput
 
     [JsonPropertyName("networks")]
     public IReadOnlyCollection<string> Networks { get; init; } = new List<string>();
+    
+    [JsonPropertyName("restartPolicy")]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public RestartPolicyEnum?  RestartPolicy { get; init; }
 
     public Func<(bool, string?)>[] ValidatorFunctions =>
         [IsPublicFacingPortNumberValid, IsInternalPortNumberValid, IsValidContainerName];
