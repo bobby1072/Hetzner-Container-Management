@@ -1,5 +1,4 @@
 using Hetzner.Container.Management.Schemas.Docker;
-using Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
 using Hetzner.Container.Management.Schemas.Docker.DockerHubApi;
 using Hetzner.Container.Management.Schemas.Input;
 

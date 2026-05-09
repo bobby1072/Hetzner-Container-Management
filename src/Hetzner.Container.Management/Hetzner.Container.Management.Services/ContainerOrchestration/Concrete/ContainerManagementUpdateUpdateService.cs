@@ -260,9 +260,8 @@ internal sealed class ContainerManagementUpdateUpdateService : IContainerManagem
             nameof(infrastructureComponentInput.ContainerName),
             infrastructureComponentInput.ContainerName
         );
-        var combinedImageName = $"{dockerHubFetchedDetails.RepoResp.Namespace}/{dockerHubFetchedDetails.RepoResp.Name}";
-        var combinedImageNameAndTag =
-            $"{combinedImageName}:{dockerHubFetchedDetails.RepoTag.Name}";
+        var combinedImageName =
+            $"{dockerHubFetchedDetails.RepoResp.Namespace}/{dockerHubFetchedDetails.RepoResp.Name}";
         var existingContainer = await GetExistingContainerFromDockerEngineAsync(
             infrastructureComponentInput.ContainerName,
             cancellationToken
@@ -375,8 +374,7 @@ internal sealed class ContainerManagementUpdateUpdateService : IContainerManagem
 
         var requestModel = BuildCreateContainerRequest(
             infrastructureComponentInput,
-            dockerHubFetchedDetails,
-            isVolumeDiff
+            dockerHubFetchedDetails
         );
 
         var createResult = await DockerEngineClient.Value.CreateContainerAsync(
@@ -406,8 +404,9 @@ internal sealed class ContainerManagementUpdateUpdateService : IContainerManagem
 
         var preStartTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-        var startResult = await DockerEngineClient.Value.StartContainerAsync(
+        var startResult = await DockerEngineClient.Value.SetContainerRunningAsync(
             containerId,
+            true,
             cancellationToken
         );
 
@@ -666,8 +665,7 @@ internal sealed class ContainerManagementUpdateUpdateService : IContainerManagem
 
     private ContainerCreateRequest BuildCreateContainerRequest(
         InfrastructureComponentUpdateInput infrastructureComponentInput,
-        (GetRepositoryResponse RepoResp, RepositoryTag RepoTag) dockerHubFetchedDetails,
-        bool mountVolume = false
+        (GetRepositoryResponse RepoResp, RepositoryTag RepoTag) dockerHubFetchedDetails
     )
     {
         var imageFull =
@@ -690,14 +688,13 @@ internal sealed class ContainerManagementUpdateUpdateService : IContainerManagem
                     }
                 )
                 .ToDictionary(),
-            HostConfig = 
-                new HostConfig
+            HostConfig = new HostConfig
+            {
+                RestartPolicy = new RestartPolicy
                 {
-                    RestartPolicy = new RestartPolicy
-                    {
-                        Name =  infrastructureComponentInput.RestartPolicy?.GetDisplayName() ?? "always"
-                    }
+                    Name = infrastructureComponentInput.RestartPolicy?.GetDisplayName() ?? "always",
                 },
+            },
         };
 
         if (infrastructureComponentInput.Networks.Any())
@@ -715,10 +712,7 @@ internal sealed class ContainerManagementUpdateUpdateService : IContainerManagem
                 },
             };
         }
-        if (
-            mountVolume
-            && !string.IsNullOrWhiteSpace(infrastructureComponentInput.Volume?.VolumeName)
-        )
+        if (!string.IsNullOrWhiteSpace(infrastructureComponentInput.Volume?.VolumeName))
         {
             request = request with
             {

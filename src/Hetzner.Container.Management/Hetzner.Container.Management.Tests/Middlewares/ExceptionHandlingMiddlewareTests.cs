@@ -1,7 +1,6 @@
 using System.Net;
 using BT.Common.Api.Helpers.Exceptions;
 using Hetzner.Container.Management.Api.Middlewares;
-using Hetzner.Container.Management.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
