@@ -110,24 +110,26 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         }
         catch (Exception ex)
         {
-            return HandleError(ex, nameof(StartContainerAsync));
+            return HandleError(ex, nameof(SetContainerRunningAsync));
         }
     }
 
-    public async Task<DockerApiActionResult> StartContainerAsync(
+    public async Task<DockerApiActionResult> SetContainerRunningAsync(
         string containerId,
+        bool running = true,
         CancellationToken cancellationToken = default
     )
     {
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(containerId), containerId);
+        activity?.SetTag(nameof(running), running);
 
         try
         {
             var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
-                .AppendPathSegment("start")
+                .AppendPathSegment(running ? "start" : "stop")
                 .AddAsyncErrorExtractor(ErrorExtractor);
 
             await builder.PostAsync(_httpClient, cancellationToken);
@@ -143,40 +145,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         }
         catch (Exception ex)
         {
-            return HandleError(ex, nameof(StartContainerAsync));
-        }
-    }
-
-    public async Task<DockerApiActionResult> StopContainerAsync(
-        string containerId,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
-        activity?.SetTag(nameof(containerId), containerId);
-
-        try
-        {
-            var builder = GetBaseUrl()
-                .AppendPathSegment("containers")
-                .AppendPathSegment(containerId)
-                .AppendPathSegment("stop")
-                .AddAsyncErrorExtractor(ErrorExtractor);
-
-            await builder.PostAsync(_httpClient, cancellationToken);
-            return new DockerApiActionResult();
-        }
-        catch (HttpRequestException ex)
-        {
-            return new DockerApiActionResult
-            {
-                ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
-            };
-        }
-        catch (Exception ex)
-        {
-            return HandleError(ex, nameof(StopContainerAsync));
+            return HandleError(ex, nameof(SetContainerRunningAsync));
         }
     }
 
@@ -220,20 +189,22 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         }
     }
 
-    public async Task<DockerApiActionResult> PauseContainerAsync(
+    public async Task<DockerApiActionResult> SetContainerPausedAsync(
         string containerId,
+        bool paused = true,
         CancellationToken cancellationToken = default
     )
     {
         using var activity = TelemetryHelperService.ActivitySource.StartActivity();
         activity?.SetTag(nameof(containerId), containerId);
+        activity?.SetTag(nameof(paused), paused);
 
         try
         {
             var builder = GetBaseUrl()
                 .AppendPathSegment("containers")
                 .AppendPathSegment(containerId)
-                .AppendPathSegment("pause")
+                .AppendPathSegment(paused ? "pause" : "unpause")
                 .AddAsyncErrorExtractor(ErrorExtractor);
 
             await builder.PostAsync(_httpClient, cancellationToken);
@@ -249,40 +220,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
         }
         catch (Exception ex)
         {
-            return HandleError(ex, nameof(PauseContainerAsync));
-        }
-    }
-
-    public async Task<DockerApiActionResult> UnpauseContainerAsync(
-        string containerId,
-        CancellationToken cancellationToken = default
-    )
-    {
-        using var activity = TelemetryHelperService.ActivitySource.StartActivity();
-        activity?.SetTag(nameof(containerId), containerId);
-
-        try
-        {
-            var builder = GetBaseUrl()
-                .AppendPathSegment("containers")
-                .AppendPathSegment(containerId)
-                .AppendPathSegment("unpause")
-                .AddAsyncErrorExtractor(ErrorExtractor);
-
-            await builder.PostAsync(_httpClient, cancellationToken);
-            return new DockerApiActionResult();
-        }
-        catch (HttpRequestException ex)
-        {
-            return new DockerApiActionResult
-            {
-                ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
-            };
-        }
-        catch (Exception ex)
-        {
-            return HandleError(ex, nameof(UnpauseContainerAsync));
+            return HandleError(ex, nameof(SetContainerPausedAsync));
         }
     }
 

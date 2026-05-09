@@ -437,7 +437,13 @@ public sealed class ContainerManagementUpdateUpdateServiceTests
             );
 
         _mockDockerEngineClient
-            .Setup(x => x.StartContainerAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(x =>
+                x.SetContainerRunningAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(ContainerManagementServiceTestFixture.CreateSuccessResult<object?>(null));
 
         _mockDockerEngineClient
@@ -694,7 +700,13 @@ public sealed class ContainerManagementUpdateUpdateServiceTests
             );
 
         _mockDockerEngineClient
-            .Setup(x => x.StartContainerAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(x =>
+                x.SetContainerRunningAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(ContainerManagementServiceTestFixture.CreateSuccessResult<object?>(null));
 
         _mockDockerEngineClient
@@ -867,7 +879,13 @@ public sealed class ContainerManagementUpdateUpdateServiceTests
             );
 
         _mockDockerEngineClient
-            .Setup(x => x.StartContainerAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(x =>
+                x.SetContainerRunningAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(ContainerManagementServiceTestFixture.CreateSuccessResult<object?>(null));
 
         _mockDockerEngineClient
@@ -918,7 +936,12 @@ public sealed class ContainerManagementUpdateUpdateServiceTests
             Times.Once
         );
         _mockDockerEngineClient.Verify(
-            x => x.StartContainerAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            x =>
+                x.SetContainerRunningAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>()
+                ),
             Times.Once
         );
     }
@@ -1009,7 +1032,13 @@ public sealed class ContainerManagementUpdateUpdateServiceTests
             );
 
         _mockDockerEngineClient
-            .Setup(x => x.StartContainerAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(x =>
+                x.SetContainerRunningAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(
                 ContainerManagementServiceTestFixture.CreateFailureResult<object?>(
                     "Failed to start container"
@@ -1327,7 +1356,13 @@ public sealed class ContainerManagementUpdateUpdateServiceTests
             );
 
         _mockDockerEngineClient
-            .Setup(x => x.StartContainerAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(x =>
+                x.SetContainerRunningAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(ContainerManagementServiceTestFixture.CreateSuccessResult<object?>(null));
 
         _mockDockerEngineClient
@@ -1480,7 +1515,13 @@ public sealed class ContainerManagementUpdateUpdateServiceTests
             );
 
         _mockDockerEngineClient
-            .Setup(x => x.StartContainerAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(x =>
+                x.SetContainerRunningAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync(ContainerManagementServiceTestFixture.CreateSuccessResult<object?>(null));
 
         _mockDockerEngineClient

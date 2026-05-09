@@ -262,7 +262,6 @@ internal sealed class ContainerManagementUpdateUpdateService : IContainerManagem
         );
         var combinedImageName =
             $"{dockerHubFetchedDetails.RepoResp.Namespace}/{dockerHubFetchedDetails.RepoResp.Name}";
-        var combinedImageNameAndTag = $"{combinedImageName}:{dockerHubFetchedDetails.RepoTag.Name}";
         var existingContainer = await GetExistingContainerFromDockerEngineAsync(
             infrastructureComponentInput.ContainerName,
             cancellationToken
@@ -405,8 +404,9 @@ internal sealed class ContainerManagementUpdateUpdateService : IContainerManagem
 
         var preStartTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-        var startResult = await DockerEngineClient.Value.StartContainerAsync(
+        var startResult = await DockerEngineClient.Value.SetContainerRunningAsync(
             containerId,
+            true,
             cancellationToken
         );
 

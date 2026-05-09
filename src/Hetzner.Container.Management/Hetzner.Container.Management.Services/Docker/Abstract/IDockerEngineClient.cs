@@ -16,12 +16,9 @@ internal interface IDockerEngineClient
         bool deleteVolumes = false,
         CancellationToken cancellationToken = default
     );
-    Task<DockerApiActionResult> StartContainerAsync(
+    Task<DockerApiActionResult> SetContainerRunningAsync(
         string containerId,
-        CancellationToken cancellationToken = default
-    );
-    Task<DockerApiActionResult> StopContainerAsync(
-        string containerId,
+        bool running = true,
         CancellationToken cancellationToken = default
     );
     Task<DockerApiActionResult> RestartContainerAsync(
@@ -33,12 +30,9 @@ internal interface IDockerEngineClient
         string? signal = null,
         CancellationToken cancellationToken = default
     );
-    Task<DockerApiActionResult> PauseContainerAsync(
+    Task<DockerApiActionResult> SetContainerPausedAsync(
         string containerId,
-        CancellationToken cancellationToken = default
-    );
-    Task<DockerApiActionResult> UnpauseContainerAsync(
-        string containerId,
+        bool paused = true,
         CancellationToken cancellationToken = default
     );
     Task<DockerApiActionResult> RenameContainerAsync(
