@@ -16,23 +16,23 @@ headers {
 
 body:json {
   [
-    {
+      {
       "dockerHubDetails": {
-        "username": "bobby1072",
-        "password": "Crudboys123@",
-        "repositoryName": "hetzner-container-management",
-        "namespace": "bobby1072"
+        "namespace": "library",
+        "repositoryName": "postgres"
       },
+      "imageTag": "18-alpine",
       "containerName": "test-container",
       "externalPortNumber": 4000,
-      "internalPortNumber": 80,
+      "internalPortNumber": 5432,
       "configMap": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "http://+80",
-        "ApiKey__0": "test-api-key"
+        "POSTGRES_DB": "poke_game",
+        "POSTGRES_USER": "<USE-SECRETS>",
+        "POSTGRES_PASSWORD": "<USE-SECRETS>"
       },
-      "labels": {
-        "testKey": "testVal"
+      "volumeInfo": {
+        "volumeName": "postgres_data",
+        "internalMountTarget": "/var/lib/postgresql"
       }
     }
   ]

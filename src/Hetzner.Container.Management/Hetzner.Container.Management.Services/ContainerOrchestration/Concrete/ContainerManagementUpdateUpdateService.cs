@@ -375,8 +375,7 @@ internal sealed class ContainerManagementUpdateUpdateService : IContainerManagem
 
         var requestModel = BuildCreateContainerRequest(
             infrastructureComponentInput,
-            dockerHubFetchedDetails,
-            isVolumeDiff
+            dockerHubFetchedDetails
         );
 
         var createResult = await DockerEngineClient.Value.CreateContainerAsync(
@@ -666,8 +665,7 @@ internal sealed class ContainerManagementUpdateUpdateService : IContainerManagem
 
     private ContainerCreateRequest BuildCreateContainerRequest(
         InfrastructureComponentUpdateInput infrastructureComponentInput,
-        (GetRepositoryResponse RepoResp, RepositoryTag RepoTag) dockerHubFetchedDetails,
-        bool mountVolume = false
+        (GetRepositoryResponse RepoResp, RepositoryTag RepoTag) dockerHubFetchedDetails
     )
     {
         var imageFull =
@@ -714,10 +712,7 @@ internal sealed class ContainerManagementUpdateUpdateService : IContainerManagem
                 },
             };
         }
-        if (
-            mountVolume
-            && !string.IsNullOrWhiteSpace(infrastructureComponentInput.Volume?.VolumeName)
-        )
+        if (!string.IsNullOrWhiteSpace(infrastructureComponentInput.Volume?.VolumeName))
         {
             request = request with
             {
