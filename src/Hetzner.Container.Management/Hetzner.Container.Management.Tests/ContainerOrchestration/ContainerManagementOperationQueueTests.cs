@@ -1,4 +1,5 @@
 using System.Net;
+using System.Threading.Channels;
 using BT.Common.Api.Helpers.Exceptions;
 using Hetzner.Container.Management.Schemas.Infrastructure;
 using Hetzner.Container.Management.Schemas.Input;
@@ -313,7 +314,7 @@ public sealed class ContainerManagementOperationQueueTests : IDisposable
         queue.Dispose();
 
         // Act & Assert - writing to a completed channel throws
-        await Assert.ThrowsAsync<System.Threading.Channels.ChannelClosedException>(
+        await Assert.ThrowsAsync<ChannelClosedException>(
             () => queue.QueueUpdateOperation(input)
         );
     }

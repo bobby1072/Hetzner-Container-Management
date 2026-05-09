@@ -1,5 +1,4 @@
 ﻿using Hetzner.Container.Management.Schemas.Docker;
-using Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
 using Microsoft.Extensions.Logging;
 
 namespace Hetzner.Container.Management.Services.Docker.Abstract;

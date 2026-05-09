@@ -5,7 +5,6 @@ using BT.Common.Services.Concrete;
 using Hetzner.Container.Management.Schemas.Infrastructure;
 using Hetzner.Container.Management.Schemas.Input;
 using Hetzner.Container.Management.Services.ContainerOrchestration.Abstract;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

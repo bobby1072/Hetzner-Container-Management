@@ -5,13 +5,11 @@ using Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
 using Hetzner.Container.Management.Schemas.Docker.DockerHubApi;
 using Hetzner.Container.Management.Schemas.Infrastructure;
 using Hetzner.Container.Management.Schemas.Input;
-using Hetzner.Container.Management.Services.ContainerOrchestration.Abstract;
 using Hetzner.Container.Management.Services.ContainerOrchestration.Concrete;
 using Hetzner.Container.Management.Services.Docker.Abstract;
 using Hetzner.Container.Management.Services.Infrastructure.Abstract;
 using Hetzner.Container.Management.Tests.TestFixtures;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 

@@ -2,7 +2,6 @@
 using System.Net.Mime;
 using BT.Common.Api.Helpers;
 using BT.Common.Api.Helpers.Exceptions;
-using BT.Common.Api.Helpers.Models;
 using Hetzner.Container.Management.Services;
 
 namespace Hetzner.Container.Management.Api.Middlewares;

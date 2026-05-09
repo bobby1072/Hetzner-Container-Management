@@ -260,9 +260,9 @@ internal sealed class ContainerManagementUpdateUpdateService : IContainerManagem
             nameof(infrastructureComponentInput.ContainerName),
             infrastructureComponentInput.ContainerName
         );
-        var combinedImageName = $"{dockerHubFetchedDetails.RepoResp.Namespace}/{dockerHubFetchedDetails.RepoResp.Name}";
-        var combinedImageNameAndTag =
-            $"{combinedImageName}:{dockerHubFetchedDetails.RepoTag.Name}";
+        var combinedImageName =
+            $"{dockerHubFetchedDetails.RepoResp.Namespace}/{dockerHubFetchedDetails.RepoResp.Name}";
+        var combinedImageNameAndTag = $"{combinedImageName}:{dockerHubFetchedDetails.RepoTag.Name}";
         var existingContainer = await GetExistingContainerFromDockerEngineAsync(
             infrastructureComponentInput.ContainerName,
             cancellationToken
@@ -690,14 +690,13 @@ internal sealed class ContainerManagementUpdateUpdateService : IContainerManagem
                     }
                 )
                 .ToDictionary(),
-            HostConfig = 
-                new HostConfig
+            HostConfig = new HostConfig
+            {
+                RestartPolicy = new RestartPolicy
                 {
-                    RestartPolicy = new RestartPolicy
-                    {
-                        Name =  infrastructureComponentInput.RestartPolicy?.GetDisplayName() ?? "always"
-                    }
+                    Name = infrastructureComponentInput.RestartPolicy?.GetDisplayName() ?? "always",
                 },
+            },
         };
 
         if (infrastructureComponentInput.Networks.Any())
