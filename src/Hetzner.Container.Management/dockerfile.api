@@ -9,7 +9,7 @@ USER 10000
 
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS publish
+FROM mcr.microsoft.com/dotnet/sdk:11.0-alpine AS publish
 ARG CONF=Release
 
 WORKDIR /src
