@@ -43,6 +43,33 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+function Write-Log {
+    param(
+        [Parameter(Mandatory)][string]$Message,
+        [ValidateSet('INFO', 'OK', 'WARN', 'ERROR')][string]$Level = 'INFO'
+    )
+    $line = "[$(Get-Date -Format 'HH:mm:ss')] [$Level] $Message"
+    switch ($Level) {
+        'WARN'  { Write-Warning $line }
+        'OK'    { Write-Host $line -ForegroundColor Green }
+        'ERROR' { Write-Host $line -ForegroundColor Red }
+        default { Write-Host $line }
+    }
+}
+
+function Write-Step {
+    param([int]$Number, [int]$Total, [string]$Title)
+    Write-Host ''
+    Write-Host "===== Step ${Number}/${Total}: ${Title} =====" -ForegroundColor Cyan
+}
+
+function Get-ShortId {
+    param([string]$Id)
+    if (-not $Id) { return 'unknown' }
+    $hex = $Id -replace '^sha256:', ''
+    $hex.Substring(0, [Math]::Min(12, $hex.Length))
+}
+
 function Get-EnvValue {
     param([string]$Name)
     foreach ($scope in 'Process', 'User', 'Machine') {
@@ -86,19 +113,28 @@ function Invoke-RemoteCommand {
         [switch]$Quiet
     )
 
-    Write-Host "==> $Description" -ForegroundColor Cyan
+    Write-Log "$Description..."
+    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     $result = Invoke-SSHCommand -SSHSession $Session -Command $Command -TimeOut $TimeoutSeconds
+    $stopwatch.Stop()
+    $seconds = [int]$stopwatch.Elapsed.TotalSeconds
     if ($result.Output -and -not $Quiet) {
         $result.Output | ForEach-Object { Write-Host "    $_" }
     }
 
     if ($result.ExitStatus -ne 0) {
+        if ($result.Error) {
+            $result.Error | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkYellow }
+        }
         if ($AllowFailure) {
-            Write-Host "    (exit code $($result.ExitStatus), continuing)" -ForegroundColor DarkYellow
+            Write-Log "$Description finished with exit code $($result.ExitStatus) after ${seconds}s, continuing." -Level WARN
         }
         else {
-            throw "Remote step '$Description' failed with exit code $($result.ExitStatus)."
+            throw "$Description failed with exit code $($result.ExitStatus) after ${seconds}s."
         }
+    }
+    else {
+        Write-Log "$Description done (${seconds}s)." -Level OK
     }
 
     return $result
@@ -107,7 +143,8 @@ function Invoke-RemoteCommand {
 function Wait-ForReboot {
     param([string]$HostName, [pscredential]$Credential)
 
-    Write-Host 'Waiting for the server to shut down...' -ForegroundColor Cyan
+    $rebootStart = Get-Date
+    Write-Log 'Waiting for the server to shut down (up to 3 minutes)...'
     $shutdownDeadline = (Get-Date).AddMinutes(3)
     while (Test-TcpPort -HostName $HostName) {
         if ((Get-Date) -gt $shutdownDeadline) {
@@ -116,19 +153,28 @@ function Wait-ForReboot {
         Start-Sleep -Seconds 3
     }
 
-    Write-Host 'Waiting for the server to come back online...' -ForegroundColor Cyan
+    Write-Log "Server is offline after $([int]((Get-Date) - $rebootStart).TotalSeconds)s. Waiting for it to come back online (up to 10 minutes)..."
     $startDeadline = (Get-Date).AddMinutes(10)
+    $lastProgress = Get-Date
+    $lastError = $null
     while ($true) {
         if (Test-TcpPort -HostName $HostName) {
             try {
-                return Open-ServerSession -HostName $HostName -Credential $Credential
+                $session = Open-ServerSession -HostName $HostName -Credential $Credential
+                Write-Log "SSH is available again after $([int]((Get-Date) - $rebootStart).TotalSeconds)s." -Level OK
+                return $session
             }
             catch {
-                Write-Verbose "SSH not ready yet: $($_.Exception.Message)"
+                $lastError = $_.Exception.Message
             }
         }
         if ((Get-Date) -gt $startDeadline) {
             throw 'The server did not come back online within 10 minutes of the reboot.'
+        }
+        if (((Get-Date) - $lastProgress).TotalSeconds -ge 30) {
+            $detail = if ($lastError) { " (last error: $lastError)" } else { '' }
+            Write-Log "Still waiting for SSH after $([int]((Get-Date) - $rebootStart).TotalSeconds)s$detail"
+            $lastProgress = Get-Date
         }
         Start-Sleep -Seconds 10
     }
@@ -213,25 +259,32 @@ function Get-ContainerRunPlan {
     }
 }
 
+$runStart = Get-Date
+Write-Log "Starting Hetzner server update (container '$ContainerName', image '$Image'$(if ($DryRun) { ', dry run' }))."
+
 $serverIp = Get-EnvValue -Name 'Dev_Hetzner_SSH'
 $rootPassword = Get-EnvValue -Name 'Dev_Hetzner_SSH_Root_Password'
 if (-not $serverIp) { throw 'Environment variable Dev_Hetzner_SSH (server IP) is not set.' }
 if (-not $rootPassword) { throw 'Environment variable Dev_Hetzner_SSH_Root_Password is not set.' }
+Write-Log 'Server address and root password loaded from environment variables.'
 
 if (-not (Get-Module -ListAvailable -Name Posh-SSH)) {
-    Write-Host 'Posh-SSH module not found, installing it for the current user...' -ForegroundColor Yellow
+    Write-Log 'Posh-SSH module not found, installing it for the current user...'
     Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Scope CurrentUser -Force | Out-Null
     Install-Module -Name Posh-SSH -Scope CurrentUser -Force -AllowClobber
 }
 Import-Module Posh-SSH
+Write-Log "Posh-SSH $((Get-Module -Name Posh-SSH).Version) loaded."
 
 $credential = [pscredential]::new('root', (ConvertTo-SecureString $rootPassword -AsPlainText -Force))
 $aptEnv = 'DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a'
 $session = $null
 
 try {
-    Write-Host "Connecting to root@$serverIp ..." -ForegroundColor Cyan
+    Write-Step 1 6 'Connecting and reading the current state'
+    Write-Log 'Connecting to the server as root...'
     $session = Open-ServerSession -HostName $serverIp -Credential $credential
+    Write-Log 'Connected.' -Level OK
 
     $rebootState = Invoke-SSHCommand -SSHSession $session -Command 'test -f /var/run/reboot-required' -TimeOut 60
     $rebootRequired = ($rebootState.ExitStatus -eq 0)
@@ -241,36 +294,40 @@ try {
     $imageConfigResult = Invoke-RemoteCommand -Session $session -Description 'Reading configuration of the current image' -Quiet -Command "docker image inspect --format '{{json .Config}}' $(ConvertTo-ShellArgument $container.Image)"
     $imageConfig = ($imageConfigResult.Output -join '') | ConvertFrom-Json
     $plan = Get-ContainerRunPlan -Container $container -ImageConfig $imageConfig -ImageName $Image
+    $previousImageId = $container.Image
 
     $apiKeyLine = @($container.Config.Env | Where-Object { $_ -like 'ApiKey__0=*' } | Select-Object -First 1)
     $apiKey = if ($apiKeyLine) { $apiKeyLine.Substring('ApiKey__0='.Length) } else { $null }
 
-    Write-Host "Current container: state=$($container.State.Status), image=$($container.Config.Image), networks=$($plan.NetworkCount), env vars=$($plan.EnvCount), labels=$($plan.LabelCount), mounts=$($plan.MountCount)"
+    Write-Log "Current container: state=$($container.State.Status), image=$($container.Config.Image), networks=$($plan.NetworkCount), env vars=$($plan.EnvCount), labels=$($plan.LabelCount), mounts=$($plan.MountCount)"
 
     if ($DryRun) {
         Invoke-RemoteCommand -Session $session -Description 'Host status' -Command 'hostname; uptime -p' | Out-Null
-        if ($rebootRequired) { Write-Host 'Reboot required: yes' } else { Write-Host 'Reboot required: no' }
-        Write-Host 'Dry run complete. No changes were made.' -ForegroundColor Green
+        Write-Log "Reboot pending: $(if ($rebootRequired) { 'yes' } else { 'no' })"
+        Write-Log 'Dry run complete. No changes were made.' -Level OK
         return
     }
 
+    Write-Step 2 6 'Updating Linux packages'
     Invoke-RemoteCommand -Session $session -Description 'Updating package lists' -Command 'apt-get update' -TimeoutSeconds 900 | Out-Null
     Invoke-RemoteCommand -Session $session -Description 'Upgrading Linux packages' -TimeoutSeconds 3600 -Command "$aptEnv apt-get -y -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold upgrade" | Out-Null
     Invoke-RemoteCommand -Session $session -Description 'Removing unused packages' -TimeoutSeconds 900 -Command "$aptEnv apt-get -y autoremove" | Out-Null
 
+    Write-Step 3 6 'Rebooting if required'
     $rebootState = Invoke-SSHCommand -SSHSession $session -Command 'test -f /var/run/reboot-required' -TimeOut 60
     if ($rebootState.ExitStatus -eq 0) {
-        Write-Host 'Reboot required after the upgrade. Rebooting...' -ForegroundColor Yellow
+        Write-Log 'Reboot required after the upgrade. Rebooting the server...'
         Invoke-RemoteCommand -Session $session -Description 'Scheduling reboot' -TimeoutSeconds 60 -Command "nohup sh -c 'sleep 3; systemctl reboot' </dev/null >/dev/null 2>&1 &" | Out-Null
         Remove-SSHSession -SSHSession $session | Out-Null
         $session = $null
         $session = Wait-ForReboot -HostName $serverIp -Credential $credential
-        Write-Host 'Server is back online.' -ForegroundColor Green
     }
     else {
-        Write-Host 'No reboot required.' -ForegroundColor Green
+        Write-Log 'No reboot required after the upgrade.' -Level OK
     }
 
+    Write-Step 4 6 'Checking Docker'
+    Write-Log 'Waiting for Docker to respond...'
     $dockerDeadline = (Get-Date).AddMinutes(3)
     while ($true) {
         $dockerReady = Invoke-SSHCommand -SSHSession $session -Command 'docker info >/dev/null 2>&1' -TimeOut 60
@@ -279,35 +336,61 @@ try {
         Start-Sleep -Seconds 5
     }
 
+    Write-Log 'Docker is ready.' -Level OK
+
+    Write-Step 5 6 'Replacing the container and image'
     Invoke-RemoteCommand -Session $session -Description "Removing container '$ContainerName'" -AllowFailure -Command "docker rm -f $(ConvertTo-ShellArgument $ContainerName)" | Out-Null
     Invoke-RemoteCommand -Session $session -Description "Removing image '$Image'" -AllowFailure -Command "docker rmi $(ConvertTo-ShellArgument $Image)" | Out-Null
     Invoke-RemoteCommand -Session $session -Description "Pulling latest image '$Image'" -TimeoutSeconds 1800 -Command "docker pull $(ConvertTo-ShellArgument $Image)" | Out-Null
+    $newImage = Invoke-RemoteCommand -Session $session -Description 'Checking the pulled image' -Quiet -Command "docker image inspect --format '{{.Id}}' $(ConvertTo-ShellArgument $Image)"
+    $newImageId = ($newImage.Output -join '').Trim()
+    if ($newImageId -eq $previousImageId) {
+        Write-Log "Image is unchanged ($(Get-ShortId $newImageId)), so the server already had the latest version." -Level OK
+    }
+    else {
+        Write-Log "Image updated: $(Get-ShortId $previousImageId) -> $(Get-ShortId $newImageId)" -Level OK
+    }
 
-    Invoke-RemoteCommand -Session $session -Description "Starting container '$ContainerName' with its previous configuration" -Quiet -Command $plan.RunCommand | Out-Null
+    $runResult = Invoke-RemoteCommand -Session $session -Description "Starting container '$ContainerName' with its previous configuration" -Quiet -Command $plan.RunCommand
+    Write-Log "Container started: $(Get-ShortId (($runResult.Output -join '').Trim()))" -Level OK
     foreach ($network in $plan.ExtraNetworks) {
         Invoke-RemoteCommand -Session $session -Description "Connecting '$ContainerName' to network '$network'" -Command "docker network connect $(ConvertTo-ShellArgument $network) $(ConvertTo-ShellArgument $ContainerName)" | Out-Null
     }
 
+    Write-Step 6 6 'Checking the health endpoint'
     $healthHeader = if ($apiKey) { "--header $(ConvertTo-ShellArgument "x-api-key: $apiKey")" } else { '' }
     $healthCommand = "docker exec $(ConvertTo-ShellArgument $ContainerName) wget -q -O /dev/null $healthHeader $(ConvertTo-ShellArgument "http://localhost:$InternalPort/Api/Healthz")"
+    Write-Log "Checking http://localhost:$InternalPort/Api/Healthz inside the container (up to 30 attempts)..."
     $healthy = $false
     for ($attempt = 1; $attempt -le 30 -and -not $healthy; $attempt++) {
         Start-Sleep -Seconds 2
         $health = Invoke-SSHCommand -SSHSession $session -Command $healthCommand -TimeOut 30
         $healthy = ($health.ExitStatus -eq 0)
+        if ($healthy) {
+            Write-Log "Attempt $attempt/30: the health endpoint responded." -Level OK
+        }
+        else {
+            Write-Log "Attempt $attempt/30: not ready yet."
+        }
     }
     if ($healthy) {
-        Write-Host 'Health check passed (/Api/Healthz returned HTTP 200 inside the container).' -ForegroundColor Green
+        Write-Log 'Health check passed (/Api/Healthz returned HTTP 200 inside the container).' -Level OK
     }
     else {
-        Write-Warning "Health check did not succeed. Check the logs on the server with: docker logs $ContainerName"
+        throw "Health check did not succeed after 30 attempts. Check the logs on the server with: docker logs $ContainerName"
     }
 
     Invoke-RemoteCommand -Session $session -Description 'Final container status' -Command "docker ps --filter $(ConvertTo-ShellArgument "name=^$($ContainerName)$") --format '{{.Names}}  {{.Image}}  {{.Status}}'" | Out-Null
-    Write-Host 'Update complete.' -ForegroundColor Green
+    $elapsed = (Get-Date) - $runStart
+    Write-Log "Update complete in $([math]::Round($elapsed.TotalMinutes, 1)) minutes." -Level OK
+}
+catch {
+    Write-Log "Update failed: $($_.Exception.Message)" -Level ERROR
+    throw
 }
 finally {
     if ($session) {
+        Write-Log 'Closing the SSH session.'
         Remove-SSHSession -SSHSession $session -ErrorAction SilentlyContinue | Out-Null
     }
 }
