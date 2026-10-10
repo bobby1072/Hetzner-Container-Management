@@ -11,6 +11,8 @@ variables:
     value: "false"
   - name: ApiKey.0
     value: ""
+
+    
 trigger:
   branches:
     include:
@@ -96,3 +98,32 @@ stages:
               tags: |
                 latest
                 $(Build.BuildNumber)             
+
+  - stage: DeployDevServer
+    displayName: "Update dev server"
+    dependsOn: Publish
+    condition: and(succeeded(), eq(variables.isMain, true))
+    jobs:
+      - deployment: update_dev_server
+        displayName: "Update Hetzner server and redeploy container"
+        timeoutInMinutes: "45"
+        environment: dev-infra
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - pwsh: |
+                    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+                    Install-Module -Name Posh-SSH -Scope CurrentUser -Force
+                  displayName: "Install Posh-SSH"
+
+                - task: PowerShell@2
+                  displayName: "Update server and redeploy container"
+                  inputs:
+                    filePath: "$(Build.SourcesDirectory)/scripts/Update-HetznerServer.ps1"
+                    pwsh: true
+                  env:
+                    Dev_Hetzner_SSH: $(Dev_Hetzner_SSH)
+                    Dev_Hetzner_SSH_Root_Password: $(Dev_Hetzner_SSH_Root_Password)

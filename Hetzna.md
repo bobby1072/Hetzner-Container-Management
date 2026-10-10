@@ -99,6 +99,35 @@ docker run -d \
 | Internal port | `80`                                    |
 | TLS           | Terminated by Traefik via Let's Encrypt |
 
+## 5. Updating the Server
+
+[`scripts/Update-HetznerServer.ps1`](scripts/Update-HetznerServer.ps1) updates the server over SSH, reboots it if needed, and redeploys the Container Management container from the latest image.
+
+The script reads its settings from environment variables, so no secrets are stored in the file:
+
+| Variable                        | Purpose              |
+| ------------------------------- | -------------------- |
+| `Dev_Hetzner_SSH`               | Server IP address    |
+| `Dev_Hetzner_SSH_Root_Password` | Root SSH password    |
+
+```powershell
+# Read-only check: connects and reports state, changes nothing
+.\scripts\Update-HetznerServer.ps1 -DryRun
+
+# Full update
+.\scripts\Update-HetznerServer.ps1
+```
+
+The steps are:
+
+1. `apt-get update`, `apt-get upgrade`, `apt-get autoremove`
+2. Reboot if `/var/run/reboot-required` exists, then wait for the server to come back
+3. Read the current `container-management` container's configuration (env vars, labels, network, volumes, restart policy)
+4. Remove the container and its image, pull the latest image, and start a new container with the same configuration
+5. Check `/Api/Healthz` inside the container
+
+The script installs the `Posh-SSH` module for the current user on first run.
+
 ## Architecture
 
 ```
