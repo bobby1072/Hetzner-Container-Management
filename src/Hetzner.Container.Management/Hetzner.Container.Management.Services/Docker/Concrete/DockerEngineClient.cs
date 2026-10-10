@@ -7,7 +7,6 @@ using Hetzner.Container.Management.Schemas.Docker;
 using Hetzner.Container.Management.Schemas.Docker.DockerEngineApi;
 using Hetzner.Container.Management.Services.Docker.Abstract;
 using Microsoft.Extensions.Logging;
-using HttpRequestException = BT.Common.Http.Exceptions.HttpRequestException;
 
 namespace Hetzner.Container.Management.Services.Docker.Concrete;
 
@@ -58,7 +57,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<ContainerSummaryResponse[]?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -105,7 +104,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -140,7 +139,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -180,7 +179,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -215,7 +214,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -251,7 +250,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -286,7 +285,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -319,7 +318,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -357,7 +356,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<ContainerCreateResponse?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -396,7 +395,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<ContainerStatsResponse?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -450,7 +449,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<string?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -524,7 +523,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<ImageSummaryResponse[]?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -570,7 +569,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<ImageInspectResponse?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -613,7 +612,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<ContainerInspectResponse?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -648,7 +647,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<VolumeCreateResponse?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -683,7 +682,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<VolumeInspectResponse?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -722,7 +721,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -762,7 +761,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<ImagePruneResponse?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -802,7 +801,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<ContainerPruneResponse?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
@@ -842,7 +841,7 @@ internal sealed class DockerEngineClient : BaseDockerClient, IDockerEngineClient
             return new DockerApiActionResult<VolumePruneResponse?>
             {
                 ExceptionMessage = ex.Message,
-                StatusCode = ex.HttpStatusCode,
+                StatusCode = ex.StatusCode,
             };
         }
         catch (Exception ex)
